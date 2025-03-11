@@ -12,6 +12,12 @@ Bem-vindo ao **Viajados**, um aplicativo de viagens desenvolvido com **React Nat
 - Criação de roteiros de viagem  
 - Dicas e informações locais  
 
+## Como Instalar
+Instalar todas dependências
+```sh
+npm install
+````
+
 ## Pré-requisitos
 - Node.js  
 - npm ou yarn  
