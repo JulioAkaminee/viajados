@@ -1,9 +1,9 @@
 import { Text, View } from "react-native";
 
-export default function index(){
+export default function MinhaConta(){
     return(
         <View>
-            <Text>Explorar</Text>
+            <Text>Minha Conta</Text>
         </View>
     )
 }

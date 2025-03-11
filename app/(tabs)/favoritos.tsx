@@ -1,9 +1,9 @@
 import { Text, View } from "react-native";
 
-export default function index(){
+export default function Favoritos(){
     return(
         <View>
-            <Text>Explorar</Text>
+            <Text>Favoritos</Text>
         </View>
     )
 }
