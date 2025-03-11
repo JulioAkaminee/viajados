@@ -16,3 +16,6 @@ Bem-vindo ao **Viajados**, um aplicativo de viagens desenvolvido com **React Nat
 - Node.js  
 - npm ou yarn  
 - Expo
+## Regras
+- Todo Commit feito no projeto será analisado pelo Tech Lead (Julio Akamine);
+- Não será aceito commit's fora da padronização do código
