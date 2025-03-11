@@ -18,6 +18,25 @@ Instalar todas dependências
 npm install
 ````
 
+
+## 📌 Descrição dos Arquivos e Pastas  
+
+- **`README.md`** → Documentação do projeto.  
+- **`app.json`** → Configurações do aplicativo.  
+- **`package.json`** → Dependências e scripts do projeto.  
+- **`tsconfig.json`** → Configuração do TypeScript.  
+- **`app/`** → Diretório principal dos componentes do aplicativo.  
+  - **`+html.tsx`** e **`+not-found.tsx`** → Componentes de página.  
+  - **`_layout.tsx`** → Layout principal do app.  
+  - **`(tabs)/`** → Contém as abas do aplicativo:  
+    - `favoritos.tsx`, `index.tsx`, `minhaConta.tsx`, `minhasViagens.tsx`.  
+- **`assets/`** → Recursos do projeto.  
+  - **`fonts/`** → Contém fontes personalizadas.  
+  - **`images/`** → Diretório para imagens.  
+
+Isso ajudará a manter a organização e a documentação clara para o projeto! 🚀📂
+
+
 ## Pré-requisitos
 - Node.js  
 - npm ou yarn  
