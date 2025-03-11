@@ -1,0 +1,205 @@
+-- MySQL Workbench Forward Engineering
+
+SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0;
+SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0;
+SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION';
+
+-- -----------------------------------------------------
+-- Schema viajados
+-- -----------------------------------------------------
+CREATE SCHEMA IF NOT EXISTS `viajados` DEFAULT CHARACTER SET utf8mb4;
+USE `viajados`;
+
+-- -----------------------------------------------------
+-- Table `viajados`.`cidade`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `viajados`.`cidade` (
+  `id_cidade` INT NOT NULL AUTO_INCREMENT,
+  `nome` VARCHAR(100) NOT NULL,
+  `estado` VARCHAR(100) NOT NULL,
+  `pais` VARCHAR(100) NOT NULL,
+  PRIMARY KEY (`id_cidade`))
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8mb4;
+
+-- -----------------------------------------------------
+-- Table `viajados`.`aeroporto`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `viajados`.`aeroporto` (
+  `id_aeroporto` INT NOT NULL AUTO_INCREMENT,
+  `nome` VARCHAR(100) NOT NULL,
+  `codigo` VARCHAR(10) NOT NULL,
+  `id_cidade` INT NOT NULL,
+  `pais` VARCHAR(100) NOT NULL,
+  PRIMARY KEY (`id_aeroporto`),
+  INDEX `id_cidade` (`id_cidade` ASC),
+  CONSTRAINT `aeroporto_ibfk_1`
+    FOREIGN KEY (`id_cidade`)
+    REFERENCES `viajados`.`cidade` (`id_cidade`))
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8mb4;
+
+-- -----------------------------------------------------
+-- Table `viajados`.`hospedagem`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `viajados`.`hospedagem` (
+  `id_hospedagem` INT NOT NULL AUTO_INCREMENT,
+  `nome` VARCHAR(100) NOT NULL,
+  `tipo` ENUM('hotel', 'pousada', 'apartamento') NOT NULL,
+  `endereco` VARCHAR(150) NOT NULL,
+  `id_cidade` INT NOT NULL,
+  `preco_diaria` FLOAT NOT NULL,
+  `disponibilidade` INT(1) NOT NULL,
+  `categoria` ENUM('luxo', 'economico', 'padrao') NOT NULL, -- Coluna renomeada
+  PRIMARY KEY (`id_hospedagem`),
+  INDEX `id_cidade` (`id_cidade` ASC),
+  CONSTRAINT `hospedagem_ibfk_1`
+    FOREIGN KEY (`id_cidade`)
+    REFERENCES `viajados`.`cidade` (`id_cidade`))
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8mb4;
+
+-- -----------------------------------------------------
+-- Table `viajados`.`usuario`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `viajados`.`usuario` (
+  `id_usuario` INT NOT NULL AUTO_INCREMENT,
+  `nome` VARCHAR(100) NOT NULL,
+  `email` VARCHAR(100) NOT NULL,
+  `telefone` VARCHAR(15) NULL,
+  `senha` VARCHAR(100) NOT NULL,
+  `endereco` TEXT NULL,
+  `data_nascimento` DATE NOT NULL,
+  `tipo_usuario` ENUM('cliente', 'administrador') NOT NULL,
+  `foto` VARCHAR(255) NULL,
+  PRIMARY KEY (`id_usuario`),
+  UNIQUE INDEX `email` (`email` ASC))
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8mb4;
+
+-- -----------------------------------------------------
+-- Table `viajados`.`reserva`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `viajados`.`reserva` (
+  `id_reserva` INT NOT NULL AUTO_INCREMENT,
+  `data_reserva` DATETIME NOT NULL,
+  `status` ENUM('confirmada', 'cancelada', 'pendente') NOT NULL,
+  `data_check_in` DATE NOT NULL,
+  `data_check_out` DATE NOT NULL,
+  `id_usuario` INT NOT NULL,
+  PRIMARY KEY (`id_reserva`),
+  INDEX `id_usuario` (`id_usuario` ASC),
+  CONSTRAINT `reserva_ibfk_1`
+    FOREIGN KEY (`id_usuario`)
+    REFERENCES `viajados`.`usuario` (`id_usuario`))
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8mb4;
+
+-- -----------------------------------------------------
+-- Table `viajados`.`voo`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `viajados`.`voo` (
+  `id_voo` INT NOT NULL AUTO_INCREMENT,
+  `numero_voo` VARCHAR(10) NOT NULL,
+  `data_partida` DATETIME NOT NULL,
+  `data_chegada` DATETIME NOT NULL,
+  `aeroporto_origem` INT NOT NULL,
+  `aeroporto_destino` INT NOT NULL,
+  `preco` FLOAT NOT NULL,
+  PRIMARY KEY (`id_voo`),
+  INDEX `aeroporto_origem` (`aeroporto_origem` ASC),
+  INDEX `aeroporto_destino` (`aeroporto_destino` ASC),
+  CONSTRAINT `voo_ibfk_1`
+    FOREIGN KEY (`aeroporto_origem`)
+    REFERENCES `viajados`.`aeroporto` (`id_aeroporto`),
+  CONSTRAINT `voo_ibfk_2`
+    FOREIGN KEY (`aeroporto_destino`)
+    REFERENCES `viajados`.`aeroporto` (`id_aeroporto`))
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8mb4;
+
+-- -----------------------------------------------------
+-- Table `viajados`.`pagamento`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `viajados`.`pagamento` (
+  `id_pagamento` INT NOT NULL AUTO_INCREMENT,
+  `data_pagamento` DATETIME NOT NULL,
+  `valor` DECIMAL(10,2) NOT NULL,
+  `metodo_pagamento` ENUM('cartão', 'boleto', 'transferência') NOT NULL,
+  `id_reserva` INT NOT NULL,
+  `id_voo` INT NOT NULL,
+  PRIMARY KEY (`id_pagamento`),
+  INDEX `id_reserva` (`id_reserva` ASC),
+  INDEX `fk_pagamento_voo1_idx` (`id_voo` ASC),
+  CONSTRAINT `pagamento_ibfk_1`
+    FOREIGN KEY (`id_reserva`)
+    REFERENCES `viajados`.`reserva` (`id_reserva`),
+  CONSTRAINT `fk_pagamento_voo1`
+    FOREIGN KEY (`id_voo`)
+    REFERENCES `viajados`.`voo` (`id_voo`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8mb4;
+
+-- -----------------------------------------------------
+-- Table `viajados`.`passageiro`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `viajados`.`passageiro` (
+  `id_passageiro` INT NOT NULL AUTO_INCREMENT,
+  `nome` VARCHAR(100) NOT NULL,
+  `documento_identidade` VARCHAR(20) NOT NULL,
+  `cpf` VARCHAR(14) NOT NULL, -- Alterado para VARCHAR
+  `id_voo` INT NOT NULL,
+  `reserva_id_reserva` INT NOT NULL,
+  PRIMARY KEY (`id_passageiro`),
+  INDEX `id_voo` (`id_voo` ASC),
+  INDEX `fk_passageiro_reserva1_idx` (`reserva_id_reserva` ASC),
+  CONSTRAINT `passageiro_ibfk_1`
+    FOREIGN KEY (`id_voo`)
+    REFERENCES `viajados`.`voo` (`id_voo`),
+  CONSTRAINT `fk_passageiro_reserva1`
+    FOREIGN KEY (`reserva_id_reserva`)
+    REFERENCES `viajados`.`reserva` (`id_reserva`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8mb4;
+
+-- -----------------------------------------------------
+-- Table `viajados`.`reserva_hospedagem`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `viajados`.`reserva_hospedagem` (
+  `id_reserva` INT NOT NULL,
+  `id_hospedagem` INT NOT NULL,
+  PRIMARY KEY (`id_reserva`, `id_hospedagem`),
+  INDEX `id_hospedagem` (`id_hospedagem` ASC),
+  CONSTRAINT `reserva_hospedagem_ibfk_1`
+    FOREIGN KEY (`id_reserva`)
+    REFERENCES `viajados`.`reserva` (`id_reserva`),
+  CONSTRAINT `reserva_hospedagem_ibfk_2`
+    FOREIGN KEY (`id_hospedagem`)
+    REFERENCES `viajados`.`hospedagem` (`id_hospedagem`))
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8mb4;
+
+-- -----------------------------------------------------
+-- Table `viajados`.`reserva_voo`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `viajados`.`reserva_voo` (
+  `id_reserva` INT NOT NULL,
+  `id_voo` INT NOT NULL,
+  PRIMARY KEY (`id_reserva`, `id_voo`),
+  INDEX `id_voo` (`id_voo` ASC),
+  CONSTRAINT `reserva_voo_ibfk_1`
+    FOREIGN KEY (`id_reserva`)
+    REFERENCES `viajados`.`reserva` (`id_reserva`),
+  CONSTRAINT `reserva_voo_ibfk_2`
+    FOREIGN KEY (`id_voo`)
+    REFERENCES `viajados`.`voo` (`id_voo`))
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8mb4;
+
+SET SQL_MODE=@OLD_SQL_MODE;
+SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;
+SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS;
