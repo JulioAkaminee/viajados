@@ -52,7 +52,7 @@ Isso ajudará a manter a organização e a documentação clara para o projeto! 
   ```
 - Depois disso crie uma branch temporaria para a sua feature por exemplo: irei criar uma pagina de cadastro.
   ```sh
-  git checkout -b paginaCadastro
+  git checkout -b Nome-Da-Branch
   ````
 - Esse comando cria e já muda para a branch criada.
 - Depois disso pode fazer seu commit normalmente.
@@ -71,6 +71,11 @@ Isso ajudará a manter a organização e a documentação clara para o projeto! 
 ![imagem](https://github.com/user-attachments/assets/a0ca84f2-a1c2-4df8-80d2-82b7d41654f9)
 
 - E dessa forma só escrever o titulo e a descrição das alterações.
+- Depois disso volte para a branch de desenvolvimento e se for fazer outra feature repita o passo a passo acima.
+  
+  ```sh
+  git checkout -b AmbientDevelopment
+  ````
 
     
 
