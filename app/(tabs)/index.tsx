@@ -3,7 +3,7 @@ import { Text, View } from "react-native";
 export default function index(){
     return(
         <View>
-            <Text>deu certo</Text>
+            <Text>deu errado</Text>
         </View>
     )
 }
