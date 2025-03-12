@@ -41,6 +41,23 @@ Isso ajudará a manter a organização e a documentação clara para o projeto! 
 - Node.js  
 - npm ou yarn  
 - Expo
+
+## Como commitar para o projeto
+
+- Tem duas branchs, master(Produção) e AmbientDevelopment(Desenvolvimento);
+- Primeiro você deve clonar o repositorio da branch de produção master https://github.com/JulioAkaminee/viajados
+- Depois mudar para a branch de desenvolvimento com
+  ```sh
+  git checkout AmbientDevelopment
+  ```
+- Depois disso crie uma branch temporaria para a sua feature por exemplo: irei criar uma pagina de cadastro.
+  ```sh
+  git checkout -b paginaCadastro
+  ````
+- Esse comando cria e já muda para a branch criada.
+- Depois disso pode fazer seu commit normalmente.
+- Após fazer seu commit você precisa fazer um PR(Pull Request) para o ambiente de desenvolvimento(AmbientDevelopment).
+  
 ## Regras
 - Todo Commit feito no projeto será analisado pelo Tech Lead (Julio Akamine);
 - Não será aceito commit's fora da padronização do código
