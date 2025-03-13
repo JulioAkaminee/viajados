@@ -28,6 +28,10 @@ Bem-vindo ao guia de estilo de código para o frontend deste projeto! Este docum
 
 Isso ajudará a manter a organização e a documentação clara para o projeto! 
 
+
+---
+
+
 ## Nomeação de Arquivos e Variáveis
 
 Regras para nomeação em projetos frontend, visando consistência e clareza.
@@ -64,6 +68,10 @@ src/
 ```
 
 Seguir essas convenções melhora a legibilidade e manutenção do código! 🚀
+
+
+
+---
 
 
 ## Git e Commits
