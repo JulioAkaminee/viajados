@@ -1,10 +1,4 @@
-import React from "react";
-import { ScrollView } from "react-native";
-
-import BannerHotel from "@/components/Banner-Hotel/BannerHotel";
-import BannerVoo from "@/components/Banner-Voo/BannerVoo";
-import BannerHotelFavoritos from "@/components/Banner-Hotel/BannerHotelFavoritos";
-import BannerVooFavoritos from "@/components/Banner-Voo/BannerVooFavoritos";
+import { Text, View } from "react-native";
 
 export default function index() {
   return (
