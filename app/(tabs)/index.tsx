@@ -32,7 +32,7 @@ export default function index() {
       <BannerHotelFavoritos
         imagem={require("../../assets/images/hotel.jpg")}
         nome="Hotel Grandioso"
-        avaliacao={4}
+        avaliacao={2}
         saida="16:00"
         data="08 de Junho"
         descricao="Um lindo hotel com vista para o mar"
