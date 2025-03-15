@@ -1,10 +1,4 @@
-import React from "react";
-import { ScrollView } from "react-native";
-
-import BannerHotel from "@/components/Banner-Hotel/BannerHotel";
-import BannerVoo from "@/components/Banner-Voo/BannerVoo";
-import BannerHotelFavoritos from "@/components/Banner-Hotel/BannerHotelFavoritos";
-import BannerVooFavoritos from "@/components/Banner-Voo/BannerVooFavoritos";
+import { Text, View } from "react-native";
 
 export default function index() {
   return (
@@ -32,7 +26,7 @@ export default function index() {
       <BannerHotelFavoritos
         imagem={require("../../assets/images/hotel.jpg")}
         nome="Hotel Grandioso"
-        avaliacao={2}
+        avaliacao={4}
         saida="16:00"
         data="08 de Junho"
         descricao="Um lindo hotel com vista para o mar"
