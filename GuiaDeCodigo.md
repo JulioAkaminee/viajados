@@ -1,27 +1,19 @@
-# Viajados
+# Guia de Padronização de Código - Frontend
 
-Bem-vindo ao **Viajados**, um aplicativo de viagens desenvolvido com **React Native** no frontend e **Node.js** no backend. Nosso objetivo é ajudar viajantes a planejar suas aventuras com facilidade, oferecendo busca de destinos, roteiros personalizados e dicas locais.
+Bem-vindo ao guia de estilo de código para o frontend deste projeto! Este documento define as regras e boas práticas que todos os colaboradores devem seguir ao contribuir com o código. O objetivo é manter consistência, legibilidade e facilidade de manutenção.
 
-## Tecnologias
-- **Frontend**: React Native  
-- **Backend**: Node.js  
-
-
-## Funcionalidades
-- Pesquisa de destinos turísticos  
-- Criação de roteiros de viagem  
-- Dicas e informações locais  
-
-## Como Instalar
-Instalar todas dependências
-```sh
-npm install
-````
+## Índice
+1. [Estrutura de Pastas](#estrutura-de-pastas)
+2. [Nomeação de Arquivos e Variáveis](#nomeação-de-arquivos-e-variáveis)
+3. [Git e Commits](#git-e-commits)
 
 
-## 📌 Descrição dos Arquivos e Pastas  
+---
 
-- **`README.md`** → Documentação do projeto.  
+## Estrutura de Pastas
+
+
+- - **`README.md`** → Documentação do projeto.  
 - **`app.json`** → Configurações do aplicativo.  
 - **`package.json`** → Dependências e scripts do projeto.  
 - **`tsconfig.json`** → Configuração do TypeScript.  
@@ -34,13 +26,55 @@ npm install
   - **`fonts/`** → Contém fontes personalizadas.  
   - **`images/`** → Diretório para imagens.  
 
-Isso ajudará a manter a organização e a documentação clara para o projeto! 🚀📂
+Isso ajudará a manter a organização e a documentação clara para o projeto! 
 
 
-## Pré-requisitos
-- Node.js  
-- npm ou yarn  
-- Expo
+---
+
+
+## Nomeação de Arquivos e Variáveis
+
+Regras para nomeação em projetos frontend, visando consistência e clareza.
+
+## Arquivos
+- Use `camelCase` para arquivos de componentes.
+- Use `kebab-case` para arquivos não relacionados a componentes.
+- Ex.: `homePage.tsx`, `api-service.ts`.
+
+## Variáveis e Funções
+- Use `camelCase`.
+- Ex.: `userName`, `fetchData`.
+
+## Constantes
+- Use `UPPER_CASE` com underscores.
+- Ex.: `API_URL`, `MAX_ITEMS`.
+- Para constantes dentro de funções, pode-se usar `camelCase`.
+
+## Componentes React
+- Use `PascalCase`, e o arquivo deve ter o mesmo nome do componente.
+- Ex.: `UserCard.tsx` com `export default function UserCard() {}`.
+
+## Pastas
+- Use `kebab-case` para nomes de pastas.
+- Ex.: `components/user-card/`.
+- Dentro da pasta de um componente, prefira `index.tsx` para facilitar a importação.
+
+## Exemplo de Estrutura
+```plaintext
+src/
+  components/
+    user-card/
+      index.tsx
+```
+
+Seguir essas convenções melhora a legibilidade e manutenção do código! 🚀
+
+
+
+---
+
+
+## Git e Commits
 
 ## Como commitar para o projeto
 
@@ -77,8 +111,3 @@ Isso ajudará a manter a organização e a documentação clara para o projeto! 
   git checkout -b AmbientDevelopment
   ````
 
-    
-
-## Regras
-- Todo Commit feito no projeto será analisado pelo Tech Lead (Julio Akamine);
-- Não será aceito commit's fora da padronização do código
