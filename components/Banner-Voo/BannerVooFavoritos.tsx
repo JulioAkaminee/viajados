@@ -42,13 +42,13 @@ export default function BannerHotelFavoritos({
       <View style={styles.conteudo}>
         <Pressable onPress={favoritando} style={styles.iconeFavorito}>
           <MaterialIcons
-            name={favorito ? "favorite" : "favorite-border"}
+            name={favorito ? "favorite-border" : "favorite"}
             size={24}
-            color={favorito ? "#D6005D" : "#000"}
+            color={favorito ? "#000" : "#D6005D"}
           />
         </Pressable>
         <Text style={styles.destino}>{destino}</Text>
-        <Text>{descricao}</Text>
+        <Text style={styles.descricao}>{descricao}</Text>
         <Text>Origem: {origem}</Text>
         <Text>Saída: {saida}</Text>
         <Text>Data: {data}</Text>
@@ -86,7 +86,7 @@ const styles = StyleSheet.create({
     position: "absolute",
     right: 0,
     backgroundColor: "#fff",
-    borderStartEndRadius: 15,
+    borderEndStartRadius: 15,
     padding: 5,
     elevation: 5,
     zIndex: 1,
@@ -96,6 +96,9 @@ const styles = StyleSheet.create({
     fontSize: 16,
     top: 4,
     marginBottom: 3,
+  },
+  descricao: {
+    maxWidth: "95%",
   },
   preco: {
     fontSize: 16,

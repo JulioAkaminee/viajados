@@ -13,8 +13,8 @@ type Props = {
   imagem: ImageSourcePropType;
   nome: string;
   avaliacao: number;
-  saida: string;
-  data: string;
+  inicio: string;
+  fim: string;
   descricao: string;
   preco: string;
   onPress: () => void;
@@ -24,8 +24,8 @@ export default function BannerHotel({
   imagem,
   nome,
   avaliacao,
-  saida,
-  data,
+  inicio,
+  fim,
   descricao,
   preco,
   onPress,
@@ -66,8 +66,8 @@ export default function BannerHotel({
       <Text style={styles.nome}>{nome}</Text>
       <View style={styles.avaliacao}>{numeroEstrelas(avaliacao)}</View>
       <Text style={styles.descricao}>{descricao}</Text>
-      <Text style={styles.saida}>Saída: {saida}</Text>
-      <Text style={styles.data}>Data: {data}</Text>
+      <Text style={styles.inicio}>Início: {inicio}</Text>
+      <Text style={styles.fim}>Fim: {fim}</Text>
       <Text style={styles.texto}>Preço por pessoa</Text>
       <Text style={styles.preco}>{preco}</Text>
       <Text style={[styles.texto, { marginBottom: 10 }]}>
@@ -96,7 +96,7 @@ const styles = StyleSheet.create({
     top: 0,
     right: 0,
     backgroundColor: "#fff",
-    borderStartEndRadius: 10,
+    borderEndStartRadius: 10,
     padding: 4,
     elevation: 5,
     zIndex: 1,
@@ -118,12 +118,12 @@ const styles = StyleSheet.create({
     marginHorizontal: 10,
     marginBottom: 5,
   },
-  saida: {
+  inicio: {
     textAlign: "left",
     marginHorizontal: 10,
     marginBottom: 5,
   },
-  data: {
+  fim: {
     textAlign: "left",
     marginHorizontal: 10,
   },

@@ -17,7 +17,7 @@ function TabBarIcon({
       {focused && (
         <View
           style={{
-            width: 30,
+            width: 50,
             height: 3,
             backgroundColor: '#d81b60', 
             borderRadius: 2,
@@ -48,7 +48,6 @@ export default function TabLayout() {
         },
         tabBarActiveTintColor: '#d81b60',
         tabBarInactiveTintColor: '#d81b60',
-        tabBarItemStyle: { paddingVertical: 5 },
       }}
     >
       <Tabs.Screen
