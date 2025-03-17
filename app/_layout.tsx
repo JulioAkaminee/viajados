@@ -52,6 +52,8 @@ function RootLayoutNav() {
       <Stack>
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="index" options={{ headerShown: false }} />
+        <Stack.Screen name="cadastro" options={{ headerShown: false }} />
+        <Stack.Screen name="recuperarSenha" options={{ headerShown: false }} />
        
       </Stack>
 

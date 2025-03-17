@@ -1,14 +1,17 @@
-import { View, Text, StyleSheet, Image, } from "react-native";
+import { View,Text, StyleSheet, Image, } from "react-native";
 import React, { useState } from "react";
+
 import Button from "../components/Button";
 import Input from "../components/Input";
-import { Link } from "expo-router";
 
-function Index() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
 
-  // Funcao handleContinue para o botao
+function LoginScreen() {
+    const [name, setName] = useState("");
+    const [email, setEmail] = useState("");
+    const [password, setPassword] = useState("");
+    const [ConfPassword, setConfPassword] = useState("");
+
+  // Função handleContinue para o botão
   const handleContinue = () => {
     console.log("Botão Continuar pressionado");
   };
@@ -23,13 +26,21 @@ function Index() {
         />
       </View>
 
-      {/* Campo de Email */}
+      {/* Campo Nome */}
       
+      <Input 
+        label="Digite seu nome:" 
+        placeholder="Digite seu nome"
+        value={name}
+        onChange={setName} 
+      />
+
+      {/* Campo de Email */}
       <Input 
         label="Digite seu Email:" 
         placeholder="email@example.com" 
-        onChange={setEmail}
         value={email}
+        onChange={setEmail}
       />
 
       {/* Campo de Senha */}
@@ -39,29 +50,22 @@ function Index() {
         secureTextEntry
         value={password}
         onChange={setPassword}
-        
-      
       />
-
-      {/* Link "Esqueceu a senha?" */}
-      <View style={styles.ContainerRecPass}>
-        <Link href="/recuperarSenha" style={styles.link}>
-          Esqueceu a senha?
-        </Link>
-      </View>
+      
+      {/* Campo de conf Senha */}
+      <Input 
+        label="Confirme sua Senha:" 
+        placeholder="*******" 
+        secureTextEntry
+        value={ConfPassword}
+        onChange={setConfPassword}
+      />
 
       {/* Botão Continuar */}
       <Button
-       label={"Continuar"}
-       onPress={handleContinue} />
-
-      {/* Texto "Cadastre-se aqui" com Link */}
-      <Text style={styles.textContainer}>
-        Não tem uma conta?{" "}
-        <Link href="/cadastro" style={styles.link}>
-          Cadastre-se aqui
-        </Link>
-      </Text>
+        label={"Continuar"}
+        onPress={handleContinue}
+      />
 
       {/* Texto de Política de Privacidade */}
       <Text style={styles.termsText}>
@@ -69,13 +73,6 @@ function Index() {
         <Text style={styles.link}>Política de privacidade</Text> e os nossos{" "}
         <Text style={styles.link}>Termos de uso</Text>.
       </Text>
-
-      {/* <Button
-          label="Hoteis"
-          variant="primary"
-          onPress={handleContinue}
-        /> */}
-
     </View>
   );
 }
@@ -97,22 +94,6 @@ const styles = StyleSheet.create({
     height: 90,
     marginBottom: 10,
   },
-  textlabel: {
-    fontSize: 16,
-    color: "#333",
-    alignSelf: "flex-start",
-    marginLeft: 10,
-    marginBottom: 5,
-  },
-  input: {
-    width: "100%",
-    height: 50,
-    backgroundColor: "#FFF",
-    borderRadius: 5,
-    paddingHorizontal: 10,
-    marginBottom: 20,
-    fontSize: 16,
-  },
   textContainer: {
     fontSize: 16,
     color: "#333",
@@ -129,9 +110,6 @@ const styles = StyleSheet.create({
     color: "#FF3366",
     textDecorationLine: "underline",
   },
-  ContainerRecPass: {
-    marginBottom: 10,
-  },
 });
 
-export default Index;
+export default LoginScreen;
