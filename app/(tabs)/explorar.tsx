@@ -13,7 +13,7 @@ import { MaterialIcons } from "@expo/vector-icons";
 import BannerHotel from "@/components/Banner-Hotel/BannerHotel";
 import BannerVoo from "@/components/Banner-Voo/BannerVoo";
 
-export default function index() {
+export default function Explorar() {
   const [opcaoSelecionada, setOpcaoSelecionada] = useState("hoteis");
   const [modalHotelVisivel, setModalHotelVisivel] = useState(false);
   const [modalVooVisivel, setModalVooVisivel] = useState(false);
@@ -38,19 +38,8 @@ export default function index() {
     <>
       {modalHotelVisivel && hotelSelecionado && (
         <View style={styles.containerModal}>
-          <View style={styles.conteudoModal}>
+          <ScrollView style={styles.conteudoModal}>
             <Text style={styles.tituloModal}>{hotelSelecionado.nome}</Text>
-            <View style={styles.containerAvaliacao}>
-              {Array.from({ length: 5 }).map((_, i) => (
-                <MaterialIcons
-                  key={i}
-                  name={i < hotelSelecionado.avaliacao ? "star" : "star-border"}
-                  size={24}
-                  color="#000"
-                  style={styles.estrela}
-                />
-              ))}
-            </View>
             <View style={styles.containerCarrossel}>
               <ScrollView
                 horizontal
@@ -71,20 +60,35 @@ export default function index() {
                 )}
               </ScrollView>
             </View>
+
             <View style={styles.containerInformacoes}>
-              <Text style={styles.descricao}>{hotelSelecionado.descricao}</Text>
               <Text style={styles.textoInformacoes}>
-                Localização: {hotelSelecionado.localizacao}
+                <Text style={{ fontWeight: "bold" }}>Localização:</Text>{" "}
+                {hotelSelecionado.localizacao}
               </Text>
               <Text style={styles.textoInformacoes}>
-                Início: {hotelSelecionado.inicio}
+                <Text style={{ fontWeight: "bold" }}>Início:</Text>{" "}
+                {hotelSelecionado.inicio}
               </Text>
               <Text style={styles.textoInformacoes}>
-                Fim: {hotelSelecionado.fim}
+                <Text style={{ fontWeight: "bold" }}>Fim:</Text>{" "}
+                {hotelSelecionado.fim}
               </Text>
               <Text style={styles.textoInformacoes}>
-                Preço: {hotelSelecionado.preco}
+                <Text style={{ fontWeight: "bold" }}>Preço:</Text>{" "}
+                {hotelSelecionado.preco}
               </Text>
+            </View>
+            <View style={styles.containerAvaliacao}>
+              {Array.from({ length: 5 }).map((_, i) => (
+                <MaterialIcons
+                  key={i}
+                  name={i < hotelSelecionado.avaliacao ? "star" : "star-border"}
+                  size={24}
+                  color="#000"
+                  style={styles.estrela}
+                />
+              ))}
             </View>
             <View style={styles.containerOferecimentos}>
               <Text style={styles.tituloOferecimentos}>
@@ -116,13 +120,13 @@ export default function index() {
             >
               <Text style={styles.textoBotaoFechar}>Fechar</Text>
             </Pressable>
-          </View>
+          </ScrollView>
         </View>
       )}
 
       {modalVooVisivel && vooSelecionado && (
         <View style={styles.containerModal}>
-          <View style={styles.conteudoModal}>
+          <ScrollView style={styles.conteudoModal}>
             <View style={styles.containerCarrossel}>
               <ScrollView
                 horizontal
@@ -193,7 +197,7 @@ export default function index() {
             >
               <Text style={styles.textoBotaoFechar}>Fechar</Text>
             </Pressable>
-          </View>
+          </ScrollView>
         </View>
       )}
 
@@ -434,13 +438,15 @@ const styles = StyleSheet.create({
   },
   conteudoModal: {
     maxWidth: "90%",
+    maxHeight: "85%",
     backgroundColor: "#fff",
     padding: 20,
+
     borderRadius: 10,
-    alignItems: "center",
   },
   tituloModal: {
     fontSize: 20,
+    marginBottom: 10,
     fontWeight: "bold",
   },
   containerAvaliacao: {
@@ -453,8 +459,7 @@ const styles = StyleSheet.create({
   },
   containerCarrossel: {
     flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 15,
+    marginBottom: 5,
   },
   rolarImagens: {
     flexDirection: "row",
@@ -466,7 +471,6 @@ const styles = StyleSheet.create({
   },
   containerInformacoes: {
     alignItems: "flex-start",
-    marginBottom: 15,
   },
   descricao: {
     fontSize: 18,
@@ -477,7 +481,7 @@ const styles = StyleSheet.create({
     marginBottom: 5,
   },
   containerOferecimentos: {
-    alignItems: "flex-start",
+    display: "flex",
   },
   tituloOferecimentos: {
     fontSize: 18,
@@ -505,6 +509,7 @@ const styles = StyleSheet.create({
   },
   botaoFechar: {
     marginTop: 20,
+    marginBottom: 40,
     padding: 10,
     backgroundColor: "#EEE",
     borderRadius: 5,

@@ -66,7 +66,7 @@ export default function BannerHotel({
       <Text style={styles.nome}>{nome}</Text>
       <View style={styles.avaliacao}>{numeroEstrelas(avaliacao)}</View>
       <Text style={styles.descricao}>{descricao}</Text>
-      <Text style={styles.inicio}>Início: {inicio}</Text>
+      <Text style={styles.inicio}><Text>Início:</Text> {inicio}</Text>
       <Text style={styles.fim}>Fim: {fim}</Text>
       <Text style={styles.texto}>Preço por pessoa</Text>
       <Text style={styles.preco}>{preco}</Text>
@@ -96,7 +96,7 @@ const styles = StyleSheet.create({
     top: 0,
     right: 0,
     backgroundColor: "#fff",
-    borderEndStartRadius: 10,
+    borderStartEndRadius: 10,
     padding: 4,
     elevation: 5,
     zIndex: 1,
