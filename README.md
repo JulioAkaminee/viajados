@@ -66,7 +66,7 @@ Isso ajudará a manter a organização e a documentação clara para o projeto! 
   
 ![imagem](https://github.com/user-attachments/assets/3d32312a-a8cc-437a-a6d6-15521fce6491)
 
-  - A Branch base tem que ser a branch que você criou para fazer a nova feature, e a branch compare tem que ser o ambiente de desenvolvimento (AmbientDevelopment)
+  - A Branch base tem que ser a branch de desenvolvimento (AmbientDevelopment), e a branch compare tem que ser a que você criou para fazer a nova feature
 
 ![imagem](https://github.com/user-attachments/assets/a0ca84f2-a1c2-4df8-80d2-82b7d41654f9)
 
