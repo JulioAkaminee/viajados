@@ -43,7 +43,7 @@ export default function BannerHotelFavoritos({
         <MaterialIcons
           key={i}
           name={i <= avaliacao ? "star" : "star-border"}
-          size={16}
+          size={14}
           color="#000"
         />
       );
@@ -58,18 +58,18 @@ export default function BannerHotelFavoritos({
         <Pressable onPress={favoritando} style={styles.iconeFavorito}>
           <MaterialIcons
             name={favorito ? "favorite-border" : "favorite"}
-            size={24}
+            size={18}
             color={favorito ? "#000" : "#D6005D"}
           />
         </Pressable>
         <Text style={styles.nome}>{nome}</Text>
         <View style={styles.avaliacao}>{numeroEstrelas(avaliacao)}</View>
         <Text style={styles.descricao}>{descricao}</Text>
-        <Text>Início: {inicio}</Text>
-        <Text>Fim: {fim}</Text>
-        <Text>Preço por pessoa</Text>
+        <Text style={styles.inicio}>Início: {inicio}</Text>
+        <Text style={styles.fim}>Fim: {fim}</Text>
+        <Text style={styles.texto}>Preço por pessoa</Text>
         <Text style={styles.preco}>{preco}</Text>
-        <Text>Taxas e impostos não inclusos.</Text>
+        <Text style={styles.texto}>Taxas e impostos não inclusos.</Text>
       </View>
     </Pressable>
   );
@@ -81,7 +81,7 @@ const styles = StyleSheet.create({
     alignItems: "flex-start",
     borderWidth: 1,
     borderColor: "#000",
-    borderRadius: 20,
+    borderRadius: 10,
     overflow: "hidden",
     backgroundColor: "#fff",
     margin: 10,
@@ -90,8 +90,6 @@ const styles = StyleSheet.create({
   imagem: {
     width: 120,
     height: "100%",
-    borderTopLeftRadius: 20,
-    borderBottomLeftRadius: 20,
   },
   conteudo: {
     flex: 1,
@@ -101,29 +99,43 @@ const styles = StyleSheet.create({
     position: "absolute",
     right: 0,
     backgroundColor: "#fff",
-    borderEndStartRadius: 15,
-    padding: 5,
-    elevation: 5,
+    paddingVertical: 3,
+    paddingHorizontal: 5,
     zIndex: 1,
   },
   nome: {
     fontWeight: "bold",
-    fontSize: 16,
+    fontSize: 12,
     top: 4,
-    marginBottom: 3,
+    marginBottom: 5,
   },
   avaliacao: {
     position: "absolute",
     flexDirection: "row",
-    top: 8,
-    right: 40,
+    top: 5,
+    right: 30,
   },
   descricao: {
+    fontSize: 12,
     maxWidth: "95%",
+    marginBottom: 2,
+  },
+  inicio: {
+    fontSize: 12,
+    marginBottom: 2,
+  },
+  fim: {
+    fontSize: 12,
+    marginBottom: 2,
+  },
+  texto: {
+    fontSize: 12,
+    marginBottom: 5,
   },
   preco: {
-    fontSize: 16,
+    fontSize: 12,
     fontWeight: "bold",
     color: "#000",
+    marginBottom: 2,
   },
 });

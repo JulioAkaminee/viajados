@@ -22,7 +22,6 @@ export default function Favoritos() {
         imagem={require("../../assets/images/voos/sp.jpg")}
         destino="São Paulo"
         origem="Rio de Janeiro"
-        descricao="Conheça a maior cidade do país"
         saida="08:00"
         data="01 de Abril"
         preco="R$ 300,00"
