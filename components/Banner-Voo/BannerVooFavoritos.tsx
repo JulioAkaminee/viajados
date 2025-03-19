@@ -15,7 +15,6 @@ type Props = {
   origem: string;
   saida: string;
   data: string;
-  descricao: string;
   preco: string;
   onPress: () => void;
 };
@@ -26,7 +25,6 @@ export default function BannerHotelFavoritos({
   origem,
   saida,
   data,
-  descricao,
   preco,
   onPress,
 }: Props) {
@@ -43,18 +41,17 @@ export default function BannerHotelFavoritos({
         <Pressable onPress={favoritando} style={styles.iconeFavorito}>
           <MaterialIcons
             name={favorito ? "favorite-border" : "favorite"}
-            size={24}
+            size={18}
             color={favorito ? "#000" : "#D6005D"}
           />
         </Pressable>
         <Text style={styles.destino}>{destino}</Text>
-        <Text style={styles.descricao}>{descricao}</Text>
-        <Text>Origem: {origem}</Text>
-        <Text>Saída: {saida}</Text>
-        <Text>Data: {data}</Text>
-        <Text>Preço por pessoa</Text>
+        <Text style={styles.origem}>Origem: {origem}</Text>
+        <Text style={styles.saida}>Saída: {saida}</Text>
+        <Text style={styles.data}>Data: {data}</Text>
+        <Text style={styles.texto}>Preço por pessoa</Text>
         <Text style={styles.preco}>{preco}</Text>
-        <Text>Taxas e impostos não inclusos.</Text>
+        <Text style={styles.texto}>Taxas e impostos não inclusos.</Text>
       </View>
     </Pressable>
   );
@@ -66,7 +63,7 @@ const styles = StyleSheet.create({
     alignItems: "flex-start",
     borderWidth: 1,
     borderColor: "#000",
-    borderRadius: 20,
+    borderRadius: 10,
     overflow: "hidden",
     backgroundColor: "#fff",
     margin: 10,
@@ -75,8 +72,6 @@ const styles = StyleSheet.create({
   imagem: {
     width: 120,
     height: "100%",
-    borderTopLeftRadius: 20,
-    borderBottomLeftRadius: 20,
   },
   conteudo: {
     flex: 1,
@@ -86,23 +81,36 @@ const styles = StyleSheet.create({
     position: "absolute",
     right: 0,
     backgroundColor: "#fff",
-    borderEndStartRadius: 15,
-    padding: 5,
-    elevation: 5,
+    paddingVertical: 3,
+    paddingHorizontal: 5,
     zIndex: 1,
   },
   destino: {
     fontWeight: "bold",
-    fontSize: 16,
+    fontSize: 12,
     top: 4,
-    marginBottom: 3,
+    marginBottom: 6,
   },
-  descricao: {
-    maxWidth: "95%",
+  origem: {
+    fontSize: 12,
+    marginBottom: 4,
+  },
+  saida: {
+    fontSize: 12,
+    marginBottom: 4,
+  },
+  data: {
+    fontSize: 12,
+    marginBottom: 4,
+  },
+  texto: {
+    fontSize: 12,
+    marginBottom: 4,
   },
   preco: {
-    fontSize: 16,
+    fontSize: 12,
     fontWeight: "bold",
     color: "#000",
+    marginBottom: 2,
   },
 });
