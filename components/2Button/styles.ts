@@ -35,23 +35,14 @@ const styles = StyleSheet.create({
     height: 20,
     backgroundColor: "#D6005D",
     padding: 20,
+    borderTopRightRadius: 10,
+    borderBottomRightRadius: 10,
   },
   labelSecondary: {
     color: "#FFFFFF",
   },
 
-  // Variant: Terceiro
-  terceiro: {
-    width: 76,
-    height: 20,
-    backgroundColor: "#D6005D",
-    padding: 20,
-    borderTopRightRadius: 10,
-    borderBottomRightRadius: 10,
-  },
-  labelTerceiro: {
-    color: "#FFFFFF",
-  },
+  
   
 });
 
