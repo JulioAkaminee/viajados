@@ -54,7 +54,7 @@ function RootLayoutNav() {
         <Stack.Screen name="index" options={{ headerShown: false }} />
         <Stack.Screen name="cadastro" options={{ headerShown: false }} />
         <Stack.Screen name="recuperarSenha" options={{ headerShown: false }} />
-       
+        <Stack.Screen name="alterarSenha" options={{ headerShown: false }} />
       </Stack>
 
   );
