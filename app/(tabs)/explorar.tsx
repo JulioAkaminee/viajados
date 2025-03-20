@@ -446,7 +446,7 @@ const styles = StyleSheet.create({
   },
   tituloModal: {
     fontSize: 20,
-    marginBottom: 10,
+    marginBottom: 2,
     fontWeight: "bold",
   },
   containerAvaliacao: {

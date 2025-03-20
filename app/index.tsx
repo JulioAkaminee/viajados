@@ -51,9 +51,11 @@ function Index() {
       </View>
 
       {/* Botão Continuar */}
-      <Button
-       label={"Continuar"}
-       onPress={handleContinue} />
+      <Link href={"/(tabs)/explorar"}>
+        <Button
+         label={"Continuar"}
+         onPress={handleContinue} />
+      </Link>
 
       {/* Texto "Cadastre-se aqui" com Link */}
       <Text style={styles.textContainer}>
