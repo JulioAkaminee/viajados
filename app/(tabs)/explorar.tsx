@@ -4,6 +4,7 @@ import {
   ImageSourcePropType,
   Pressable,
   ScrollView,
+  StatusBar,
   StyleSheet,
   Text,
   View,
@@ -20,6 +21,25 @@ export default function Explorar() {
   const [hotelSelecionado, setHotelSelecionado] = useState(null);
   const [vooSelecionado, setVooSelecionado] = useState(null);
 
+  {/*
+    pegando os dados utilizando api:
+
+    const [hoteis, setHoteis] = useState([]);
+    const [voos, setVoos] = useState([]);
+
+    useEffect(() => {
+      fetch("http://localhost:3000/hoteis")
+        .then((response) => response.json())
+        .then((data) => setHoteis(data))
+        .catch((error) => console.error("Erro ao buscar hotéis:", error));
+
+      fetch("http://localhost:3000/voos")
+        .then((response) => response.json())
+        .then((data) => setVoos(data))
+        .catch((error) => console.error("Erro ao buscar voos:", error));
+    }, []);
+  */}
+
   const opcaoPressionada = (opcao: React.SetStateAction<string>) => {
     setOpcaoSelecionada(opcao);
   };
@@ -33,6 +53,93 @@ export default function Explorar() {
     setVooSelecionado(voo);
     setModalVooVisivel(true);
   };
+
+  const hoteis = [
+    {
+      nome: "Hotel Paraíso",
+      avaliacao: 4,
+      inicio: "10 de Abril",
+      fim: "15 de Abril",
+      descricao: "Hotel de luxo com vista para o mar",
+      preco: "R$ 250,00",
+      localizacao: "Praia de Copacabana, Rio de Janeiro/RJ",
+      imagens: [
+        require("../../assets/images/hoteis/hotel-paraiso.jpg"),
+        require("../../assets/images/hoteis/hotel-paraiso-2.jpg"),
+        require("../../assets/images/hoteis/hotel-paraiso-3.jpg"),
+      ],
+    },
+    {
+      nome: "Pousada do Sol",
+      avaliacao: 3,
+      inicio: "12 de Abril",
+      fim: "18 de Abril",
+      descricao: "Aconchegante pousada no centro",
+      preco: "R$ 150,00",
+      localizacao: "Centro Histórico, Salvador/BA",
+      imagens: [
+        require("../../assets/images/hoteis/pousada-do-sol.jpg"),
+        require("../../assets/images/hoteis/pousada-do-sol-2.jpg"),
+        require("../../assets/images/hoteis/pousada-do-sol-3.jpg"),
+      ],
+    },
+    {
+      nome: "Resort das Águias",
+      avaliacao: 5,
+      inicio: "20 de Abril",
+      fim: "25 de Abril",
+      descricao: "Resort com piscinas termais",
+      preco: "R$ 450,00",
+      localizacao: "Serra Gaúcha, Porto Alegre/RS",
+      imagens: [
+        require("../../assets/images/hoteis/resort-das-aguias.jpg"),
+        require("../../assets/images/hoteis/resort-das-aguias-2.jpg"),
+        require("../../assets/images/hoteis/resort-das-aguias-3.jpeg"),
+      ],
+    },
+  ];
+
+  const voos = [
+    {
+      destino: "São Paulo",
+      origem: "Rio de Janeiro",
+      descricao: "Conheça a maior cidade do país",
+      saida: "08:00",
+      data: "01 de Abril",
+      preco: "R$ 300,00",
+      imagens: [
+        require("../../assets/images/voos/sp.jpg"),
+        require("../../assets/images/voos/sp-2.jpg"),
+        require("../../assets/images/voos/sp-3.jpg"),
+      ],
+    },
+    {
+      destino: "Salvador",
+      origem: "São Paulo",
+      descricao: "Aproveite as belas praias da capital baiana",
+      saida: "14:30",
+      data: "02 de Abril",
+      preco: "R$ 450,00",
+      imagens: [
+        require("../../assets/images/voos/salvador.jpg"),
+        require("../../assets/images/voos/salvador-2.jpg"),
+        require("../../assets/images/voos/salvador-3.jpg"),
+      ],
+    },
+    {
+      destino: "Porto Alegre",
+      origem: "Curitiba",
+      descricao: "Experimente o elogiado churrasco gaúcho",
+      saida: "10:15",
+      data: "03 de Abril",
+      preco: "R$ 280,00",
+      imagens: [
+        require("../../assets/images/voos/poa.jpg"),
+        require("../../assets/images/voos/poa-2.jpg"),
+        require("../../assets/images/voos/poa-3.jpeg"),
+      ],
+    },
+  ];
 
   return (
     <>
@@ -201,6 +308,11 @@ export default function Explorar() {
         </View>
       )}
 
+      <StatusBar
+        barStyle="dark-content"
+        backgroundColor="#FDD5E9"
+        translucent={false}
+      />
       <ScrollView style={styles.container}>
         <View style={styles.containerLogo}>
           <Image
@@ -209,6 +321,7 @@ export default function Explorar() {
             resizeMode="contain"
           />
         </View>
+
         <View style={styles.containerInfoUsuario}>
           <Image
             source={require("../../assets/images/user-icon.png")}
@@ -219,6 +332,7 @@ export default function Explorar() {
             <Text style={styles.texto}>Bem-vindo de volta!</Text>
           </View>
         </View>
+
         <View style={styles.containerExplorar}>
           <Text style={styles.titulo}>Explorar</Text>
           <Text style={styles.subTitulo}>Descubra novos lugares</Text>
@@ -257,6 +371,7 @@ export default function Explorar() {
               </Text>
             </Pressable>
           </View>
+
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
@@ -264,157 +379,37 @@ export default function Explorar() {
           >
             {opcaoSelecionada === "hoteis" && (
               <>
-                <BannerHotel
-                  imagem={require("../../assets/images/hoteis/hotel-paraiso.jpg")}
-                  nome="Hotel Paraíso"
-                  avaliacao={4}
-                  inicio="10 de Abril"
-                  fim="15 de Abril"
-                  descricao="Hotel de luxo com vista para o mar"
-                  preco="R$ 250,00"
-                  onPress={() =>
-                    bannerHotelPressionado({
-                      nome: "Hotel Paraíso",
-                      avaliacao: 4,
-                      imagens: [
-                        require("../../assets/images/hoteis/hotel-paraiso.jpg"),
-                        require("../../assets/images/hoteis/hotel-paraiso-2.jpg"),
-                        require("../../assets/images/hoteis/hotel-paraiso-3.jpg"),
-                      ],
-                      descricao: "Hotel de luxo com vista para o mar",
-                      localizacao: "Praia de Copacabana, Rio de Janeiro/RJ",
-                      inicio: "10 de Abril",
-                      fim: "15 de Abril",
-                      preco: "R$ 250,00",
-                    })
-                  }
-                />
-                <BannerHotel
-                  imagem={require("../../assets/images/hoteis/pousada-do-sol.jpg")}
-                  nome="Pousada do Sol"
-                  avaliacao={3}
-                  inicio="12 de Abril"
-                  fim="18 de Abril"
-                  descricao="Aconchegante pousada no centro"
-                  preco="R$ 150,00"
-                  onPress={() =>
-                    bannerHotelPressionado({
-                      nome: "Pousada do Sol",
-                      avaliacao: 3,
-                      imagens: [
-                        require("../../assets/images/hoteis/pousada-do-sol.jpg"),
-                        require("../../assets/images/hoteis/pousada-do-sol-2.jpg"),
-                        require("../../assets/images/hoteis/pousada-do-sol-3.jpg"),
-                      ],
-                      descricao: "Aconchegante pousada no centro",
-                      localizacao: "Centro Histórico, Salvador/BA",
-                      inicio: "12 de Abril",
-                      fim: "18 de Abril",
-                      preco: "R$ 150,00",
-                    })
-                  }
-                />
-                <BannerHotel
-                  imagem={require("../../assets/images/hoteis/resort-das-aguias.jpg")}
-                  nome="Resort das Águias"
-                  avaliacao={5}
-                  inicio="20 de Abril"
-                  fim="25 de Abril"
-                  descricao="Resort com piscinas termais"
-                  preco="R$ 450,00"
-                  onPress={() =>
-                    bannerHotelPressionado({
-                      nome: "Resort das Águias",
-                      avaliacao: 5,
-                      imagens: [
-                        require("../../assets/images/hoteis/resort-das-aguias.jpg"),
-                        require("../../assets/images/hoteis/resort-das-aguias-2.jpg"),
-                        require("../../assets/images/hoteis/resort-das-aguias-3.jpeg"),
-                      ],
-                      descricao: "Resort com piscinas termais",
-                      localizacao: "Serra Gaúcha, Porto Alegre/RS",
-                      inicio: "20 de Abril",
-                      fim: "25 de Abril",
-                      preco: "R$ 450,00",
-                    })
-                  }
-                />
+                {hoteis.map((hotel, index) => (
+                  <BannerHotel
+                    key={index}
+                    imagem={hotel.imagens[0]}
+                    nome={hotel.nome}
+                    avaliacao={hotel.avaliacao}
+                    inicio={hotel.inicio}
+                    fim={hotel.fim}
+                    descricao={hotel.descricao}
+                    preco={hotel.preco}
+                    onPress={() => bannerHotelPressionado(hotel)}
+                  />
+                ))}
               </>
             )}
+
             {opcaoSelecionada === "voos" && (
               <>
-                <BannerVoo
-                  imagem={require("../../assets/images/voos/sp.jpg")}
-                  destino="São Paulo"
-                  origem="Rio de Janeiro"
-                  descricao="Conheça a maior cidade do país"
-                  saida="08:00"
-                  data="01 de Abril"
-                  preco="R$ 300,00"
-                  onPress={() =>
-                    bannerVooPressionado({
-                      imagens: [
-                        require("../../assets/images/voos/sp.jpg"),
-                        require("../../assets/images/voos/sp-2.jpg"),
-                        require("../../assets/images/voos/sp-3.jpg"),
-                      ],
-                      destino: "São Paulo",
-                      origem: "Rio de Janeiro",
-                      descricao: "Conheça a maior cidade do país",
-                      saida: "08:00",
-                      data: "01 de Abril",
-                      preco: "R$ 300,00",
-                    })
-                  }
-                />
-                <BannerVoo
-                  imagem={require("../../assets/images/voos/salvador.jpg")}
-                  destino="Salvador"
-                  origem="São Paulo"
-                  descricao="Aproveite as belas praias da capital baiana"
-                  saida="14:30"
-                  data="02 de Abril"
-                  preco="R$ 450,00"
-                  onPress={() =>
-                    bannerVooPressionado({
-                      imagens: [
-                        require("../../assets/images/voos/salvador.jpg"),
-                        require("../../assets/images/voos/salvador-2.jpg"),
-                        require("../../assets/images/voos/salvador-3.jpg"),
-                      ],
-                      destino: "Salvador",
-                      origem: "São Paulo",
-                      descricao: "Aproveite as belas praias da capital baiana",
-                      saida: "14:30",
-                      data: "02 de Abril",
-                      preco: "R$ 450,00",
-                    })
-                  }
-                />
-                <BannerVoo
-                  imagem={require("../../assets/images/voos/poa.jpg")}
-                  destino="Porto Alegre"
-                  origem="Curitiba"
-                  descricao="Experimente o elogiado churrasco gaúcho"
-                  saida="10:15"
-                  data="03 de Abril"
-                  preco="R$ 280,00"
-                  onPress={() =>
-                    bannerVooPressionado({
-                      imagens: [
-                        require("../../assets/images/voos/poa.jpg"),
-                        require("../../assets/images/voos/poa-2.jpg"),
-                        require("../../assets/images/voos/poa-3.jpeg"),
-                      ],
-                      destino: "Porto Alegre",
-                      origem: "Curitiba",
-                      descricao: "Experimente o elogiado churrasco gaúcho",
-                      saida: "10:15",
-                      data: "03 de Abril",
-                      preco: "R$ 280,00",
-                    })
-                  }
-                />
+                {voos.map((voo, index) => (
+                  <BannerVoo
+                    key={index}
+                    imagem={voo.imagens[0]}
+                    destino={voo.destino}
+                    origem={voo.origem}
+                    descricao={voo.descricao}
+                    saida={voo.saida}
+                    data={voo.data}
+                    preco={voo.preco}
+                    onPress={() => bannerVooPressionado(voo)}
+                  />
+                ))}
               </>
             )}
           </ScrollView>
@@ -441,7 +436,6 @@ const styles = StyleSheet.create({
     maxHeight: "85%",
     backgroundColor: "#fff",
     padding: 20,
-
     borderRadius: 10,
   },
   tituloModal: {
@@ -509,7 +503,7 @@ const styles = StyleSheet.create({
   },
   botaoFechar: {
     marginTop: 20,
-    marginBottom: 40,
+    marginBottom: 10,
     padding: 10,
     backgroundColor: "#EEE",
     borderRadius: 5,
@@ -528,7 +522,7 @@ const styles = StyleSheet.create({
   logo: {
     width: 80,
     height: 80,
-    marginVertical: 15,
+    marginTop: 15,
   },
   containerInfoUsuario: {
     flexDirection: "row",

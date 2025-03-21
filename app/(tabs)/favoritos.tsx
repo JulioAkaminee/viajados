@@ -19,6 +19,25 @@ export default function Favoritos() {
   const [hotelSelecionado, setHotelSelecionado] = useState(null);
   const [vooSelecionado, setVooSelecionado] = useState(null);
 
+  {/*
+    pegando os dados utilizando api:
+
+    const [hoteis, setHoteis] = useState([]);
+    const [voos, setVoos] = useState([]);
+
+    useEffect(() => {
+      fetch("http://localhost:3000/hoteis")
+        .then((response) => response.json())
+        .then((data) => setHoteis(data))
+        .catch((error) => console.error("Erro ao buscar hotéis:", error));
+
+      fetch("http://localhost:3000/voos")
+        .then((response) => response.json())
+        .then((data) => setVoos(data))
+        .catch((error) => console.error("Erro ao buscar voos:", error));
+    }, []);
+  */}
+
   const bannerHotelPressionado = (hotel: React.SetStateAction<null>) => {
     setHotelSelecionado(hotel);
     setModalHotelVisivel(true);
@@ -28,6 +47,39 @@ export default function Favoritos() {
     setVooSelecionado(voo);
     setModalVooVisivel(true);
   };
+
+  const hoteis = [
+    {
+      nome: "Hotel Paraíso",
+      avaliacao: 4,
+      inicio: "10 de Abril",
+      fim: "15 de Abril",
+      descricao: "Hotel de luxo com vista para o mar",
+      preco: "R$ 250,00",
+      localizacao: "Praia de Copacabana, Rio de Janeiro/RJ",
+      imagens: [
+        require("../../assets/images/hoteis/hotel-paraiso.jpg"),
+        require("../../assets/images/hoteis/hotel-paraiso-2.jpg"),
+        require("../../assets/images/hoteis/hotel-paraiso-3.jpg"),
+      ],
+    },
+  ];
+
+  const voos = [
+    {
+      destino: "São Paulo",
+      origem: "Rio de Janeiro",
+      descricao: "Conheça a maior cidade do país",
+      saida: "08:00",
+      data: "01 de Abril",
+      preco: "R$ 300,00",
+      imagens: [
+        require("../../assets/images/voos/sp.jpg"),
+        require("../../assets/images/voos/sp-2.jpg"),
+        require("../../assets/images/voos/sp-3.jpg"),
+      ],
+    },
+  ];
 
   return (
     <>
@@ -197,56 +249,32 @@ export default function Favoritos() {
       )}
 
       <ScrollView>
-        <Text>Favoritos</Text>
+        {hoteis.map((hotel, index) => (
+          <BannerHotelFavoritos
+            key={index}
+            imagem={hotel.imagens[0]}
+            nome={hotel.nome}
+            avaliacao={hotel.avaliacao}
+            inicio={hotel.inicio}
+            fim={hotel.fim}
+            descricao={hotel.descricao}
+            preco={hotel.preco}
+            onPress={() => bannerHotelPressionado(hotel)}
+          />
+        ))}
 
-        <BannerHotelFavoritos
-          imagem={require("../../assets/images/hoteis/hotel-paraiso.jpg")}
-          nome="Hotel Paraíso"
-          avaliacao={4}
-          inicio="10 de Abril"
-          fim="15 de Abril"
-          descricao="Hotel de luxo com vista para o mar"
-          preco="R$ 250,00"
-          onPress={() =>
-            bannerHotelPressionado({
-              nome: "Hotel Paraíso",
-              avaliacao: 4,
-              imagens: [
-                require("../../assets/images/hoteis/hotel-paraiso.jpg"),
-                require("../../assets/images/hoteis/hotel-paraiso-2.jpg"),
-                require("../../assets/images/hoteis/hotel-paraiso-3.jpg"),
-              ],
-              descricao: "Hotel de luxo com vista para o mar",
-              localizacao: "Praia de Copacabana, Rio de Janeiro/RJ",
-              inicio: "10 de Abril",
-              fim: "15 de Abril",
-              preco: "R$ 250,00",
-            })
-          }
-        />
-        <BannerVooFavoritos
-          imagem={require("../../assets/images/voos/sp.jpg")}
-          destino="São Paulo"
-          origem="Rio de Janeiro"
-          saida="08:00"
-          data="01 de Abril"
-          preco="R$ 300,00"
-          onPress={() =>
-            bannerVooPressionado({
-              imagens: [
-                require("../../assets/images/voos/sp.jpg"),
-                require("../../assets/images/voos/sp-2.jpg"),
-                require("../../assets/images/voos/sp-3.jpg"),
-              ],
-              destino: "São Paulo",
-              origem: "Rio de Janeiro",
-              descricao: "Conheça a maior cidade do país",
-              saida: "08:00",
-              data: "01 de Abril",
-              preco: "R$ 300,00",
-            })
-          }
-        />
+        {voos.map((voo, index) => (
+          <BannerVooFavoritos
+            key={index}
+            imagem={voo.imagens[0]}
+            destino={voo.destino}
+            origem={voo.origem}
+            saida={voo.saida}
+            data={voo.data}
+            preco={voo.preco}
+            onPress={() => bannerVooPressionado(voo)}
+          />
+        ))}
       </ScrollView>
     </>
   );
@@ -336,7 +364,7 @@ const styles = StyleSheet.create({
   },
   botaoFechar: {
     marginTop: 20,
-    marginBottom: 40,
+    marginBottom: 10,
     padding: 10,
     backgroundColor: "#EEE",
     borderRadius: 5,

@@ -1,15 +1,14 @@
-import { View,Text, StyleSheet, Image, } from "react-native";
 import React, { useState } from "react";
+import { View, Text, StyleSheet, Image } from "react-native";
 
 import Button from "../components/Button";
 import Input from "../components/Input";
 
-
-function LoginScreen() {
-    const [name, setName] = useState("");
-    const [email, setEmail] = useState("");
-    const [password, setPassword] = useState("");
-    const [ConfPassword, setConfPassword] = useState("");
+export default function LoginScreen() {
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [ConfPassword, setConfPassword] = useState("");
 
   // Função handleContinue para o botão
   const handleContinue = () => {
@@ -27,45 +26,41 @@ function LoginScreen() {
       </View>
 
       {/* Campo Nome */}
-      
-      <Input 
-        label="Digite seu nome:" 
+      <Input
+        label="Digite seu nome:"
         placeholder="Digite seu nome"
         value={name}
-        onChange={setName} 
+        onChange={setName}
       />
 
       {/* Campo de Email */}
-      <Input 
-        label="Digite seu Email:" 
-        placeholder="email@example.com" 
+      <Input
+        label="Digite seu Email:"
+        placeholder="email@example.com"
         value={email}
         onChange={setEmail}
       />
 
       {/* Campo de Senha */}
-      <Input 
-        label="Digite sua Senha:" 
-        placeholder="*******" 
+      <Input
+        label="Digite sua Senha:"
+        placeholder="*******"
         secureTextEntry
         value={password}
         onChange={setPassword}
       />
-      
+
       {/* Campo de conf Senha */}
-      <Input 
-        label="Confirme sua Senha:" 
-        placeholder="*******" 
+      <Input
+        label="Confirme sua Senha:"
+        placeholder="*******"
         secureTextEntry
         value={ConfPassword}
         onChange={setConfPassword}
       />
 
       {/* Botão Continuar */}
-      <Button
-        label={"Continuar"}
-        onPress={handleContinue}
-      />
+      <Button label={"Continuar"} onPress={handleContinue} />
 
       {/* Texto de Política de Privacidade */}
       <Text style={styles.termsText}>
@@ -111,5 +106,3 @@ const styles = StyleSheet.create({
     textDecorationLine: "underline",
   },
 });
-
-export default LoginScreen;

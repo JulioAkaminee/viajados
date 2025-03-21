@@ -42,7 +42,7 @@ export default function TabLayout() {
         },
         tabBarIconStyle: { marginBottom: 5 },
         tabBarLabelStyle: {
-          fontSize: 12,
+          fontSize: 10,
           fontWeight: 'bold',
           textTransform: 'none',
         },
