@@ -7,6 +7,7 @@ import {
   Text,
   Image,
   ImageSourcePropType,
+  useWindowDimensions,
 } from "react-native";
 
 type Props = {
