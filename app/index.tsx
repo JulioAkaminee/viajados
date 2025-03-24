@@ -39,12 +39,7 @@ export default function Index() {
         />
 
 
-      {/* Link "Esqueceu a senha?" */}
-      <View style={styles.ContainerRecPass}>
-        <Link href="/(tabs)/explorar" style={styles.link}>
-          Esqueceu a senha?
-        </Link>
-      </View>
+   
 
         {/* Campo de Senha */}
         <Input
