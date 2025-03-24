@@ -291,6 +291,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     backgroundColor: "rgba(0,0,0,0.5)",
     zIndex: 5,
+ 
   },
   conteudoModal: {
     maxWidth: "90%",
@@ -364,7 +365,7 @@ const styles = StyleSheet.create({
   },
   botaoFechar: {
     marginTop: 20,
-    marginBottom: 10,
+    marginBottom: 35,
     padding: 10,
     backgroundColor: "#EEE",
     borderRadius: 5,
@@ -372,5 +373,7 @@ const styles = StyleSheet.create({
   textoBotaoFechar: {
     color: "#000",
     fontWeight: "bold",
+
+   
   },
 });

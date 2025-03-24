@@ -511,6 +511,7 @@ const styles = StyleSheet.create({
   textoBotaoFechar: {
     color: "#000",
     fontWeight: "bold",
+    marginBottom:30
   },
   container: {
     backgroundColor: "#FDD5E9",
