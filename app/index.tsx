@@ -1,17 +1,60 @@
 import React, { useState } from "react";
-import { View, Text, StyleSheet, Image, StatusBar } from "react-native";
+import { View, Text, StyleSheet, Image, StatusBar, Alert } from "react-native";
 import { Link } from "expo-router";
+import { useNavigation } from "@react-navigation/native";
 
 import Button from "../components/Button";
 import Input from "../components/Input";
 
 export default function Index() {
+  const navigation = useNavigation();
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [senha, setSenha] = useState("");
 
-  // Funcao handleContinue para o botao
-  const handleContinue = () => {
-    console.log("Botão Continuar pressionado");
+  const validaEmail = (email: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+
+  const continuarPressionado = async () => {
+    if (!email.trim() || !validaEmail(email)) {
+      Alert.alert("Erro:", "Por favor, insira um email válido.");
+      return;
+    }
+
+    if (!senha.trim()) {
+      Alert.alert("Erro:", "O campo de Senha não pode estar vazio.");
+      return;
+    }
+
+    const dadosUsuario = { email, senha };
+
+    try {
+      const resposta = await fetch(
+        "https://backend-viajados.vercel.app/api/login",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(dadosUsuario),
+        }
+      );
+
+      const dados = await resposta.json();
+
+      if (resposta.status === 200) {
+        Alert.alert("Sucesso:", "Login realizado com sucesso!", [
+          { text: "OK", onPress: () => navigation.navigate("/(tabs)/explorar") },
+        ]);
+      } else if (resposta.status === 404 || resposta.status === 401) {
+        Alert.alert("Erro:", "Email e/ou Senha incorreto!");
+      } else {
+        Alert.alert(
+          "Erro:",
+          dados.message || "Falha ao realizar login. Tente novamente."
+        );
+      }
+    } catch (error) {
+      Alert.alert("Erro:", "Ocorreu um erro ao se conectar com o servidor.");
+    }
   };
 
   return (
@@ -19,10 +62,9 @@ export default function Index() {
       <StatusBar
         barStyle="dark-content"
         backgroundColor="#FDD5E9"
-        translucent={true}
+        translucent={false}
       />
       <View style={styles.container}>
-        {/* Logo */}
         <View style={styles.logoContainer}>
           <Image
             source={require("../assets/images/logo.png")}
@@ -30,7 +72,6 @@ export default function Index() {
           />
         </View>
 
-        {/* Campo de Email */}
         <Input
           label="Digite seu Email:"
           placeholder="email@example.com"
@@ -38,28 +79,22 @@ export default function Index() {
           value={email}
         />
 
-        {/* Campo de Senha */}
         <Input
           label="Digite sua Senha:"
           placeholder="*******"
           secureTextEntry
-          value={password}
-          onChange={setPassword}
+          value={senha}
+          onChange={setSenha}
         />
 
-        {/* Link "Esqueceu a senha?" */}
         <View style={styles.ContainerRecPass}>
-          <Link href="/(tabs)/explorar" style={styles.link}>
+          <Link href="/recuperarSenha" style={styles.link}>
             Esqueceu a senha?
           </Link>
         </View>
 
-        {/* Botão Continuar */}
-        <Link href={"/(tabs)/explorar"}>
-          <Button label={"Continuar"} onPress={handleContinue} />
-        </Link>
+        <Button label={"Continuar"} onPress={continuarPressionado} />
 
-        {/* Texto "Cadastre-se aqui" com Link */}
         <Text style={styles.textContainer}>
           Não tem uma conta?{" "}
           <Link href="/cadastro" style={styles.link}>
@@ -67,7 +102,6 @@ export default function Index() {
           </Link>
         </Text>
 
-        {/* Texto de Política de Privacidade */}
         <Text style={styles.termsText}>
           Ao criar uma conta, você concorda com a nossa{" "}
           <Text style={styles.link}>Política de privacidade</Text> e os nossos{" "}

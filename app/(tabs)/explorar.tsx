@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Image,
   ImageSourcePropType,
@@ -20,25 +20,20 @@ export default function Explorar() {
   const [modalVooVisivel, setModalVooVisivel] = useState(false);
   const [hotelSelecionado, setHotelSelecionado] = useState(null);
   const [vooSelecionado, setVooSelecionado] = useState(null);
+  const [hoteis, setHoteis] = useState([]);
+  const [voos, setVoos] = useState([]);
 
-  {/*
-    pegando os dados utilizando api:
+  useEffect(() => {
+    fetch("https://backend-viajados.vercel.app/api/hoteis")
+      .then((response) => response.json())
+      .then((data) => setHoteis(data))
+      .catch((error) => console.error("Erro ao buscar hotéis:", error));
 
-    const [hoteis, setHoteis] = useState([]);
-    const [voos, setVoos] = useState([]);
-
-    useEffect(() => {
-      fetch("http://localhost:3000/hoteis")
-        .then((response) => response.json())
-        .then((data) => setHoteis(data))
-        .catch((error) => console.error("Erro ao buscar hotéis:", error));
-
-      fetch("http://localhost:3000/voos")
-        .then((response) => response.json())
-        .then((data) => setVoos(data))
-        .catch((error) => console.error("Erro ao buscar voos:", error));
-    }, []);
-  */}
+    fetch("https://backend-viajados.vercel.app/api/voos")
+      .then((response) => response.json())
+      .then((data) => setVoos(data))
+      .catch((error) => console.error("Erro ao buscar voos:", error));
+  }, []);
 
   const opcaoPressionada = (opcao: React.SetStateAction<string>) => {
     setOpcaoSelecionada(opcao);
@@ -54,6 +49,7 @@ export default function Explorar() {
     setModalVooVisivel(true);
   };
 
+  {/*
   const hoteis = [
     {
       nome: "Hotel Paraíso",
@@ -140,6 +136,7 @@ export default function Explorar() {
       ],
     },
   ];
+  */}
 
   return (
     <>

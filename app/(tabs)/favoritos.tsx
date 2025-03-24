@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Image,
   ImageSourcePropType,
@@ -19,6 +19,20 @@ export default function Favoritos() {
   const [modalVooVisivel, setModalVooVisivel] = useState(false);
   const [hotelSelecionado, setHotelSelecionado] = useState(null);
   const [vooSelecionado, setVooSelecionado] = useState(null);
+  const [hoteis, setHoteis] = useState([]);
+  const [voos, setVoos] = useState([]);
+
+  useEffect(() => {
+    fetch("https://backend-viajados.vercel.app/api/favoritos/hoteis")
+      .then((response) => response.json())
+      .then((data) => setHoteis(data))
+      .catch((error) => console.error("Erro ao buscar hotéis:", error));
+
+    fetch("https://backend-viajados.vercel.app/api/favoritos/voos")
+      .then((response) => response.json())
+      .then((data) => setVoos(data))
+      .catch((error) => console.error("Erro ao buscar voos:", error));
+  }, []);
 
   const opcaoPressionada = (opcao: React.SetStateAction<string>) => {
     setOpcaoSelecionada(opcao);
@@ -33,6 +47,95 @@ export default function Favoritos() {
     setVooSelecionado(voo);
     setModalVooVisivel(true);
   };
+
+  {/*
+  const hoteis = [
+    {
+      nome: "Hotel Paraíso",
+      avaliacao: 4,
+      inicio: "10 de Abril",
+      fim: "15 de Abril",
+      descricao: "Hotel de luxo com vista para o mar",
+      preco: "R$ 250,00",
+      localizacao: "Praia de Copacabana, Rio de Janeiro/RJ",
+      imagens: [
+        require("../../assets/images/hoteis/hotel-paraiso.jpg"),
+        require("../../assets/images/hoteis/hotel-paraiso-2.jpg"),
+        require("../../assets/images/hoteis/hotel-paraiso-3.jpg"),
+      ],
+    },
+    {
+      nome: "Pousada do Sol",
+      avaliacao: 3,
+      inicio: "12 de Abril",
+      fim: "18 de Abril",
+      descricao: "Aconchegante pousada no centro",
+      preco: "R$ 150,00",
+      localizacao: "Centro Histórico, Salvador/BA",
+      imagens: [
+        require("../../assets/images/hoteis/pousada-do-sol.jpg"),
+        require("../../assets/images/hoteis/pousada-do-sol-2.jpg"),
+        require("../../assets/images/hoteis/pousada-do-sol-3.jpg"),
+      ],
+    },
+    {
+      nome: "Resort das Águias",
+      avaliacao: 5,
+      inicio: "20 de Abril",
+      fim: "25 de Abril",
+      descricao: "Resort com piscinas termais",
+      preco: "R$ 450,00",
+      localizacao: "Serra Gaúcha, Porto Alegre/RS",
+      imagens: [
+        require("../../assets/images/hoteis/resort-das-aguias.jpg"),
+        require("../../assets/images/hoteis/resort-das-aguias-2.jpg"),
+        require("../../assets/images/hoteis/resort-das-aguias-3.jpeg"),
+      ],
+    },
+  ];
+
+  const voos = [
+    {
+      destino: "São Paulo",
+      origem: "Rio de Janeiro",
+      descricao: "Conheça a maior cidade do país",
+      saida: "08:00",
+      data: "01 de Abril",
+      preco: "R$ 300,00",
+      imagens: [
+        require("../../assets/images/voos/sp.jpg"),
+        require("../../assets/images/voos/sp-2.jpg"),
+        require("../../assets/images/voos/sp-3.jpg"),
+      ],
+    },
+    {
+      destino: "Salvador",
+      origem: "São Paulo",
+      descricao: "Aproveite as belas praias da capital baiana",
+      saida: "14:30",
+      data: "02 de Abril",
+      preco: "R$ 450,00",
+      imagens: [
+        require("../../assets/images/voos/salvador.jpg"),
+        require("../../assets/images/voos/salvador-2.jpg"),
+        require("../../assets/images/voos/salvador-3.jpg"),
+      ],
+    },
+    {
+      destino: "Porto Alegre",
+      origem: "Curitiba",
+      descricao: "Experimente o elogiado churrasco gaúcho",
+      saida: "10:15",
+      data: "03 de Abril",
+      preco: "R$ 280,00",
+      imagens: [
+        require("../../assets/images/voos/poa.jpg"),
+        require("../../assets/images/voos/poa-2.jpg"),
+        require("../../assets/images/voos/poa-3.jpeg"),
+      ],
+    },
+  ];
+  */}
 
   return (
     <>
@@ -247,213 +350,42 @@ export default function Favoritos() {
               </Text>
             </Pressable>
           </View>
-          <ScrollView
-            
-          
-            style={styles.carrossel}
-          >
+          <ScrollView style={styles.carrossel}>
             {opcaoSelecionada === "hoteis" && (
               <>
                 <ScrollView style={styles.containerFavoritosLista}>
-                  <BannerHotelFavoritos
-                    imagem={require("../../assets/images/hoteis/hotel-paraiso.jpg")}
-                    nome="Hotel Paraíso"
-                    avaliacao={4}
-                    inicio="10 de Abril"
-                    fim="15 de Abril"
-                    descricao="Hotel de luxo com vista para o mar"
-                    preco="R$ 250,00"
-                    onPress={() =>
-                      bannerHotelPressionado({
-                        nome: "Hotel Paraíso",
-                        avaliacao: 4,
-                        imagens: [
-                          require("../../assets/images/hoteis/hotel-paraiso.jpg"),
-                          require("../../assets/images/hoteis/hotel-paraiso-2.jpg"),
-                          require("../../assets/images/hoteis/hotel-paraiso-3.jpg"),
-                        ],
-                        descricao: "Hotel de luxo com vista para o mar",
-                        localizacao: "Praia de Copacabana, Rio de Janeiro/RJ",
-                        inicio: "10 de Abril",
-                        fim: "15 de Abril",
-                        preco: "R$ 250,00",
-                      })
-                    }
-                  />
-                  <BannerHotelFavoritos
-                    imagem={require("../../assets/images/hoteis/maceio.jpg")}
-                    nome="Hotel Porto"
-                    avaliacao={4}
-                    inicio="12 de Dezembro"
-                    fim="20 de Dezembro"
-                    descricao="Hotel de luxo com praia privativa"
-                    preco="R$ 250,00"
-                    onPress={() =>
-                      bannerHotelPressionado({
-                        nome: "Hotel Porto de Naus",
-                        avaliacao: 4,
-                        imagens: [
-                          require("../../assets/images/hoteis/maceio.jpg"),
-                          require("../../assets/images/hoteis/maceio2.jpg"),
-                          require("../../assets/images/hoteis/maceio3.jpg"),
-                        ],
-                        descricao: "Hotel de luxo com praia privativa",
-                        localizacao: "Praia de Maceio, Maceio/AL",
-                        inicio: "12 de Dezembro",
-                        fim: "20 de Dezembro",
-                        preco: "R$ 450,00",
-                      })
-                    }
-                  />
-                  <BannerHotelFavoritos
-                    imagem={require("../../assets/images/hoteis/fortaleza.jpg")}
-                    nome="Hotel Fortaleza"
-                    avaliacao={4}
-                    inicio="14 de Novembro"
-                    fim="18 de Novembro"
-                    descricao="Hotel com café da manhã incluso"
-                    preco="R$ 310,00"
-                    onPress={() =>
-                      bannerHotelPressionado({
-                        nome: "Hotel Fortaleza Beach",
-                        avaliacao: 4,
-                        imagens: [
-                          require("../../assets/images/hoteis/fortaleza.jpg"),
-                          require("../../assets/images/hoteis/fortaleza2.jpg"),
-                          require("../../assets/images/hoteis/fortaleza3.jpg"),
-                        ],
-                        descricao:
-                          "Hotel de Hotel com café da manhã incluso, acadêmia e espaço kids.",
-                        localizacao: "Praia das Ondas, Fortaleza/CE",
-                        inicio: "14 de Novembro",
-                        fim: "15 de Abril",
-                        preco: "18 de Novembro",
-                      })
-                    }
-                  />
-                  <BannerHotelFavoritos
-                    imagem={require("../../assets/images/hoteis/porto-seguro.jpg")}
-                    nome="Hotel Romania"
-                    avaliacao={4}
-                    inicio="2 de Fevereiro"
-                    fim="9 de Fevereiro"
-                    descricao="Hotel mais exclusivo de Porto Seguro"
-                    preco="R$ 700,00"
-                    onPress={() =>
-                      bannerHotelPressionado({
-                        nome: "Hotel Romania",
-                        avaliacao: 5,
-                        imagens: [
-                          require("../../assets/images/hoteis/porto-seguro.jpg"),
-                          require("../../assets/images/hoteis/porto-seguro2.jpg"),
-                          require("../../assets/images/hoteis/porto-seguro.jpg"),
-                        ],
-                        descricao: "Hotel mais exclusivo de Porto Seguro",
-                        localizacao: "Praia do Tombo, Porto-Seguro/BA ",
-                        inicio: "2 de Fevereiro",
-                        fim: "9 de Fevereiro",
-                        preco: "R$ 700,00",
-                      })
-                    }
-                  />
+                  {hoteis.map((hotel, index) => (
+                    <BannerHotelFavoritos
+                      key={index}
+                      imagem={hotel.imagens[0]}
+                      nome={hotel.nome}
+                      avaliacao={hotel.avaliacao}
+                      inicio={hotel.inicio}
+                      fim={hotel.fim}
+                      descricao={hotel.descricao}
+                      preco={hotel.preco}
+                      onPress={() => bannerHotelPressionado(hotel)}
+                    />
+                  ))}
                 </ScrollView>
               </>
             )}
             {opcaoSelecionada === "voos" && (
               <>
-                <ScrollView containerFavoritosLista>
-                  <BannerVooFavoritos
-                    imagem={require("../../assets/images/voos/sp.jpg")}
-                    destino="São Paulo"
-                    origem="Rio de Janeiro"
-                    saida="08:00"
-                    data="01 de Abril"
-                    preco="R$ 300,00"
-                    onPress={() =>
-                      bannerVooPressionado({
-                        imagens: [
-                          require("../../assets/images/voos/sp.jpg"),
-                          require("../../assets/images/voos/sp-2.jpg"),
-                          require("../../assets/images/voos/sp-3.jpg"),
-                        ],
-                        destino: "São Paulo",
-                        origem: "Rio de Janeiro",
-                        descricao: "Conheça a maior cidade do país",
-                        saida: "08:00",
-                        data: "01 de Abril",
-                        preco: "R$ 300,00",
-                      })
-                    }
-                  />
-                  <BannerVooFavoritos
-                    imagem={require("../../assets/images/voos/fortaleza-2.jpg")}
-                    destino="Fortaleza"
-                    origem="São Paulo"
-                    saida="11:00"
-                    data="25 de Agosto"
-                    preco="R$ 500,00"
-                    onPress={() =>
-                      bannerVooPressionado({
-                        imagens: [
-                          require("../../assets/images/voos/fortaleza-2.jpg"),
-                          require("../../assets/images/voos/fortaleza.jpg"),
-                          require("../../assets/images/voos/fortaleza-3.jpg"),
-                        ],
-                        destino: "Fortaleza",
-                        origem: "São Paulo",
-                        descricao: "Conheça umas das melhores cidades turísticas",
-                        saida: "11:00",
-                        data: "25 de Agosto",
-                        preco: "R$ 500,00",
-                      })
-                    }
-                  />
-                  <BannerVooFavoritos
-                    imagem={require("../../assets/images/voos/curitiba.jpg")}
-                    destino="Curitiba"
-                    origem="Minas Gerais"
-                    saida="23:00"
-                    data="30 de Novembro"
-                    preco="R$ 450,00"
-                    onPress={() =>
-                      bannerVooPressionado({
-                        imagens: [
-                          require("../../assets/images/voos/curitiba.jpg"),
-                          require("../../assets/images/voos/curitiba-2.jpg"),
-                          require("../../assets/images/voos/curitiba-3.jpg"),
-                        ],
-                        destino: "Curitiba",
-                        origem: "Minas Gerais",
-                        descricao: "Europa brasileira",
-                        saida: "15:00",
-                        data: "04 de Janeiro",
-                        preco: "R$ 450,00",
-                      })
-                    }
-                  />
-                  <BannerVooFavoritos
-                    imagem={require("../../assets/images/voos/maceio.jpg")}
-                    destino="Maceio"
-                    origem="São Paulo"
-                    saida="08:00"
-                    data="30 de Dezembro"
-                    preco="R$ 800,00"
-                    onPress={() =>
-                      bannerVooPressionado({
-                        imagens: [
-                          require("../../assets/images/voos/maceio.jpg"),
-                          require("../../assets/images/voos/maceio-2.jpg"),
-                          require("../../assets/images/voos/maceio-3.jpg"),
-                        ],
-                        destino: "Maceio",
-                        origem: "São Paulo",
-                        descricao: "Cidade turística mais visitada do Brasil",
-                        saida: "08:00",
-                        data: "30 de Dezembro",
-                        preco: "R$ 800,00",
-                      })
-                    }
-                  />
+                <ScrollView style={styles.containerFavoritosLista}>
+                  {voos.map((voo, index) => (
+                    <BannerVooFavoritos
+                      key={index}
+                      imagem={voo.imagens[0]}
+                      destino={voo.destino}
+                      origem={voo.origem}
+                      descricao={voo.descricao}
+                      saida={voo.saida}
+                      data={voo.data}
+                      preco={voo.preco}
+                      onPress={() => bannerVooPressionado(voo)}
+                    />
+                  ))}
                 </ScrollView>
               </>
             )}
@@ -560,7 +492,6 @@ const styles = StyleSheet.create({
   container: {
     backgroundColor: "#FDD5E9",
     padding: 20,
-   
   },
   containerLogo: {
     alignItems: "center",
@@ -615,11 +546,7 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
   carrossel: {
-   
     marginBottom: 13,
   },
-  containerFavoritosLista:{
-   
-
-  }
+  containerFavoritosLista: {},
 });
