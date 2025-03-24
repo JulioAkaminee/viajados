@@ -1,12 +1,10 @@
 import React, { useState } from "react";
 import { View, Text, StyleSheet, Image } from "react-native";
-import { Link } from "expo-router";
 
 import Button from "../components/Button";
 import Input from "../components/Input";
 
-
-function RecuperarSenha() {
+export default function RecuperarSenha() {
   const [email, setEmail] = useState("");
 
   // Função handleSubmit para o botão
@@ -41,13 +39,6 @@ function RecuperarSenha() {
 
       {/* Botao Enviar */}
       <Button label={"Enviar"} onPress={handleSubmit} />
-
-      {/* ISSO VAI SAIR DAQUI */}
-      <View style={styles.ContainerRecPass}>
-        <Link href="/alterarSenha" style={styles.link}>
-          ir para alterar senha para olhar
-        </Link>
-      </View>
     </View>
   );
 }
@@ -81,14 +72,8 @@ const styles = StyleSheet.create({
     textAlign: "center",
     marginBottom: 30,
   },
-  // ISSO VAI SAIR DAQUI 
-  ContainerRecPass: {
-    marginBottom: 10,
-  },
   link: {
     color: "#FF3366",
     textDecorationLine: "underline",
   },
 });
-
-export default RecuperarSenha;

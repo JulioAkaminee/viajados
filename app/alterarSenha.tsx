@@ -1,9 +1,10 @@
-import { View, Text, StyleSheet, Image } from "react-native";
 import React, { useState } from "react";
+import { View, Text, StyleSheet, Image } from "react-native";
+
 import Button from "../components/Button";
 import Input from "../components/Input";
 
-function UpdatePassword() {
+export default function UpdatePassword() {
   const [password, setPassword] = useState("");
   const [ConfPassword, setConfPassword] = useState("");
 
@@ -23,7 +24,7 @@ function UpdatePassword() {
       </View>
 
       {/* Titulo e descricao */}
-        <Text style={styles.title}>Recuperar senha</Text>
+      <Text style={styles.title}>Recuperar senha</Text>
 
       {/* Campo de Senha */}
       <Input
@@ -45,8 +46,6 @@ function UpdatePassword() {
 
       {/* Botão Continuar */}
       <Button label={"Continuar"} onPress={handleContinue} />
-
-
     </View>
   );
 }
@@ -108,7 +107,5 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     color: "#D6005D",
     marginBottom: 30,
-  }
+  },
 });
-
-export default UpdatePassword;
