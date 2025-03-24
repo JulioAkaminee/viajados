@@ -38,6 +38,14 @@ export default function Index() {
           value={email}
         />
 
+
+      {/* Link "Esqueceu a senha?" */}
+      <View style={styles.ContainerRecPass}>
+        <Link href="/(tabs)/explorar" style={styles.link}>
+          Esqueceu a senha?
+        </Link>
+      </View>
+
         {/* Campo de Senha */}
         <Input
           label="Digite sua Senha:"
@@ -46,6 +54,7 @@ export default function Index() {
           value={password}
           onChange={setPassword}
         />
+
 
         {/* Link "Esqueceu a senha?" */}
         <View style={styles.ContainerRecPass}>
