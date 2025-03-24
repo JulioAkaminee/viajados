@@ -1,10 +1,11 @@
-import { View, Text, StyleSheet, Image, } from "react-native";
 import React, { useState } from "react";
-import Button from "../components/Button";
-import Input from "../components/Input";
+import { View, Text, StyleSheet, Image, StatusBar } from "react-native";
 import { Link } from "expo-router";
 
-function Index() {
+import Button from "../components/Button";
+import Input from "../components/Input";
+
+export default function Index() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
@@ -14,67 +15,66 @@ function Index() {
   };
 
   return (
-    <View style={styles.container}>
-      {/* Logo */}
-      <View style={styles.logoContainer}>
-        <Image
-          source={require("../assets/images/logo.png")}
-          style={styles.logo}
+    <>
+      <StatusBar
+        barStyle="dark-content"
+        backgroundColor="#FDD5E9"
+        translucent={true}
+      />
+      <View style={styles.container}>
+        {/* Logo */}
+        <View style={styles.logoContainer}>
+          <Image
+            source={require("../assets/images/logo.png")}
+            style={styles.logo}
+          />
+        </View>
+
+        {/* Campo de Email */}
+        <Input
+          label="Digite seu Email:"
+          placeholder="email@example.com"
+          onChange={setEmail}
+          value={email}
         />
-      </View>
 
-      {/* Campo de Email */}
-      
-      <Input 
-        label="Digite seu Email:" 
-        placeholder="email@example.com" 
-        onChange={setEmail}
-        value={email}
-      />
+        {/* Campo de Senha */}
+        <Input
+          label="Digite sua Senha:"
+          placeholder="*******"
+          secureTextEntry
+          value={password}
+          onChange={setPassword}
+        />
 
-      {/* Campo de Senha */}
-      <Input 
-        label="Digite sua Senha:" 
-        placeholder="*******" 
-        secureTextEntry
-        value={password}
-        onChange={setPassword}
-        
-      
-      />
+        {/* Link "Esqueceu a senha?" */}
+        <View style={styles.ContainerRecPass}>
+          <Link href="/(tabs)/explorar" style={styles.link}>
+            Esqueceu a senha?
+          </Link>
+        </View>
 
-      {/* Link "Esqueceu a senha?" */}
-      <View style={styles.ContainerRecPass}>
-        <Link href="/recuperarSenha" style={styles.link}>
-          Esqueceu a senha?
+        {/* Botão Continuar */}
+        <Link href={"/(tabs)/explorar"}>
+          <Button label={"Continuar"} onPress={handleContinue} />
         </Link>
+
+        {/* Texto "Cadastre-se aqui" com Link */}
+        <Text style={styles.textContainer}>
+          Não tem uma conta?{" "}
+          <Link href="/cadastro" style={styles.link}>
+            Cadastre-se aqui
+          </Link>
+        </Text>
+
+        {/* Texto de Política de Privacidade */}
+        <Text style={styles.termsText}>
+          Ao criar uma conta, você concorda com a nossa{" "}
+          <Text style={styles.link}>Política de privacidade</Text> e os nossos{" "}
+          <Text style={styles.link}>Termos de uso</Text>.
+        </Text>
       </View>
-
-      {/* Botão Continuar */}
-      <Link href={"/(tabs)/explorar"}>
-        <Button
-         label={"Continuar"}
-         onPress={handleContinue} />
-      </Link>
-
-      {/* Texto "Cadastre-se aqui" com Link */}
-      <Text style={styles.textContainer}>
-        Não tem uma conta?{" "}
-        <Link href="/cadastro" style={styles.link}>
-          Cadastre-se aqui
-        </Link>
-      </Text>
-
-      {/* Texto de Política de Privacidade */}
-      <Text style={styles.termsText}>
-        Ao criar uma conta, você concorda com a nossa{" "}
-        <Text style={styles.link}>Política de privacidade</Text> e os nossos{" "}
-        <Text style={styles.link}>Termos de uso</Text>.
-      </Text>
-
-    
-
-    </View>
+    </>
   );
 }
 
@@ -131,5 +131,3 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
 });
-
-export default Index;
