@@ -14,16 +14,10 @@ import BannerHotelFavoritos from "@/components/Banner-Hotel/BannerHotelFavoritos
 import BannerVooFavoritos from "@/components/Banner-Voo/BannerVooFavoritos";
 
 export default function Favoritos() {
-  const [opcaoSelecionada, setOpcaoSelecionada] = useState("hoteis");
   const [modalHotelVisivel, setModalHotelVisivel] = useState(false);
   const [modalVooVisivel, setModalVooVisivel] = useState(false);
   const [hotelSelecionado, setHotelSelecionado] = useState(null);
   const [vooSelecionado, setVooSelecionado] = useState(null);
-
-
-  const opcaoPressionada = (opcao: React.SetStateAction<string>) => {
-    setOpcaoSelecionada(opcao);
-  };
 
   {/*
     pegando os dados utilizando api:
@@ -43,7 +37,6 @@ export default function Favoritos() {
         .catch((error) => console.error("Erro ao buscar voos:", error));
     }, []);
   */}
-
 
   const bannerHotelPressionado = (hotel: React.SetStateAction<null>) => {
     setHotelSelecionado(hotel);
@@ -255,7 +248,6 @@ export default function Favoritos() {
         </View>
       )}
 
-
       <ScrollView>
         {hoteis.map((hotel, index) => (
           <BannerHotelFavoritos
@@ -283,7 +275,6 @@ export default function Favoritos() {
             onPress={() => bannerVooPressionado(voo)}
           />
         ))}
-
       </ScrollView>
     </>
   );
@@ -385,69 +376,4 @@ const styles = StyleSheet.create({
 
    
   },
-  container: {
-    backgroundColor: "#FDD5E9",
-    padding: 20,
-   
-  },
-  containerLogo: {
-    alignItems: "center",
-  },
-  logo: {
-    width: 80,
-    height: 80,
-    marginVertical: 15,
-  },
-  texto: {
-    fontSize: 14,
-  },
-  containerFavoritos: {
-    marginVertical: 20,
-  },
-  titulo: {
-    fontSize: 22,
-    fontWeight: "bold",
-    marginBottom: 5,
-    color: "#fff",
-    marginLeft: 20,
-    marginTop: 8,
-  },
-  viewTitulo: {
-    width: 200,
-    height: 50,
-    backgroundColor: "#D6005D",
-    borderBottomRightRadius: 20,
-    borderTopRightRadius: 20,
-    marginBottom: 20,
-    marginLeft: -20,
-  },
-  filtroBusca: {
-    flexDirection: "row",
-    marginBottom: 20,
-  },
-  opcoesFiltro: {
-    paddingVertical: 8,
-    paddingHorizontal: 20,
-    marginRight: 10,
-    borderRadius: 20,
-    backgroundColor: "#FFC1D9",
-  },
-  opcaoSelecionada: {
-    backgroundColor: "#D6005D",
-  },
-  textoFiltroSelecionado: {
-    color: "#fff",
-  },
-  textoFiltro: {
-    color: "#D6005D",
-    fontWeight: "bold",
-  },
-  carrossel: {
-   
-    marginBottom: 13,
-  },
-  containerFavoritosLista:{
-   
-
-  }
 });
