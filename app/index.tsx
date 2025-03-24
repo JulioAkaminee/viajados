@@ -38,9 +38,6 @@ export default function Index() {
           value={email}
         />
 
-
-   
-
         {/* Campo de Senha */}
         <Input
           label="Digite sua Senha:"
@@ -49,7 +46,6 @@ export default function Index() {
           value={password}
           onChange={setPassword}
         />
-
 
         {/* Link "Esqueceu a senha?" */}
         <View style={styles.ContainerRecPass}>

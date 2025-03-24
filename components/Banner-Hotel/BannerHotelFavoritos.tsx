@@ -7,7 +7,6 @@ import {
   Text,
   Image,
   ImageSourcePropType,
-  useWindowDimensions,
 } from "react-native";
 
 type Props = {
@@ -85,7 +84,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     overflow: "hidden",
     backgroundColor: "#fff",
-    marginVertical:10,
+    margin: 10,
     elevation: 3,
   },
   imagem: {
