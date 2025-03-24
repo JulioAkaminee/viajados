@@ -248,13 +248,13 @@ export default function Favoritos() {
             </Pressable>
           </View>
           <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
+            
+          
             style={styles.carrossel}
           >
             {opcaoSelecionada === "hoteis" && (
               <>
-                <ScrollView>
+                <ScrollView style={styles.containerFavoritosLista}>
                   <BannerHotelFavoritos
                     imagem={require("../../assets/images/hoteis/hotel-paraiso.jpg")}
                     nome="Hotel Paraíso"
@@ -361,7 +361,7 @@ export default function Favoritos() {
             )}
             {opcaoSelecionada === "voos" && (
               <>
-                <ScrollView>
+                <ScrollView containerFavoritosLista>
                   <BannerVooFavoritos
                     imagem={require("../../assets/images/voos/sp.jpg")}
                     destino="São Paulo"
@@ -560,6 +560,7 @@ const styles = StyleSheet.create({
   container: {
     backgroundColor: "#FDD5E9",
     padding: 20,
+   
   },
   containerLogo: {
     alignItems: "center",
@@ -614,7 +615,11 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
   carrossel: {
-    flexDirection: "row",
+   
     marginBottom: 13,
   },
+  containerFavoritosLista:{
+   
+
+  }
 });

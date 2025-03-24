@@ -45,7 +45,7 @@ function Index() {
 
       {/* Link "Esqueceu a senha?" */}
       <View style={styles.ContainerRecPass}>
-        <Link href="/recuperarSenha" style={styles.link}>
+        <Link href="/(tabs)/explorar" style={styles.link}>
           Esqueceu a senha?
         </Link>
       </View>
