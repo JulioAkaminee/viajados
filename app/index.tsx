@@ -12,52 +12,58 @@ export default function Index() {
   const [senha, setSenha] = useState("");
 
   const validaEmail = (email: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  function navegarParaHome(){
+    navigation.navigate("(tabs)", { screen: "explorar" })
+  }
 
   const continuarPressionado = async () => {
     if (!email.trim() || !validaEmail(email)) {
-      Alert.alert("Erro:", "Por favor, insira um email válido.");
+      Alert.alert("Erro", "Por favor, insira um email válido.");
       return;
     }
 
     if (!senha.trim()) {
-      Alert.alert("Erro:", "O campo de Senha não pode estar vazio.");
+      Alert.alert("Erro", "O campo de senha não pode estar vazio.");
       return;
     }
 
     const dadosUsuario = { email, senha };
 
     try {
-      const resposta = await fetch(
-        "https://backend-viajados.vercel.app/api/login",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(dadosUsuario),
-        }
-      );
+      const resposta = await fetch("https://backend-viajados.vercel.app/api/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        body: JSON.stringify(dadosUsuario),
+      });
 
       const dados = await resposta.json();
 
       if (resposta.status === 200) {
-        Alert.alert("Sucesso:", "Login realizado com sucesso!", [
-          { text: "OK", onPress: () => navigation.navigate("/(tabs)/explorar") },
+        Alert.alert("Sucesso", "Login realizado com sucesso!", [
+          {
+            text: "OK",
+            onPress: () => navegarParaHome(),
+          },
         ]);
       } else if (resposta.status === 404 || resposta.status === 401) {
-        Alert.alert("Erro:", "Email e/ou Senha incorreto!");
+        Alert.alert("Erro", "Email e/ou senha incorretos!");
       } else {
         Alert.alert(
-          "Erro:",
+          "Erro",
           dados.message || "Falha ao realizar login. Tente novamente."
         );
       }
     } catch (error) {
-      Alert.alert("Erro:", "Ocorreu um erro ao se conectar com o servidor.");
+      Alert.alert("Erro", "Falha na conexão com o servidor. Tente novamente.");
+      console.error("Erro na requisição:", error);
     }
   };
 
   return (
+    // ... resto do código JSX permanece igual
     <>
       <StatusBar
         barStyle="dark-content"
@@ -111,6 +117,8 @@ export default function Index() {
     </>
   );
 }
+
+// ... styles permanecem iguais
 
 const styles = StyleSheet.create({
   container: {

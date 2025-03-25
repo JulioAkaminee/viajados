@@ -50,59 +50,58 @@ export default function Cadastro() {
   };
 
   const continuarPressionado = async () => {
-    const nomeFormatado = nome.trim().replace(/\s+/g, "");
+    const nomeFormatado = nome.trim().replace(/\s+/g, ""); // Remove espaços extras
     const nacionalidadeFormatado = nacionalidade.trim().replace(/\s+/g, "");
     const cpfNumerico = cpf.replace(/\D/g, "");
     const sexoFormatado = sexo === "Masculino" ? "M" : "F";
     const dataFormatada = converterDataParaEnvio(dtNasc);
-
+  
     if (!nomeFormatado) {
-      Alert.alert("Erro:", "O campo Nome não pode estar vazio.");
+      Alert.alert("Erro", "O campo Nome não pode estar vazio.");
       return;
     }
-
+  
     if (cpfNumerico.length !== 11) {
-      Alert.alert("Erro:", "CPF inválido.");
+      Alert.alert("Erro", "CPF inválido.");
       return;
     }
-
+  
     if (!dataFormatada) {
-      Alert.alert("Erro:", "O campo Data de Nascimento não pode estar vazio.");
+      Alert.alert("Erro", "O campo Data de Nascimento não pode estar vazio.");
       return;
     }
-
+  
     if (!nacionalidadeFormatado) {
-      Alert.alert("Erro:", "O campo Nacionalidade não pode estar vazio.");
+      Alert.alert("Erro", "O campo Nacionalidade não pode estar vazio.");
       return;
     }
-
+  
     if (!email.trim() || !validaEmail(email)) {
-      Alert.alert("Erro:", "Por favor, insira um email válido.");
+      Alert.alert("Erro", "Por favor, insira um email válido.");
       return;
     }
-
+  
     if (!senha.trim() || !confSenha.trim()) {
-      Alert.alert("Erro:", "Os campos de senha não podem estar vazios.");
+      Alert.alert("Erro", "Os campos de senha não podem estar vazios.");
       return;
     }
-
+  
     if (senha !== confSenha) {
-      Alert.alert("Erro:", "As senhas não coincidem.");
+      Alert.alert("Erro", "As senhas não coincidem.");
       return;
     }
-
-    const ativo = 1;
+  
     const dadosUsuario = {
-      email,
-      senha,
+      email: email,
+      senha: senha,
       nome: nomeFormatado,
+      ativo: 1,
       cpf: cpfNumerico,
-      dtNasc: dataFormatada,
+      data_nascimento: dataFormatada, // Ajustado para o nome esperado pela API
       nacionalidade: nacionalidadeFormatado,
       sexo: sexoFormatado,
-      ativo,
     };
-
+  
     try {
       const resposta = await fetch(
         "https://backend-viajados.vercel.app/api/cadastro",
@@ -110,28 +109,29 @@ export default function Cadastro() {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
+            Accept: "application/json", // Boa prática adicionar
           },
           body: JSON.stringify(dadosUsuario),
         }
       );
-
+  
       const dados = await resposta.json();
-
+  
       if (resposta.status === 201) {
-        Alert.alert("Sucesso:", "Cadastro realizado com sucesso!", [
+        Alert.alert("Sucesso", "Cadastro realizado com sucesso!", [
           { text: "OK", onPress: () => navigation.navigate("index") },
         ]);
       } else {
         Alert.alert(
-          "Erro:",
+          "Erro",
           dados.message || "Falha ao cadastrar. Tente novamente."
         );
       }
     } catch (error) {
-      Alert.alert("Erro:", "Ocorreu um erro ao se conectar com o servidor.");
+      Alert.alert("Erro", "Ocorreu um erro ao se conectar com o servidor.");
+      console.error("Erro na requisição:", error);
     }
   };
-
   return (
     <ScrollView style={styles.container}>
       <View style={styles.containerLogo}>
