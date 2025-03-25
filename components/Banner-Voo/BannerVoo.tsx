@@ -15,7 +15,7 @@ type Props = {
   origem: string;
   saida: string;
   data: string;
-  descricao: string;
+ 
   preco: string;
   onPress: () => void;
 };
@@ -26,7 +26,6 @@ export default function BannerVoo({
   origem,
   saida,
   data,
-  descricao,
   preco,
   onPress,
 }: Props) {
@@ -49,7 +48,6 @@ export default function BannerVoo({
         <Image source={imagem} style={styles.imagem} />
       </View>
       <Text style={styles.destino}>{destino}</Text>
-      <Text style={styles.descricao}>{descricao}</Text>
       <Text style={styles.origem}>Origem: {origem}</Text>
       <Text style={styles.saida}>Saída: {saida}</Text>
       <Text style={styles.data}>Data: {data}</Text>

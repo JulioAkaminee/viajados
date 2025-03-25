@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import {
   Image,
-  ImageSourcePropType,
   Pressable,
   ScrollView,
   StatusBar,
@@ -10,6 +9,7 @@ import {
   View,
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 import BannerHotel from "@/components/Banner-Hotel/BannerHotel";
 import BannerVoo from "@/components/Banner-Voo/BannerVoo";
@@ -22,121 +22,76 @@ export default function Explorar() {
   const [vooSelecionado, setVooSelecionado] = useState(null);
   const [hoteis, setHoteis] = useState([]);
   const [voos, setVoos] = useState([]);
+  const [nomeUsuario, setNomeUsuario] = useState("");
 
   useEffect(() => {
-    fetch("https://backend-viajados.vercel.app/api/hoteis")
-      .then((response) => response.json())
-      .then((data) => setHoteis(data))
-      .catch((error) => console.error("Erro ao buscar hotéis:", error));
+    const carregarDados = async () => {
+      try {
+        // Busca o nome do usuário
+        const nome = await AsyncStorage.getItem("nome");
+        if (nome) setNomeUsuario(nome);
 
-    fetch("https://backend-viajados.vercel.app/api/voos")
-      .then((response) => response.json())
-      .then((data) => setVoos(data))
-      .catch((error) => console.error("Erro ao buscar voos:", error));
+        // Busca o token
+        const token = await AsyncStorage.getItem("token");
+        if (!token) {
+          console.error("Token não encontrado no AsyncStorage");
+          return;
+        }
+
+        // Busca hotéis
+        const respostaHoteis = await fetch("https://backend-viajados.vercel.app/api/hoteis", {
+          method: "GET",
+          headers: {
+            "Authorization": `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        });
+
+        if (!respostaHoteis.ok) {
+          throw new Error(`Erro na requisição de hotéis: ${respostaHoteis.status}`);
+        }
+
+        const dadosHoteis = await respostaHoteis.json();
+        // Ajuste dependendo do formato da resposta (exemplo: dadosHoteis.data)
+        setHoteis(Array.isArray(dadosHoteis) ? dadosHoteis : dadosHoteis.data || []);
+
+        // Busca voos
+        const respostaVoos = await fetch("https://backend-viajados.vercel.app/api/voos", {
+          method: "GET",
+          headers: {
+            "Authorization": `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        });
+
+        if (!respostaVoos.ok) {
+          throw new Error(`Erro na requisição de voos: ${respostaVoos.status}`);
+        }
+
+        const dadosVoos = await respostaVoos.json();
+        setVoos(Array.isArray(dadosVoos) ? dadosVoos : dadosVoos.data || []);
+
+      } catch (error) {
+        console.error("Erro ao carregar dados:", error.message || error);
+      }
+    };
+
+    carregarDados();
   }, []);
 
-  const opcaoPressionada = (opcao: React.SetStateAction<string>) => {
+  const opcaoPressionada = (opcao) => {
     setOpcaoSelecionada(opcao);
   };
 
-  const bannerHotelPressionado = (hotel: React.SetStateAction<null>) => {
+  const bannerHotelPressionado = (hotel) => {
     setHotelSelecionado(hotel);
     setModalHotelVisivel(true);
   };
 
-  const bannerVooPressionado = (voo: React.SetStateAction<null>) => {
+  const bannerVooPressionado = (voo) => {
     setVooSelecionado(voo);
     setModalVooVisivel(true);
   };
-
-  {/*
-  const hoteis = [
-    {
-      nome: "Hotel Paraíso",
-      avaliacao: 4,
-      inicio: "10 de Abril",
-      fim: "15 de Abril",
-      descricao: "Hotel de luxo com vista para o mar",
-      preco: "R$ 250,00",
-      localizacao: "Praia de Copacabana, Rio de Janeiro/RJ",
-      imagens: [
-        require("../../assets/images/hoteis/hotel-paraiso.jpg"),
-        require("../../assets/images/hoteis/hotel-paraiso-2.jpg"),
-        require("../../assets/images/hoteis/hotel-paraiso-3.jpg"),
-      ],
-    },
-    {
-      nome: "Pousada do Sol",
-      avaliacao: 3,
-      inicio: "12 de Abril",
-      fim: "18 de Abril",
-      descricao: "Aconchegante pousada no centro",
-      preco: "R$ 150,00",
-      localizacao: "Centro Histórico, Salvador/BA",
-      imagens: [
-        require("../../assets/images/hoteis/pousada-do-sol.jpg"),
-        require("../../assets/images/hoteis/pousada-do-sol-2.jpg"),
-        require("../../assets/images/hoteis/pousada-do-sol-3.jpg"),
-      ],
-    },
-    {
-      nome: "Resort das Águias",
-      avaliacao: 5,
-      inicio: "20 de Abril",
-      fim: "25 de Abril",
-      descricao: "Resort com piscinas termais",
-      preco: "R$ 450,00",
-      localizacao: "Serra Gaúcha, Porto Alegre/RS",
-      imagens: [
-        require("../../assets/images/hoteis/resort-das-aguias.jpg"),
-        require("../../assets/images/hoteis/resort-das-aguias-2.jpg"),
-        require("../../assets/images/hoteis/resort-das-aguias-3.jpeg"),
-      ],
-    },
-  ];
-
-  const voos = [
-    {
-      destino: "São Paulo",
-      origem: "Rio de Janeiro",
-      descricao: "Conheça a maior cidade do país",
-      saida: "08:00",
-      data: "01 de Abril",
-      preco: "R$ 300,00",
-      imagens: [
-        require("../../assets/images/voos/sp.jpg"),
-        require("../../assets/images/voos/sp-2.jpg"),
-        require("../../assets/images/voos/sp-3.jpg"),
-      ],
-    },
-    {
-      destino: "Salvador",
-      origem: "São Paulo",
-      descricao: "Aproveite as belas praias da capital baiana",
-      saida: "14:30",
-      data: "02 de Abril",
-      preco: "R$ 450,00",
-      imagens: [
-        require("../../assets/images/voos/salvador.jpg"),
-        require("../../assets/images/voos/salvador-2.jpg"),
-        require("../../assets/images/voos/salvador-3.jpg"),
-      ],
-    },
-    {
-      destino: "Porto Alegre",
-      origem: "Curitiba",
-      descricao: "Experimente o elogiado churrasco gaúcho",
-      saida: "10:15",
-      data: "03 de Abril",
-      preco: "R$ 280,00",
-      imagens: [
-        require("../../assets/images/voos/poa.jpg"),
-        require("../../assets/images/voos/poa-2.jpg"),
-        require("../../assets/images/voos/poa-3.jpeg"),
-      ],
-    },
-  ];
-  */}
 
   return (
     <>
@@ -145,42 +100,31 @@ export default function Explorar() {
           <ScrollView style={styles.conteudoModal}>
             <Text style={styles.tituloModal}>{hotelSelecionado.nome}</Text>
             <View style={styles.containerCarrossel}>
-              <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                style={styles.rolarImagens}
-              >
-                {hotelSelecionado.imagens.map(
-                  (
-                    image: ImageSourcePropType | undefined,
-                    index: React.Key | null | undefined
-                  ) => (
+              <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                {hotelSelecionado.imagens && Array.isArray(hotelSelecionado.imagens) ? (
+                  hotelSelecionado.imagens.map((image, index) => (
                     <Image
                       key={index}
-                      source={image}
+                      source={{ uri: image }}
                       style={styles.imagemModal}
+                      onError={(e) => console.log(`Erro ao carregar imagem: ${image}`, e.nativeEvent.error)}
                     />
-                  )
+                  ))
+                ) : (
+                  <Text>Imagens não disponíveis</Text>
                 )}
               </ScrollView>
             </View>
 
             <View style={styles.containerInformacoes}>
-              <Text style={styles.textoInformacoes}>
-                <Text style={{ fontWeight: "bold" }}>Localização:</Text>{" "}
-                {hotelSelecionado.localizacao}
-              </Text>
-              <Text style={styles.textoInformacoes}>
-                <Text style={{ fontWeight: "bold" }}>Início:</Text>{" "}
-                {hotelSelecionado.inicio}
-              </Text>
-              <Text style={styles.textoInformacoes}>
-                <Text style={{ fontWeight: "bold" }}>Fim:</Text>{" "}
-                {hotelSelecionado.fim}
-              </Text>
+              
               <Text style={styles.textoInformacoes}>
                 <Text style={{ fontWeight: "bold" }}>Preço:</Text>{" "}
-                {hotelSelecionado.preco}
+                {hotelSelecionado.preco_diaria}
+              </Text>
+              <Text style={styles.textoInformacoes}>
+                <Text style={{ fontWeight: "bold" }}>Descrição:</Text>{" "}
+                {hotelSelecionado.descricao}
               </Text>
             </View>
             <View style={styles.containerAvaliacao}>
@@ -231,43 +175,44 @@ export default function Explorar() {
       {modalVooVisivel && vooSelecionado && (
         <View style={styles.containerModal}>
           <ScrollView style={styles.conteudoModal}>
+            <Text style={styles.tituloModal}>{vooSelecionado.destino || "Destino não informado"}</Text>
             <View style={styles.containerCarrossel}>
-              <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                style={styles.rolarImagens}
-              >
-                {vooSelecionado.imagens.map(
-                  (
-                    image: ImageSourcePropType | undefined,
-                    index: React.Key | null | undefined
-                  ) => (
+              <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                {vooSelecionado.imagens && Array.isArray(vooSelecionado.imagens) ? (
+                  vooSelecionado.imagens.map((image, index) => (
                     <Image
                       key={index}
-                      source={image}
+                      source={{ uri: image }}
                       style={styles.imagemModal}
+                      onError={(e) => console.log(`Erro ao carregar imagem: ${image}`, e.nativeEvent.error)}
                     />
-                  )
+                  ))
+                ) : (
+                  <Text>Imagens não disponíveis</Text>
                 )}
               </ScrollView>
             </View>
-            <Text style={styles.tituloModal}>{vooSelecionado.destino}</Text>
-            <View style={styles.containerInformacoes}>
-              <Text style={styles.descricao}>{vooSelecionado.descricao}</Text>
-              <Text style={styles.textoInformacoes}>
-                Origem: {vooSelecionado.origem}
+            <Text style={styles.textoInformacoes}>
+                <Text style={{ fontWeight: "bold" }}>Origem:</Text>{" "}
+                {vooSelecionado.destino}
               </Text>
-              <Text style={styles.textoInformacoes}>
-                Saída: {vooSelecionado.saida}
+
+                <Text style={styles.textoInformacoes}>
+                <Text style={{ fontWeight: "bold" }}>Origem:</Text>{" "}
+                {vooSelecionado.origem}
               </Text>
-              <Text style={styles.textoInformacoes}>
-                Data: {vooSelecionado.data}
+
+                <Text style={styles.textoInformacoes}>
+                <Text style={{ fontWeight: "bold" }}>Preco:</Text>{" "}
+                {vooSelecionado.preco}
               </Text>
+
               <Text style={styles.textoInformacoes}>
-                Preço: {vooSelecionado.preco}
+                <Text style={{ fontWeight: "bold" }}>Data:</Text>{" "}
+                {vooSelecionado.data}
               </Text>
-            </View>
-            <View style={styles.containerOferecimentos}>
+
+              <View style={styles.containerOferecimentos}>
               <Text style={styles.tituloOferecimentos}>
                 O que o voo oferece:
               </Text>
@@ -295,37 +240,27 @@ export default function Explorar() {
             <Pressable onPress={() => {}} style={styles.botaoEscolher}>
               <Text style={styles.textoBotaoEscolher}>Escolher</Text>
             </Pressable>
-            <Pressable
-              onPress={() => setModalVooVisivel(false)}
-              style={styles.botaoFechar}
-            >
+
+
+                
+           
+            <Pressable onPress={() => setModalVooVisivel(false)} style={styles.botaoFechar}>
               <Text style={styles.textoBotaoFechar}>Fechar</Text>
             </Pressable>
           </ScrollView>
         </View>
       )}
 
-      <StatusBar
-        barStyle="dark-content"
-        backgroundColor="#FDD5E9"
-        translucent={false}
-      />
+      <StatusBar barStyle="dark-content" backgroundColor="#FDD5E9" translucent={false} />
       <ScrollView style={styles.container}>
         <View style={styles.containerLogo}>
-          <Image
-            source={require("../../assets/images/logo.png")}
-            style={styles.logo}
-            resizeMode="contain"
-          />
+          <Image source={require("../../assets/images/logo.png")} style={styles.logo} resizeMode="contain" />
         </View>
 
         <View style={styles.containerInfoUsuario}>
-          <Image
-            source={require("../../assets/images/user-icon.png")}
-            style={styles.avatar}
-          />
+          <Image source={require("../../assets/images/user-icon.png")} style={styles.avatar} />
           <View>
-            <Text style={styles.saudacao}>Olá, Nome</Text>
+            <Text style={styles.saudacao}>Olá, {nomeUsuario || "Usuário"}</Text>
             <Text style={styles.texto}>Bem-vindo de volta!</Text>
           </View>
         </View>
@@ -335,80 +270,69 @@ export default function Explorar() {
           <Text style={styles.subTitulo}>Descubra novos lugares</Text>
           <View style={styles.filtroBusca}>
             <Pressable
-              style={[
-                styles.opcoesFiltro,
-                opcaoSelecionada === "hoteis" && styles.opcaoSelecionada,
-              ]}
+              style={[styles.opcoesFiltro, opcaoSelecionada === "hoteis" && styles.opcaoSelecionada]}
               onPress={() => opcaoPressionada("hoteis")}
             >
               <Text
-                style={[
-                  styles.textoFiltro,
-                  opcaoSelecionada === "hoteis" &&
-                    styles.textoFiltroSelecionado,
-                ]}
+                style={[styles.textoFiltro, opcaoSelecionada === "hoteis" && styles.textoFiltroSelecionado]}
               >
                 Hotéis
               </Text>
             </Pressable>
             <Pressable
-              style={[
-                styles.opcoesFiltro,
-                opcaoSelecionada === "voos" && styles.opcaoSelecionada,
-              ]}
+              style={[styles.opcoesFiltro, opcaoSelecionada === "voos" && styles.opcaoSelecionada]}
               onPress={() => opcaoPressionada("voos")}
             >
               <Text
-                style={[
-                  styles.textoFiltro,
-                  opcaoSelecionada === "voos" && styles.textoFiltroSelecionado,
-                ]}
+                style={[styles.textoFiltro, opcaoSelecionada === "voos" && styles.textoFiltroSelecionado]}
               >
                 Voos
               </Text>
             </Pressable>
           </View>
 
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            style={styles.carrossel}
-          >
-            {opcaoSelecionada === "hoteis" && (
-              <>
-                {hoteis.map((hotel, index) => (
-                  <BannerHotel
-                    key={index}
-                    imagem={hotel.imagens[0]}
-                    nome={hotel.nome}
-                    avaliacao={hotel.avaliacao}
-                    inicio={hotel.inicio}
-                    fim={hotel.fim}
-                    descricao={hotel.descricao}
-                    preco={hotel.preco}
-                    onPress={() => bannerHotelPressionado(hotel)}
-                  />
-                ))}
-              </>
-            )}
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.carrossel}>
+            {opcaoSelecionada === "hoteis" && hoteis.length > 0 ? (
+              hoteis.map((hotel, index) => (
+                <BannerHotel
+                  key={index}
+                  imagem={
+                    hotel.imagens && Array.isArray(hotel.imagens) && hotel.imagens[0]
+                      ? { uri: hotel.imagens[0] }
+                      : require("../../assets/images/hoteis/defaultHotel.jpg") 
+                  }
+                  nome={hotel.nome || "Hotel sem nome"}
+                  descricao={hotel.descricao || "Sem descrição"}
+                  avaliacao={hotel.avaliacao }
+                  preco={hotel.preco_diaria || "Preço não disponível"}
+                  onPress={() => bannerHotelPressionado(hotel)}
+                />
+              ))
+            ) : opcaoSelecionada === "hoteis" ? (
+              <Text>Nenhum hotel disponível</Text>
+            ) : null}
 
-            {opcaoSelecionada === "voos" && (
-              <>
-                {voos.map((voo, index) => (
-                  <BannerVoo
-                    key={index}
-                    imagem={voo.imagens[0]}
-                    destino={voo.destino}
-                    origem={voo.origem}
-                    descricao={voo.descricao}
-                    saida={voo.saida}
-                    data={voo.data}
-                    preco={voo.preco}
-                    onPress={() => bannerVooPressionado(voo)}
-                  />
-                ))}
-              </>
-            )}
+            {opcaoSelecionada === "voos" && voos.length > 0 ? (
+              voos.map((voo, index) => (
+                <BannerVoo
+                  key={index}
+                  imagem={
+                    voo.imagens && Array.isArray(voo.imagens) && voo.imagens[0]
+                      ? { uri: voo.imagens[0] }
+                      : require("../../assets/images/hoteis/defaultHotel.jpg") 
+                  }
+                  destino={voo.destino || "Destino não informado"}
+                  origem={voo.origem || "Origem não informada"}
+                  descricao={voo.descricao || "Sem descrição"}
+                  saida={voo.saida || "Horário não informado"}
+                  data={voo.data || "Data não informada"}
+                  preco={voo.preco || "Preço não disponível"}
+                  onPress={() => bannerVooPressionado(voo)}
+                />
+              ))
+            ) : opcaoSelecionada === "voos" ? (
+              <Text>Nenhum voo disponível</Text>
+            ) : null}
           </ScrollView>
         </View>
       </ScrollView>
@@ -427,6 +351,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     backgroundColor: "rgba(0,0,0,0.5)",
     zIndex: 5,
+    
   },
   conteudoModal: {
     maxWidth: "90%",
@@ -504,11 +429,12 @@ const styles = StyleSheet.create({
     padding: 10,
     backgroundColor: "#EEE",
     borderRadius: 5,
+    marginBottom:30
   },
   textoBotaoFechar: {
     color: "#000",
     fontWeight: "bold",
-    marginBottom:30
+
   },
   container: {
     backgroundColor: "#FDD5E9",

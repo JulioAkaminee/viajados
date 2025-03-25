@@ -9,6 +9,7 @@ import {
   View,
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 import BannerHotelFavoritos from "@/components/Banner-Hotel/BannerHotelFavoritos";
 import BannerVooFavoritos from "@/components/Banner-Voo/BannerVooFavoritos";
@@ -23,15 +24,61 @@ export default function Favoritos() {
   const [voos, setVoos] = useState([]);
 
   useEffect(() => {
-    fetch("https://backend-viajados.vercel.app/api/favoritos/hoteis")
-      .then((response) => response.json())
-      .then((data) => setHoteis(data))
-      .catch((error) => console.error("Erro ao buscar hotéis:", error));
+    const carregarDados = async () => {
+      try {
+        // Busca o token e o idUsuario
+        const token = await AsyncStorage.getItem("token");
+        const idUsuario = await AsyncStorage.getItem("idUsuario");
 
-    fetch("https://backend-viajados.vercel.app/api/favoritos/voos")
-      .then((response) => response.json())
-      .then((data) => setVoos(data))
-      .catch((error) => console.error("Erro ao buscar voos:", error));
+        if (!token || !idUsuario) {
+          console.error("Token ou idUsuario não encontrado no AsyncStorage");
+          return;
+        }
+
+        // Busca hotéis favoritados
+        const respostaHoteis = await fetch(
+          `https://backend-viajados.vercel.app/api/favoritos/hoteis?idUsuario=${idUsuario}`,
+          {
+            method: "GET",
+            headers: {
+              "Authorization": `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+          }
+        );
+
+        if (!respostaHoteis.ok) {
+          throw new Error(`Erro na requisição de hotéis: ${respostaHoteis.status}`);
+        }
+
+        const dadosHoteis = await respostaHoteis.json();
+        setHoteis(Array.isArray(dadosHoteis) ? dadosHoteis : dadosHoteis.data || []);
+
+        // Busca voos favoritados
+        const respostaVoos = await fetch(
+          `https://backend-viajados.vercel.app/api/favoritos/voos?IdUsuario=${idUsuario}`,
+          {
+            method: "GET",
+            headers: {
+              "Authorization": `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+          }
+        );
+        console.log("Hoteis carregados:", hoteis);
+        if (!respostaVoos.ok) {
+          throw new Error(`Erro na requisição de voos: ${respostaVoos.status}`);
+        }
+
+        const dadosVoos = await respostaVoos.json();
+        setVoos(Array.isArray(dadosVoos) ? dadosVoos : dadosVoos.data || []);
+
+      } catch (error) {
+        console.error("Erro ao carregar dados:", error.message || error);
+      }
+    };
+
+    carregarDados();
   }, []);
 
   const opcaoPressionada = (opcao: React.SetStateAction<string>) => {
@@ -48,95 +95,6 @@ export default function Favoritos() {
     setModalVooVisivel(true);
   };
 
-  {/*
-  const hoteis = [
-    {
-      nome: "Hotel Paraíso",
-      avaliacao: 4,
-      inicio: "10 de Abril",
-      fim: "15 de Abril",
-      descricao: "Hotel de luxo com vista para o mar",
-      preco: "R$ 250,00",
-      localizacao: "Praia de Copacabana, Rio de Janeiro/RJ",
-      imagens: [
-        require("../../assets/images/hoteis/hotel-paraiso.jpg"),
-        require("../../assets/images/hoteis/hotel-paraiso-2.jpg"),
-        require("../../assets/images/hoteis/hotel-paraiso-3.jpg"),
-      ],
-    },
-    {
-      nome: "Pousada do Sol",
-      avaliacao: 3,
-      inicio: "12 de Abril",
-      fim: "18 de Abril",
-      descricao: "Aconchegante pousada no centro",
-      preco: "R$ 150,00",
-      localizacao: "Centro Histórico, Salvador/BA",
-      imagens: [
-        require("../../assets/images/hoteis/pousada-do-sol.jpg"),
-        require("../../assets/images/hoteis/pousada-do-sol-2.jpg"),
-        require("../../assets/images/hoteis/pousada-do-sol-3.jpg"),
-      ],
-    },
-    {
-      nome: "Resort das Águias",
-      avaliacao: 5,
-      inicio: "20 de Abril",
-      fim: "25 de Abril",
-      descricao: "Resort com piscinas termais",
-      preco: "R$ 450,00",
-      localizacao: "Serra Gaúcha, Porto Alegre/RS",
-      imagens: [
-        require("../../assets/images/hoteis/resort-das-aguias.jpg"),
-        require("../../assets/images/hoteis/resort-das-aguias-2.jpg"),
-        require("../../assets/images/hoteis/resort-das-aguias-3.jpeg"),
-      ],
-    },
-  ];
-
-  const voos = [
-    {
-      destino: "São Paulo",
-      origem: "Rio de Janeiro",
-      descricao: "Conheça a maior cidade do país",
-      saida: "08:00",
-      data: "01 de Abril",
-      preco: "R$ 300,00",
-      imagens: [
-        require("../../assets/images/voos/sp.jpg"),
-        require("../../assets/images/voos/sp-2.jpg"),
-        require("../../assets/images/voos/sp-3.jpg"),
-      ],
-    },
-    {
-      destino: "Salvador",
-      origem: "São Paulo",
-      descricao: "Aproveite as belas praias da capital baiana",
-      saida: "14:30",
-      data: "02 de Abril",
-      preco: "R$ 450,00",
-      imagens: [
-        require("../../assets/images/voos/salvador.jpg"),
-        require("../../assets/images/voos/salvador-2.jpg"),
-        require("../../assets/images/voos/salvador-3.jpg"),
-      ],
-    },
-    {
-      destino: "Porto Alegre",
-      origem: "Curitiba",
-      descricao: "Experimente o elogiado churrasco gaúcho",
-      saida: "10:15",
-      data: "03 de Abril",
-      preco: "R$ 280,00",
-      imagens: [
-        require("../../assets/images/voos/poa.jpg"),
-        require("../../assets/images/voos/poa-2.jpg"),
-        require("../../assets/images/voos/poa-3.jpeg"),
-      ],
-    },
-  ];
-  */}
-
   return (
     <>
       {modalHotelVisivel && hotelSelecionado && (
@@ -149,17 +107,22 @@ export default function Favoritos() {
                 showsHorizontalScrollIndicator={false}
                 style={styles.rolarImagens}
               >
-                {hotelSelecionado.imagens.map(
-                  (
-                    image: ImageSourcePropType | undefined,
-                    index: React.Key | null | undefined
-                  ) => (
-                    <Image
-                      key={index}
-                      source={image}
-                      style={styles.imagemModal}
-                    />
+                {hotelSelecionado.imagens && Array.isArray(hotelSelecionado.imagens) ? (
+                  hotelSelecionado.imagens.map(
+                    (
+                      image: ImageSourcePropType | undefined,
+                      index: React.Key | null | undefined
+                    ) => (
+                      <Image
+                        key={index}
+                        source={{ uri: image }}
+                        style={styles.imagemModal}
+                        onError={(e) => console.log(`Erro ao carregar imagem: ${image}`, e.nativeEvent.error)}
+                      />
+                    )
                   )
+                ) : (
+                  <Text>Imagens não disponíveis</Text>
                 )}
               </ScrollView>
             </View>
@@ -236,17 +199,22 @@ export default function Favoritos() {
                 showsHorizontalScrollIndicator={false}
                 style={styles.rolarImagens}
               >
-                {vooSelecionado.imagens.map(
-                  (
-                    image: ImageSourcePropType | undefined,
-                    index: React.Key | null | undefined
-                  ) => (
-                    <Image
-                      key={index}
-                      source={image}
-                      style={styles.imagemModal}
-                    />
+                {vooSelecionado.imagens && Array.isArray(vooSelecionado.imagens) ? (
+                  vooSelecionado.imagens.map(
+                    (
+                      image: ImageSourcePropType | undefined,
+                      index: React.Key | null | undefined
+                    ) => (
+                      <Image
+                        key={index}
+                        source={{ uri: image }}
+                        style={styles.imagemModal}
+                        onError={(e) => console.log(`Erro ao carregar imagem: ${image}`, e.nativeEvent.error)}
+                      />
+                    )
                   )
+                ) : (
+                  <Text>Imagens não disponíveis</Text>
                 )}
               </ScrollView>
             </View>
@@ -271,11 +239,7 @@ export default function Favoritos() {
                 O que o voo oferece:
               </Text>
               <View style={styles.containerConteudoOferecimentos}>
-                <MaterialIcons
-                  name="airplane-ticket"
-                  size={30}
-                  color="#D6005D"
-                />
+                <MaterialIcons name="airplane-ticket" size={30} color="#D6005D" />
                 <Text style={styles.textoOferecimentos}>Classe Econômica</Text>
               </View>
               <View style={styles.containerConteudoOferecimentos}>
@@ -326,8 +290,7 @@ export default function Favoritos() {
               <Text
                 style={[
                   styles.textoFiltro,
-                  opcaoSelecionada === "hoteis" &&
-                    styles.textoFiltroSelecionado,
+                  opcaoSelecionada === "hoteis" && styles.textoFiltroSelecionado,
                 ]}
               >
                 Hotéis
@@ -354,38 +317,54 @@ export default function Favoritos() {
             {opcaoSelecionada === "hoteis" && (
               <>
                 <ScrollView style={styles.containerFavoritosLista}>
-                  {hoteis.map((hotel, index) => (
-                    <BannerHotelFavoritos
-                      key={index}
-                      imagem={hotel.imagens[0]}
-                      nome={hotel.nome}
-                      avaliacao={hotel.avaliacao}
-                      inicio={hotel.inicio}
-                      fim={hotel.fim}
-                      descricao={hotel.descricao}
-                      preco={hotel.preco}
-                      onPress={() => bannerHotelPressionado(hotel)}
-                    />
-                  ))}
+                  {hoteis.length > 0 ? (
+                    hoteis.map((hotel, index) => (
+                      <BannerHotelFavoritos
+                        key={index}
+                        imagem={
+                          hotel.imagens && Array.isArray(hotel.imagens) && hotel.imagens[0]
+                            ? { uri: hotel.imagens[0] }
+                            : require("../../assets/images/hoteis/defaultHotel.jpg")
+                        }
+                        nome={hotel.nome || "Hotel sem nome"}
+                        avaliacao={hotel.avaliacao}
+                        inicio={hotel.inicio}
+                        fim={hotel.fim}
+                        descricao={hotel.descricao || "Sem descrição"}
+                        preco={hotel.preco || "Preço não disponível"}
+                        onPress={() => bannerHotelPressionado(hotel)}
+                      />
+                    ))
+                  ) : (
+                    <Text>Nenhum hotel favoritado</Text>
+                  )}
                 </ScrollView>
               </>
             )}
             {opcaoSelecionada === "voos" && (
               <>
                 <ScrollView style={styles.containerFavoritosLista}>
-                  {voos.map((voo, index) => (
-                    <BannerVooFavoritos
-                      key={index}
-                      imagem={voo.imagens[0]}
-                      destino={voo.destino}
-                      origem={voo.origem}
-                      descricao={voo.descricao}
-                      saida={voo.saida}
-                      data={voo.data}
-                      preco={voo.preco}
-                      onPress={() => bannerVooPressionado(voo)}
-                    />
-                  ))}
+                  {voos.length > 0 ? (
+                    voos.map((voo, index) => (
+                      <BannerVooFavoritos
+                        key={index}
+                        imagem={
+                          voo.imagens && Array.isArray(voo.imagens) && voo.imagens[0]
+                            ? { uri: voo.imagens[0] }
+                            : require("../../assets/images/hoteis/defaultHotel.jpg")
+                        }
+                        destino={voo.destino || "Destino não informado"}
+                        origem={voo.origem || "Origem não informada"}
+                        descricao={voo.descricao || "Sem descrição"}
+                        saida={voo.saida || "Horário não informado"}
+                        data={voo.data || "Data não informada"}
+                        preco={voo.preco || "Preço não disponível"}
+                        onPress={() => bannerVooPressionado(voo)}
+                      />
+                    ))
+                  ) : (
+                    <Text>Nenhum voo favoritado</Text>
+                  )}
                 </ScrollView>
               </>
             )}

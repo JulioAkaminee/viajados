@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { View, Text, StyleSheet, Image, StatusBar, Alert } from "react-native";
 import { Link } from "expo-router";
 import { useNavigation } from "@react-navigation/native";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import Button from "../components/Button";
 import Input from "../components/Input";
@@ -12,10 +13,26 @@ export default function Index() {
   const [senha, setSenha] = useState("");
 
   const validaEmail = (email: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-  function navegarParaHome(){
-    navigation.navigate("(tabs)", { screen: "explorar" })
+
+  function navegarParaHome() {
+    navigation.navigate("(tabs)", { screen: "explorar" });
   }
 
+
+  const salvarDados = async (token, idUsuario, email, nome) => {
+    try {
+      await AsyncStorage.setItem('token', token);
+      await AsyncStorage.setItem('idUsuario', String(idUsuario)); 
+      await AsyncStorage.setItem('email', email);
+      await AsyncStorage.setItem('nome', nome);
+      console.log('Dados salvos com sucesso!');
+    } catch (erro) {
+      console.log('Erro ao salvar dados:', erro);
+      throw erro; 
+    }
+  };
+
+  
   const continuarPressionado = async () => {
     if (!email.trim() || !validaEmail(email)) {
       Alert.alert("Erro", "Por favor, insira um email válido.");
@@ -42,6 +59,14 @@ export default function Index() {
       const dados = await resposta.json();
 
       if (resposta.status === 200) {
+        console.log(dados);
+        // Extrai os dados do usuário da resposta
+        const { token, usuario } = dados;
+        const { idUsuario, email: emailUsuario, nome } = usuario;
+
+        // Salva os dados no AsyncStorage
+        await salvarDados(token, idUsuario, emailUsuario, nome);
+
         Alert.alert("Sucesso", "Login realizado com sucesso!", [
           {
             text: "OK",
@@ -57,13 +82,17 @@ export default function Index() {
         );
       }
     } catch (error) {
-      Alert.alert("Erro", "Falha na conexão com o servidor. Tente novamente.");
       console.error("Erro na requisição:", error);
+      Alert.alert(
+        "Erro",
+        error.message === "Network request failed"
+          ? "Falha na conexão com o servidor. Verifique sua internet."
+          : "Ocorreu um erro inesperado. Tente novamente."
+      );
     }
   };
 
   return (
-    // ... resto do código JSX permanece igual
     <>
       <StatusBar
         barStyle="dark-content"
@@ -117,8 +146,6 @@ export default function Index() {
     </>
   );
 }
-
-// ... styles permanecem iguais
 
 const styles = StyleSheet.create({
   container: {
