@@ -55,42 +55,42 @@ export default function Cadastro() {
     const cpfNumerico = cpf.replace(/\D/g, "");
     const sexoFormatado = sexo === "Masculino" ? "M" : "F";
     const dataFormatada = converterDataParaEnvio(dtNasc);
-  
+
     if (!nomeFormatado) {
       Alert.alert("Erro", "O campo Nome não pode estar vazio.");
       return;
     }
-  
+
     if (cpfNumerico.length !== 11) {
       Alert.alert("Erro", "CPF inválido.");
       return;
     }
-  
+
     if (!dataFormatada) {
       Alert.alert("Erro", "O campo Data de Nascimento não pode estar vazio.");
       return;
     }
-  
+
     if (!nacionalidadeFormatado) {
       Alert.alert("Erro", "O campo Nacionalidade não pode estar vazio.");
       return;
     }
-  
+
     if (!email.trim() || !validaEmail(email)) {
       Alert.alert("Erro", "Por favor, insira um email válido.");
       return;
     }
-  
+
     if (!senha.trim() || !confSenha.trim()) {
       Alert.alert("Erro", "Os campos de senha não podem estar vazios.");
       return;
     }
-  
+
     if (senha !== confSenha) {
       Alert.alert("Erro", "As senhas não coincidem.");
       return;
     }
-  
+
     const dadosUsuario = {
       email: email,
       senha: senha,
@@ -101,7 +101,7 @@ export default function Cadastro() {
       nacionalidade: nacionalidadeFormatado,
       sexo: sexoFormatado,
     };
-  
+
     try {
       const resposta = await fetch(
         "https://backend-viajados.vercel.app/api/cadastro",
@@ -114,9 +114,9 @@ export default function Cadastro() {
           body: JSON.stringify(dadosUsuario),
         }
       );
-  
+
       const dados = await resposta.json();
-  
+
       if (resposta.status === 201) {
         Alert.alert("Sucesso", "Cadastro realizado com sucesso!", [
           { text: "OK", onPress: () => navigation.navigate("index") },

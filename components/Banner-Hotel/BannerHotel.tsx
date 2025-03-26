@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import { MaterialIcons } from "@expo/vector-icons";
 import {
   StyleSheet,
@@ -15,6 +15,8 @@ type Props = {
   avaliacao: number;
   descricao: string;
   preco: string;
+  favorito: boolean;
+  onFavoritar: () => void;
   onPress: () => void;
 };
 
@@ -24,14 +26,10 @@ export default function BannerHotel({
   avaliacao,
   descricao,
   preco,
+  favorito,
+  onFavoritar,
   onPress,
 }: Props) {
-  const [favorito, setFavorito] = useState(false);
-
-  const favoritando = () => {
-    setFavorito((prev) => !prev);
-  };
-
   const numeroEstrelas = (avaliacao: number) => {
     const estrelas = [];
     for (let i = 1; i <= 5; i++) {
@@ -50,7 +48,7 @@ export default function BannerHotel({
   return (
     <Pressable onPress={onPress} style={styles.container}>
       <View style={{ position: "relative" }}>
-        <Pressable onPress={favoritando} style={styles.iconeFavorito}>
+        <Pressable onPress={onFavoritar} style={styles.iconeFavorito}>
           <MaterialIcons
             name={favorito ? "favorite" : "favorite-border"}
             size={24}
@@ -63,7 +61,7 @@ export default function BannerHotel({
       <View style={styles.avaliacao}>{numeroEstrelas(avaliacao)}</View>
       <Text style={styles.descricao}>{descricao}</Text>
       <Text style={styles.texto}>Preço por pessoa</Text>
-      <Text style={styles.preco}>{preco}</Text>
+      <Text style={styles.preco}>R$ {preco}</Text>
       <Text style={[styles.texto, { marginBottom: 10 }]}>
         Taxas e impostos não inclusos.
       </Text>

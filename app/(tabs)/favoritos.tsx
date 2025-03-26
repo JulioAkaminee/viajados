@@ -41,43 +41,45 @@ export default function Favoritos() {
           {
             method: "GET",
             headers: {
-              "Authorization": `Bearer ${token}`,
+              Authorization: `Bearer ${token}`,
               "Content-Type": "application/json",
             },
           }
         );
 
         if (!respostaHoteis.ok) {
-          throw new Error(`Erro na requisição de hotéis: ${respostaHoteis.status}`);
+          throw new Error(
+            `Erro na requisição de hotéis: ${respostaHoteis.status}`
+          );
         }
 
         const dadosHoteis = await respostaHoteis.json();
-        setHoteis(Array.isArray(dadosHoteis) ? dadosHoteis : dadosHoteis.data || []);
+        setHoteis(
+          Array.isArray(dadosHoteis) ? dadosHoteis : dadosHoteis.data || []
+        );
 
         // Busca voos favoritados
         const respostaVoos = await fetch(
-          `https://backend-viajados.vercel.app/api/favoritos/voos?IdUsuario=${idUsuario}`,
+          `https://backend-viajados.vercel.app/api/favoritos/voos?idUsuario=${idUsuario}`,
           {
             method: "GET",
             headers: {
-              "Authorization": `Bearer ${token}`,
+              Authorization: `Bearer ${token}`,
               "Content-Type": "application/json",
             },
           }
         );
-        console.log("Hoteis carregados:", hoteis);
         if (!respostaVoos.ok) {
           throw new Error(`Erro na requisição de voos: ${respostaVoos.status}`);
         }
 
         const dadosVoos = await respostaVoos.json();
         setVoos(Array.isArray(dadosVoos) ? dadosVoos : dadosVoos.data || []);
-
       } catch (error) {
         console.error("Erro ao carregar dados:", error.message || error);
       }
     };
-
+    
     carregarDados();
   }, []);
 
@@ -107,7 +109,8 @@ export default function Favoritos() {
                 showsHorizontalScrollIndicator={false}
                 style={styles.rolarImagens}
               >
-                {hotelSelecionado.imagens && Array.isArray(hotelSelecionado.imagens) ? (
+                {hotelSelecionado.imagens &&
+                Array.isArray(hotelSelecionado.imagens) ? (
                   hotelSelecionado.imagens.map(
                     (
                       image: ImageSourcePropType | undefined,
@@ -117,7 +120,12 @@ export default function Favoritos() {
                         key={index}
                         source={{ uri: image }}
                         style={styles.imagemModal}
-                        onError={(e) => console.log(`Erro ao carregar imagem: ${image}`, e.nativeEvent.error)}
+                        onError={(e) =>
+                          console.log(
+                            `Erro ao carregar imagem: ${image}`,
+                            e.nativeEvent.error
+                          )
+                        }
                       />
                     )
                   )
@@ -199,7 +207,8 @@ export default function Favoritos() {
                 showsHorizontalScrollIndicator={false}
                 style={styles.rolarImagens}
               >
-                {vooSelecionado.imagens && Array.isArray(vooSelecionado.imagens) ? (
+                {vooSelecionado.imagens &&
+                Array.isArray(vooSelecionado.imagens) ? (
                   vooSelecionado.imagens.map(
                     (
                       image: ImageSourcePropType | undefined,
@@ -209,7 +218,12 @@ export default function Favoritos() {
                         key={index}
                         source={{ uri: image }}
                         style={styles.imagemModal}
-                        onError={(e) => console.log(`Erro ao carregar imagem: ${image}`, e.nativeEvent.error)}
+                        onError={(e) =>
+                          console.log(
+                            `Erro ao carregar imagem: ${image}`,
+                            e.nativeEvent.error
+                          )
+                        }
                       />
                     )
                   )
@@ -239,7 +253,11 @@ export default function Favoritos() {
                 O que o voo oferece:
               </Text>
               <View style={styles.containerConteudoOferecimentos}>
-                <MaterialIcons name="airplane-ticket" size={30} color="#D6005D" />
+                <MaterialIcons
+                  name="airplane-ticket"
+                  size={30}
+                  color="#D6005D"
+                />
                 <Text style={styles.textoOferecimentos}>Classe Econômica</Text>
               </View>
               <View style={styles.containerConteudoOferecimentos}>
@@ -290,7 +308,8 @@ export default function Favoritos() {
               <Text
                 style={[
                   styles.textoFiltro,
-                  opcaoSelecionada === "hoteis" && styles.textoFiltroSelecionado,
+                  opcaoSelecionada === "hoteis" &&
+                    styles.textoFiltroSelecionado,
                 ]}
               >
                 Hotéis
@@ -322,7 +341,9 @@ export default function Favoritos() {
                       <BannerHotelFavoritos
                         key={index}
                         imagem={
-                          hotel.imagens && Array.isArray(hotel.imagens) && hotel.imagens[0]
+                          hotel.imagens &&
+                          Array.isArray(hotel.imagens) &&
+                          hotel.imagens[0]
                             ? { uri: hotel.imagens[0] }
                             : require("../../assets/images/hoteis/defaultHotel.jpg")
                         }
@@ -349,7 +370,9 @@ export default function Favoritos() {
                       <BannerVooFavoritos
                         key={index}
                         imagem={
-                          voo.imagens && Array.isArray(voo.imagens) && voo.imagens[0]
+                          voo.imagens &&
+                          Array.isArray(voo.imagens) &&
+                          voo.imagens[0]
                             ? { uri: voo.imagens[0] }
                             : require("../../assets/images/hoteis/defaultHotel.jpg")
                         }

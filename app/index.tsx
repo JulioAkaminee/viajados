@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { View, Text, StyleSheet, Image, StatusBar, Alert } from "react-native";
 import { Link } from "expo-router";
 import { useNavigation } from "@react-navigation/native";
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 import Button from "../components/Button";
 import Input from "../components/Input";
@@ -18,21 +18,19 @@ export default function Index() {
     navigation.navigate("(tabs)", { screen: "explorar" });
   }
 
-
   const salvarDados = async (token, idUsuario, email, nome) => {
     try {
-      await AsyncStorage.setItem('token', token);
-      await AsyncStorage.setItem('idUsuario', String(idUsuario)); 
-      await AsyncStorage.setItem('email', email);
-      await AsyncStorage.setItem('nome', nome);
-      console.log('Dados salvos com sucesso!');
+      await AsyncStorage.setItem("token", token);
+      await AsyncStorage.setItem("idUsuario", String(idUsuario));
+      await AsyncStorage.setItem("email", email);
+      await AsyncStorage.setItem("nome", nome);
+      console.log("Dados salvos com sucesso!");
     } catch (erro) {
-      console.log('Erro ao salvar dados:', erro);
-      throw erro; 
+      console.log("Erro ao salvar dados:", erro);
+      throw erro;
     }
   };
 
-  
   const continuarPressionado = async () => {
     if (!email.trim() || !validaEmail(email)) {
       Alert.alert("Erro", "Por favor, insira um email válido.");
@@ -47,14 +45,17 @@ export default function Index() {
     const dadosUsuario = { email, senha };
 
     try {
-      const resposta = await fetch("https://backend-viajados.vercel.app/api/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
-        },
-        body: JSON.stringify(dadosUsuario),
-      });
+      const resposta = await fetch(
+        "https://backend-viajados.vercel.app/api/login",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+          },
+          body: JSON.stringify(dadosUsuario),
+        }
+      );
 
       const dados = await resposta.json();
 
