@@ -13,7 +13,6 @@ type Props = {
   imagem: ImageSourcePropType;
   destino: string;
   origem: string;
-  saida: string;
   data: string;
   preco: string;
   favorito: boolean;
@@ -25,7 +24,6 @@ export default function BannerVoo({
   imagem,
   destino,
   origem,
-  saida,
   data,
   preco,
   favorito,
@@ -46,7 +44,6 @@ export default function BannerVoo({
       </View>
       <Text style={styles.destino}>{destino}</Text>
       <Text style={styles.origem}>Origem: {origem}</Text>
-      <Text style={styles.saida}>Saída: {saida}</Text>
       <Text style={styles.data}>Data: {data}</Text>
       <Text style={styles.texto}>Preço por pessoa</Text>
       <Text style={styles.preco}>R$ {preco}</Text>

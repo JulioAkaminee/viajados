@@ -13,44 +13,53 @@ type Props = {
   imagem: ImageSourcePropType;
   destino: string;
   origem: string;
-  saida: string;
   data: string;
   preco: string;
   onPress: () => void;
+  onDesfavoritar: () => void; // Substituído onFavoritar por onDesfavoritar
 };
 
-export default function BannerHotelFavoritos({
+export default function BannerVooFavoritos({
   imagem,
   destino,
   origem,
-  saida,
   data,
   preco,
   onPress,
+  onDesfavoritar,
 }: Props) {
-  const [favorito, setFavorito] = useState(false);
+  const [favorito, setFavorito] = useState(true); // Inicia como true, pois está na página de favoritos
 
-  const favoritando = () => {
-    setFavorito((prev) => !prev);
+  const handleDesfavoritar = () => {
+    setFavorito(false); // Atualiza o estado local
+    onDesfavoritar(); // Chama a função passada pelo componente pai para remover do backend
   };
+
+  const formatarData = (dataISO) => {
+    const data = new Date(dataISO);
+    const dia = String(data.getDate()).padStart(2, "0");
+    const mes = String(data.getMonth() + 1).padStart(2, "0");
+    const ano = data.getFullYear();
+    return `${dia}/${mes}/${ano}`;
+  };
+
 
   return (
     <Pressable onPress={onPress} style={styles.container}>
       <Image source={imagem} style={styles.imagem} />
       <View style={styles.conteudo}>
-        <Pressable onPress={favoritando} style={styles.iconeFavorito}>
+        <Pressable onPress={handleDesfavoritar} style={styles.iconeFavorito}>
           <MaterialIcons
-            name={favorito ? "favorite-border" : "favorite"}
+            name={favorito ? "favorite" : "favorite-border"} // Mostra "favorite" enquanto favoritado
             size={18}
-            color={favorito ? "#000" : "#D6005D"}
+            color={favorito ? "#D6005D" : "#000"} // Rosa quando favoritado, preto quando não
           />
         </Pressable>
         <Text style={styles.destino}>{destino}</Text>
         <Text style={styles.origem}>Origem: {origem}</Text>
-        <Text style={styles.saida}>Saída: {saida}</Text>
-        <Text style={styles.data}>Data: {data}</Text>
+        <Text style={styles.data}>Data: {formatarData(data)}</Text>
         <Text style={styles.texto}>Preço por pessoa</Text>
-        <Text style={styles.preco}>{preco}</Text>
+        <Text style={styles.preco}>R$ {preco}</Text>
         <Text style={styles.texto}>Taxas e impostos não inclusos.</Text>
       </View>
     </Pressable>
@@ -66,7 +75,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     overflow: "hidden",
     backgroundColor: "#fff",
-    marginVertical:10,
+    marginVertical: 10,
     elevation: 3,
   },
   imagem: {

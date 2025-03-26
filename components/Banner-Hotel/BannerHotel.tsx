@@ -18,6 +18,7 @@ type Props = {
   favorito: boolean;
   onFavoritar: () => void;
   onPress: () => void;
+  isFavoritando?: boolean; // Opcional, para feedback de carregamento
 };
 
 export default function BannerHotel({
@@ -29,6 +30,7 @@ export default function BannerHotel({
   favorito,
   onFavoritar,
   onPress,
+  isFavoritando = false,
 }: Props) {
   const numeroEstrelas = (avaliacao: number) => {
     const estrelas = [];
@@ -45,14 +47,20 @@ export default function BannerHotel({
     return estrelas;
   };
 
+  const isFavorito = !!favorito; // Garante que seja booleano
+
   return (
     <Pressable onPress={onPress} style={styles.container}>
       <View style={{ position: "relative" }}>
-        <Pressable onPress={onFavoritar} style={styles.iconeFavorito}>
+        <Pressable
+          onPress={onFavoritar}
+          style={styles.iconeFavorito}
+          disabled={isFavoritando}
+        >
           <MaterialIcons
-            name={favorito ? "favorite" : "favorite-border"}
+            name={isFavorito ? "favorite" : "favorite-border"}
             size={24}
-            color={favorito ? "#D6005D" : "#000"}
+            color={isFavorito ? "#D6005D" : "#000"}
           />
         </Pressable>
         <Image source={imagem} style={styles.imagem} />
@@ -109,15 +117,6 @@ const styles = StyleSheet.create({
     textAlign: "left",
     marginHorizontal: 10,
     marginBottom: 5,
-  },
-  inicio: {
-    textAlign: "left",
-    marginHorizontal: 10,
-    marginBottom: 5,
-  },
-  fim: {
-    textAlign: "left",
-    marginHorizontal: 10,
   },
   texto: {
     textAlign: "left",
