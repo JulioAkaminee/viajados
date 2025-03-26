@@ -13,8 +13,6 @@ type Props = {
   imagem: ImageSourcePropType;
   nome: string;
   avaliacao: number;
-  inicio: string;
-  fim: string;
   descricao: string;
   preco: string;
   onPress: () => void;
@@ -24,8 +22,6 @@ export default function BannerHotelFavoritos({
   imagem,
   nome,
   avaliacao,
-  inicio,
-  fim,
   descricao,
   preco,
   onPress,
@@ -65,8 +61,6 @@ export default function BannerHotelFavoritos({
         <Text style={styles.nome}>{nome}</Text>
         <View style={styles.avaliacao}>{numeroEstrelas(avaliacao)}</View>
         <Text style={styles.descricao}>{descricao}</Text>
-        <Text style={styles.inicio}>Início: {inicio}</Text>
-        <Text style={styles.fim}>Fim: {fim}</Text>
         <Text style={styles.texto}>Preço por pessoa</Text>
         <Text style={styles.preco}>{preco}</Text>
         <Text style={styles.texto}>Taxas e impostos não inclusos.</Text>
@@ -110,10 +104,8 @@ const styles = StyleSheet.create({
     marginBottom: 5,
   },
   avaliacao: {
-    position: "absolute",
-    flexDirection: "row",
-    top: 5,
-    right: 30,
+
+    flexDirection:"row"
   },
   descricao: {
     fontSize: 12,

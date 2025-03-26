@@ -22,16 +22,18 @@ export default function Favoritos() {
   const [vooSelecionado, setVooSelecionado] = useState(null);
   const [hoteis, setHoteis] = useState([]);
   const [voos, setVoos] = useState([]);
+  const [isLoading, setIsLoading] = useState(true); // Estado de carregamento
 
   useEffect(() => {
     const carregarDados = async () => {
       try {
-        // Busca o token e o idUsuario
+        setIsLoading(true); // Inicia o carregamento
+
         const token = await AsyncStorage.getItem("token");
         const idUsuario = await AsyncStorage.getItem("idUsuario");
 
         if (!token || !idUsuario) {
-          console.error("Token ou idUsuario não encontrado no AsyncStorage");
+          console.error("Token ou idUsuario não encontrado no AsyncStorage", { token, idUsuario });
           return;
         }
 
@@ -47,16 +49,16 @@ export default function Favoritos() {
           }
         );
 
+        const textoHoteis = await respostaHoteis.text();
+        console.log(`Resposta hotéis: Status ${respostaHoteis.status}, Corpo: ${textoHoteis}`);
+
         if (!respostaHoteis.ok) {
-          throw new Error(
-            `Erro na requisição de hotéis: ${respostaHoteis.status}`
-          );
+          const erro = JSON.parse(textoHoteis);
+          throw new Error(`Erro na requisição de hotéis: ${respostaHoteis.status} - ${erro.message || textoHoteis}`);
         }
 
-        const dadosHoteis = await respostaHoteis.json();
-        setHoteis(
-          Array.isArray(dadosHoteis) ? dadosHoteis : dadosHoteis.data || []
-        );
+        const dadosHoteis = JSON.parse(textoHoteis);
+        setHoteis(Array.isArray(dadosHoteis) ? dadosHoteis : []);
 
         // Busca voos favoritados
         const respostaVoos = await fetch(
@@ -69,17 +71,25 @@ export default function Favoritos() {
             },
           }
         );
+
+        const textoVoos = await respostaVoos.text();
+        console.log(`Resposta voos: Status ${respostaVoos.status}, Corpo: ${textoVoos}`);
+
         if (!respostaVoos.ok) {
-          throw new Error(`Erro na requisição de voos: ${respostaVoos.status}`);
+          const erro = JSON.parse(textoVoos);
+          throw new Error(`Erro na requisição de voos: ${respostaVoos.status} - ${erro.message || textoVoos}`);
         }
 
-        const dadosVoos = await respostaVoos.json();
-        setVoos(Array.isArray(dadosVoos) ? dadosVoos : dadosVoos.data || []);
+        const dadosVoos = JSON.parse(textoVoos);
+        console.log("Dados dos voos recebidos:", dadosVoos);
+        setVoos(Array.isArray(dadosVoos) ? dadosVoos : []);
       } catch (error) {
         console.error("Erro ao carregar dados:", error.message || error);
+      } finally {
+        setIsLoading(false);
       }
     };
-    
+
     carregarDados();
   }, []);
 
@@ -109,22 +119,15 @@ export default function Favoritos() {
                 showsHorizontalScrollIndicator={false}
                 style={styles.rolarImagens}
               >
-                {hotelSelecionado.imagens &&
-                Array.isArray(hotelSelecionado.imagens) ? (
+                {hotelSelecionado.imagens && Array.isArray(hotelSelecionado.imagens) ? (
                   hotelSelecionado.imagens.map(
-                    (
-                      image: ImageSourcePropType | undefined,
-                      index: React.Key | null | undefined
-                    ) => (
+                    (image: ImageSourcePropType | undefined, index: React.Key | null | undefined) => (
                       <Image
                         key={index}
                         source={{ uri: image }}
                         style={styles.imagemModal}
                         onError={(e) =>
-                          console.log(
-                            `Erro ao carregar imagem: ${image}`,
-                            e.nativeEvent.error
-                          )
+                          console.log(`Erro ao carregar imagem: ${image}`, e.nativeEvent.error)
                         }
                       />
                     )
@@ -165,9 +168,7 @@ export default function Favoritos() {
               ))}
             </View>
             <View style={styles.containerOferecimentos}>
-              <Text style={styles.tituloOferecimentos}>
-                O que a hospedagem oferece:
-              </Text>
+              <Text style={styles.tituloOferecimentos}>O que a hospedagem oferece:</Text>
               <View style={styles.containerConteudoOferecimentos}>
                 <MaterialIcons name="ac-unit" size={30} color="#D6005D" />
                 <Text style={styles.textoOferecimentos}>Ar-condicionado</Text>
@@ -188,10 +189,7 @@ export default function Favoritos() {
             <Pressable onPress={() => {}} style={styles.botaoEscolher}>
               <Text style={styles.textoBotaoEscolher}>Escolher</Text>
             </Pressable>
-            <Pressable
-              onPress={() => setModalHotelVisivel(false)}
-              style={styles.botaoFechar}
-            >
+            <Pressable onPress={() => setModalHotelVisivel(false)} style={styles.botaoFechar}>
               <Text style={styles.textoBotaoFechar}>Fechar</Text>
             </Pressable>
           </ScrollView>
@@ -207,22 +205,15 @@ export default function Favoritos() {
                 showsHorizontalScrollIndicator={false}
                 style={styles.rolarImagens}
               >
-                {vooSelecionado.imagens &&
-                Array.isArray(vooSelecionado.imagens) ? (
+                {vooSelecionado.imagens && Array.isArray(vooSelecionado.imagens) ? (
                   vooSelecionado.imagens.map(
-                    (
-                      image: ImageSourcePropType | undefined,
-                      index: React.Key | null | undefined
-                    ) => (
+                    (image: ImageSourcePropType | undefined, index: React.Key | null | undefined) => (
                       <Image
                         key={index}
                         source={{ uri: image }}
                         style={styles.imagemModal}
                         onError={(e) =>
-                          console.log(
-                            `Erro ao carregar imagem: ${image}`,
-                            e.nativeEvent.error
-                          )
+                          console.log(`Erro ao carregar imagem: ${image}`, e.nativeEvent.error)
                         }
                       />
                     )
@@ -235,29 +226,15 @@ export default function Favoritos() {
             <Text style={styles.tituloModal}>{vooSelecionado.destino}</Text>
             <View style={styles.containerInformacoes}>
               <Text style={styles.descricao}>{vooSelecionado.descricao}</Text>
-              <Text style={styles.textoInformacoes}>
-                Origem: {vooSelecionado.origem}
-              </Text>
-              <Text style={styles.textoInformacoes}>
-                Saída: {vooSelecionado.saida}
-              </Text>
-              <Text style={styles.textoInformacoes}>
-                Data: {vooSelecionado.data}
-              </Text>
-              <Text style={styles.textoInformacoes}>
-                Preço: {vooSelecionado.preco}
-              </Text>
+              <Text style={styles.textoInformacoes}>Origem: {vooSelecionado.origem}</Text>
+              <Text style={styles.textoInformacoes}>Saída: {vooSelecionado.saida}</Text>
+              <Text style={styles.textoInformacoes}>Data: {vooSelecionado.data}</Text>
+              <Text style={styles.textoInformacoes}>Preço: {vooSelecionado.preco}</Text>
             </View>
             <View style={styles.containerOferecimentos}>
-              <Text style={styles.tituloOferecimentos}>
-                O que o voo oferece:
-              </Text>
+              <Text style={styles.tituloOferecimentos}>O que o voo oferece:</Text>
               <View style={styles.containerConteudoOferecimentos}>
-                <MaterialIcons
-                  name="airplane-ticket"
-                  size={30}
-                  color="#D6005D"
-                />
+                <MaterialIcons name="airplane-ticket" size={30} color="#D6005D" />
                 <Text style={styles.textoOferecimentos}>Classe Econômica</Text>
               </View>
               <View style={styles.containerConteudoOferecimentos}>
@@ -276,15 +253,13 @@ export default function Favoritos() {
             <Pressable onPress={() => {}} style={styles.botaoEscolher}>
               <Text style={styles.textoBotaoEscolher}>Escolher</Text>
             </Pressable>
-            <Pressable
-              onPress={() => setModalVooVisivel(false)}
-              style={styles.botaoFechar}
-            >
+            <Pressable onPress={() => setModalVooVisivel(false)} style={styles.botaoFechar}>
               <Text style={styles.textoBotaoFechar}>Fechar</Text>
             </Pressable>
           </ScrollView>
         </View>
       )}
+
       <ScrollView style={styles.container}>
         <View style={styles.containerLogo}>
           <Image
@@ -308,8 +283,7 @@ export default function Favoritos() {
               <Text
                 style={[
                   styles.textoFiltro,
-                  opcaoSelecionada === "hoteis" &&
-                    styles.textoFiltroSelecionado,
+                  opcaoSelecionada === "hoteis" && styles.textoFiltroSelecionado,
                 ]}
               >
                 Hotéis
@@ -334,62 +308,57 @@ export default function Favoritos() {
           </View>
           <ScrollView style={styles.carrossel}>
             {opcaoSelecionada === "hoteis" && (
-              <>
-                <ScrollView style={styles.containerFavoritosLista}>
-                  {hoteis.length > 0 ? (
-                    hoteis.map((hotel, index) => (
-                      <BannerHotelFavoritos
-                        key={index}
-                        imagem={
-                          hotel.imagens &&
-                          Array.isArray(hotel.imagens) &&
-                          hotel.imagens[0]
-                            ? { uri: hotel.imagens[0] }
-                            : require("../../assets/images/hoteis/defaultHotel.jpg")
-                        }
-                        nome={hotel.nome || "Hotel sem nome"}
-                        avaliacao={hotel.avaliacao}
-                        inicio={hotel.inicio}
-                        fim={hotel.fim}
-                        descricao={hotel.descricao || "Sem descrição"}
-                        preco={hotel.preco || "Preço não disponível"}
-                        onPress={() => bannerHotelPressionado(hotel)}
-                      />
-                    ))
-                  ) : (
-                    <Text>Nenhum hotel favoritado</Text>
-                  )}
-                </ScrollView>
-              </>
+              <ScrollView style={styles.containerFavoritosLista}>
+                {isLoading ? (
+                  <Text>Carregando hotéis...</Text>
+                ) : hoteis.length > 0 ? (
+                  hoteis.map((hotel, index) => (
+                    <BannerHotelFavoritos
+                      key={index}
+                      imagem={
+                        hotel.imagens && Array.isArray(hotel.imagens) && hotel.imagens[0]
+                          ? { uri: hotel.imagens[0] }
+                          : require("../../assets/images/hoteis/defaultHotel.jpg")
+                      }
+                      nome={hotel.nome || "Hotel sem nome"}
+                      descricao={hotel.descricao || "Sem descrição"}
+                      avaliacao={hotel.avaliacao}
+                      preco={hotel.preco_diaria || "Preço não disponível"}
+                      onPress={() => bannerHotelPressionado(hotel)}
+                   
+                    />
+                  ))
+                ) : (
+                  <Text>Nenhum hotel favoritado</Text>
+                )}
+              </ScrollView>
             )}
             {opcaoSelecionada === "voos" && (
-              <>
-                <ScrollView style={styles.containerFavoritosLista}>
-                  {voos.length > 0 ? (
-                    voos.map((voo, index) => (
-                      <BannerVooFavoritos
-                        key={index}
-                        imagem={
-                          voo.imagens &&
-                          Array.isArray(voo.imagens) &&
-                          voo.imagens[0]
-                            ? { uri: voo.imagens[0] }
-                            : require("../../assets/images/hoteis/defaultHotel.jpg")
-                        }
-                        destino={voo.destino || "Destino não informado"}
-                        origem={voo.origem || "Origem não informada"}
-                        descricao={voo.descricao || "Sem descrição"}
-                        saida={voo.saida || "Horário não informado"}
-                        data={voo.data || "Data não informada"}
-                        preco={voo.preco || "Preço não disponível"}
-                        onPress={() => bannerVooPressionado(voo)}
-                      />
-                    ))
-                  ) : (
-                    <Text>Nenhum voo favoritado</Text>
-                  )}
-                </ScrollView>
-              </>
+              <ScrollView style={styles.containerFavoritosLista}>
+                {isLoading ? (
+                  <Text>Carregando voos...</Text>
+                ) : voos.length > 0 ? (
+                  voos.map((voo, index) => (
+                    <BannerVooFavoritos
+                      key={index}
+                      imagem={
+                        voo.imagens && Array.isArray(voo.imagens) && voo.imagens[0]
+                          ? { uri: voo.imagens[0] }
+                          : require("../../assets/images/hoteis/defaultHotel.jpg")
+                      }
+                      destino={voo.destino || "Destino não informado"}
+                      origem={voo.origem || "Origem não informada"}
+                      descricao={voo.descricao || "Sem descrição"}
+                      saida={voo.saida || "Horário não informado"}
+                      data={voo.data || "Data não informada"}
+                      preco={voo.preco || "Preço não disponível"}
+                      onPress={() => bannerVooPressionado(voo)}
+                    />
+                  ))
+                ) : (
+                  <Text>Nenhum voo favoritado</Text>
+                )}
+              </ScrollView>
             )}
           </ScrollView>
         </View>
