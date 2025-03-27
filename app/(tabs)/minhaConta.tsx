@@ -1,4 +1,6 @@
+import React, { useEffect, useState } from "react";
 import {
+  Alert,
   Image,
   Modal,
   Pressable,
@@ -7,33 +9,137 @@ import {
   TextInput,
   View,
 } from "react-native";
-import React, { useEffect, useState } from "react";
-
-import { Alert } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
-import deslogar from "../../functions/deslogar";
 import { useNavigation } from "@react-navigation/native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+
+import deslogar from "../../functions/deslogar";
+import deletar from "../../functions/deletar";
 import verificarToken from "../verificarToken";
 
 export default function MinhaConta() {
   const navigation = useNavigation();
   const [modalVisivel, setModalVisivel] = useState(false);
+  const [token, setToken] = useState(null);
+  const [usuarioId, setUsuarioId] = useState(null);
+  const [novoNome, setNovoNome] = useState("");
+  const [usuario, setUsuario] = useState({
+    nome: "",
+    cpf: "",
+    data_nascimento: "",
+    nacionalidade: "",
+    sexo: "",
+  });
+
   const handleLogout = () => {
-    Alert.alert("Desconectar", "Tem certeza que quer desconectar?", [
+    Alert.alert("Sair da conta", "Tem certeza que deseja sair?", [
       {
         text: "Cancelar",
         onPress: () => {},
       },
       {
-        text: "OK",
+        text: "Sim",
         onPress: () => deslogar(navigation),
       },
     ]);
   };
 
+  const handleDelete = () => {
+    Alert.alert(
+      "Excluir minha conta",
+      "Tem certeza que deseja excluir sua conta?",
+      [
+        {
+          text: "Cancelar",
+          onPress: () => {},
+        },
+        {
+          text: "Sim",
+          onPress: () => deletar(usuarioId, token, navigation),
+        },
+      ]
+    );
+  };
+
   useEffect(() => {
+    async function carregarDados() {
+      const tokenArmazenado = await AsyncStorage.getItem("token");
+      const idArmazenado = await AsyncStorage.getItem("idUsuario");
+      
+      if (tokenArmazenado && idArmazenado) {
+        setToken(tokenArmazenado);
+        setUsuarioId(idArmazenado);
+  
+        try {
+          const response = await fetch(
+            `https://backend-viajados.vercel.app/api/alterardados/dadosusuario?idUsuario=${idArmazenado}`,
+            {
+              method: "GET",
+              headers: {
+                Authorization: `Bearer ${tokenArmazenado}`,
+              },
+            }
+          );
+  
+          const data = await response.json();
+  
+          if (response.ok) {
+            setUsuario({
+              nome: data.nome,
+              cpf: data.cpf,
+              data_nascimento: data.data_nascimento,
+              nacionalidade: data.nacionalidade,
+              sexo: data.sexo,
+            });
+          } else {
+            Alert.alert("Erro", "Não foi possível carregar os dados de usuário.");
+          }
+        } catch (error) {
+          console.error(error);
+          Alert.alert("Erro", "Erro ao buscar os dados do usuário.");
+        }
+      }
+    }
+
+    carregarDados();
     verificarToken(navigation);
   }, [navigation]);
+
+  const handleSalvar = async () => {
+    if (!novoNome.trim()) {
+      Alert.alert("Erro", "O nome não pode estar vazio.");
+      return;
+    }
+
+    try {
+      const response = await fetch(
+        `https://backend-viajados.vercel.app/api/alterardados?idUsuario=${usuarioId}`,
+        {
+          method: "PUT",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ nome: novoNome }),
+        }
+      );
+
+      const data = await response.json();
+
+      if (response.ok) {
+        Alert.alert("Sucesso", "Nome atualizado com sucesso!");
+        setModalVisivel(false);
+      } else {
+        Alert.alert(
+          "Erro",
+          data.mensagem || "Não foi possível atualizar o nome."
+        );
+      }
+    } catch (error) {
+      Alert.alert("Erro", "Ocorreu um erro ao atualizar o nome.");
+      console.error(error);
+    }
+  };
 
   return (
     <View style={styles.container}>
@@ -43,28 +149,24 @@ export default function MinhaConta() {
             source={require("../../assets/images/user-icon.png")}
             style={styles.imagemPerfil}
           />
-          <Text style={styles.nome}>Nome</Text>
+          <Text style={styles.nome}>{usuario.nome || "Dado não encontrado"}</Text>
           <Pressable onPress={() => setModalVisivel(true)}>
             <MaterialIcons name={"edit"} size={35} color="#D6005D" />
           </Pressable>
         </View>
 
         <Text style={styles.informacoes}>
-          <Text style={{ fontWeight: "bold" }}>Número de telefone:</Text>{" "}
-          11978105988
-        </Text>
-        <Text style={styles.informacoes}>
-          <Text style={{ fontWeight: "bold" }}>CPF:</Text> 000.000.000-00
+          <Text style={{ fontWeight: "bold" }}>CPF:</Text> {usuario.cpf || "Dado não encontrado"}
         </Text>
         <Text style={styles.informacoes}>
           <Text style={{ fontWeight: "bold" }}>Data de nascimento:</Text>{" "}
-          11/02/1999
+          {usuario.data_nascimento || "Dado não encontrado"}
         </Text>
         <Text style={styles.informacoes}>
-          <Text style={{ fontWeight: "bold" }}>Nacionalidade:</Text> Brasileiro
+          <Text style={{ fontWeight: "bold" }}>Nacionalidade:</Text> {usuario.nacionalidade || "Dado não encontrado"}
         </Text>
         <Text style={styles.informacoes}>
-          <Text style={{ fontWeight: "bold" }}>Sexo:</Text> Masculino
+          <Text style={{ fontWeight: "bold" }}>Sexo:</Text> {usuario.sexo || "Dado não encontrado"}
         </Text>
       </View>
 
@@ -73,15 +175,15 @@ export default function MinhaConta() {
         <Text style={styles.textoBotao}>Sair</Text>
       </Pressable>
 
-      <Text style={styles.legenda}>Eliminar minha conta</Text>
+      <Text style={styles.legenda}>Excluir minha conta</Text>
       <Text style={styles.textoAviso}>
-        Se você eliminar a sua conta, não será possível recuperá-la depois.
+        Se você excluir a sua conta, não será possível recuperá-la depois.
       </Text>
       <Pressable
         style={[styles.botao, styles.botaoEliminar]}
-        onPress={() => {}}
+        onPress={handleDelete}
       >
-        <Text style={styles.textoBotao}>Eliminar</Text>
+        <Text style={styles.textoBotao}>Excluir</Text>
       </Pressable>
 
       <Modal visible={modalVisivel} animationType="slide" transparent>
@@ -98,9 +200,13 @@ export default function MinhaConta() {
                 </Text>
               </Pressable>
             </View>
-            <TextInput style={styles.input} placeholder="Nome" />
-            <TextInput style={styles.input} placeholder="Número de Telefone" />
-            <Pressable style={styles.botao} onPress={() => {}}>
+            <TextInput
+              style={styles.input}
+              placeholder={usuario.nome || "Nome"}
+              value={novoNome}
+              onChangeText={setNovoNome}
+            />
+            <Pressable style={styles.botao} onPress={handleSalvar}>
               <Text style={styles.textoBotao}>Salvar</Text>
             </Pressable>
           </View>

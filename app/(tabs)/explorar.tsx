@@ -1,3 +1,4 @@
+import React, { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Image,
@@ -8,13 +9,12 @@ import {
   Text,
   View,
 } from "react-native";
-import React, { useCallback, useEffect, useState } from "react";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
 
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import BannerHotel from "@/components/Banner-Hotel/BannerHotel";
 import BannerVoo from "@/components/Banner-Voo/BannerVoo";
-import { MaterialIcons } from "@expo/vector-icons";
+
 import ModalHotel from "@/components/Modal/ModalHotel";
 import ModalVoo from "@/components/Modal/ModalVoo";
 import verificarToken from "../verificarToken";
