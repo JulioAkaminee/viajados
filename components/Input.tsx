@@ -1,5 +1,6 @@
-import React from "react";
 import { StyleSheet, Text, TextInput, View } from "react-native";
+
+import React from "react";
 
 type Props = {
   label?: string;
@@ -34,7 +35,7 @@ function Input({
 const styles = StyleSheet.create({
   container: {
     width: "100%",
-    paddingHorizontal: 10,
+  
   },
   label: {
     fontSize: 16,

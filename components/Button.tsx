@@ -1,4 +1,3 @@
-import React from "react";
 import {
   StyleSheet,
   Text,
@@ -6,14 +5,17 @@ import {
   TouchableOpacityProps,
 } from "react-native";
 
+import React from "react";
+
 type Props = TouchableOpacityProps & {
   label: String;
+  corDoTexto?: string; // Nova prop para mudar a cor do texto
 };
 
-function Button({ label, ...rest }: Props) {
+function Button({ label, corDoTexto = "#FFF", ...rest }: Props) { 
   return (
     <TouchableOpacity style={styles.button} {...rest}>
-      <Text style={styles.label}>{label}</Text>
+      <Text style={[styles.label, { color: corDoTexto}]}>{label}</Text> 
     </TouchableOpacity>
   );
 }
@@ -31,7 +33,6 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 16,
     fontWeight: "bold",
-    color: "#FFF",
   },
 });
 

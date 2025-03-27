@@ -1,9 +1,9 @@
-import React, { useState } from "react";
 import { Alert, Image, ScrollView, StyleSheet, Text, View } from "react-native";
-import { useNavigation } from "@react-navigation/native";
+import React, { useState } from "react";
 
 import Button from "../components/Button";
 import Input from "../components/Input";
+import { useNavigation } from "@react-navigation/native";
 
 export default function Cadastro() {
   const navigation = useNavigation();
@@ -29,16 +29,23 @@ export default function Cadastro() {
   };
 
   const formatarDataInput = (text: string) => {
+    // Remove tudo que não é dígito
     let data = text.replace(/\D/g, "");
-    if (data.length > 2) {
-      data = data.replace(/(\d{2})(\d)/, "$1-$2");
+  
+    // Limita a 8 dígitos (ddmmaaaa)
+    if (data.length > 8) {
+      data = data.slice(0, 8);
     }
-    if (data.length > 5) {
-      data = data.replace(/(\d{2})-(\d{2})(\d)/, "$1-$2-$3");
+  
+    // Aplica a formatação progressiva
+    if (data.length > 4) {
+      data = `${data.slice(0, 2)}/${data.slice(2, 4)}/${data.slice(4)}`;
+    } else if (data.length > 2) {
+      data = `${data.slice(0, 2)}/${data.slice(2)}`;
     }
-    if (data.length <= 10) {
-      setDtNasc(data);
-    }
+  
+    // Atualiza o estado com a data formatada
+    setDtNasc(data);
   };
 
   const converterDataParaEnvio = (data: string) => {
@@ -157,7 +164,7 @@ export default function Cadastro() {
 
       <Input
         label="Data de Nascimento:"
-        placeholder="DD-MM-AAAA"
+        placeholder="DD/MM/AAAA"
         value={dtNasc}
         onChange={formatarDataInput}
       />
@@ -174,18 +181,22 @@ export default function Cadastro() {
         <Button
           label="Masculino"
           onPress={() => setSexo("Masculino")}
-          style={sexo === "Masculino" ? styles.selecionado : {}}
+          style={sexo === "Masculino" ? styles.selecionado : {backgroundColor: "#D6005D" , borderRadius: 10,
+            paddingVertical: 5,
+            paddingHorizontal: 10}}
         />
         <Button
           label="Feminino"
           onPress={() => setSexo("Feminino")}
-          style={sexo === "Feminino" ? styles.selecionado : {}}
+          style={sexo === "Feminino" ? styles.selecionado : {backgroundColor:"#D6005D" , borderRadius: 10,
+            paddingVertical: 5,
+            paddingHorizontal: 10,}}
         />
       </View>
 
       <Input
         label="Digite seu Email:"
-        placeholder="email@example.com"
+        placeholder="email@exemplo.com"
         value={email}
         onChange={setEmail}
       />
@@ -253,7 +264,7 @@ const styles = StyleSheet.create({
     marginLeft: 10,
   },
   selecionado: {
-    backgroundColor: "#D6005D",
+    backgroundColor: "#47001f",
     borderRadius: 10,
     paddingVertical: 5,
     paddingHorizontal: 10,

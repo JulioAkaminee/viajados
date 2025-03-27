@@ -1,4 +1,3 @@
-import React, { useState } from "react";
 import {
   Image,
   Modal,
@@ -8,10 +7,33 @@ import {
   TextInput,
   View,
 } from "react-native";
+import React, { useEffect, useState } from "react";
+
+import { Alert } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
+import deslogar from "../../functions/deslogar";
+import { useNavigation } from "@react-navigation/native";
+import verificarToken from "../verificarToken";
 
 export default function MinhaConta() {
+  const navigation = useNavigation();
   const [modalVisivel, setModalVisivel] = useState(false);
+  const handleLogout = () => {
+    Alert.alert("Desconectar", "Tem certeza que quer desconectar?", [
+      {
+        text: "Cancelar",
+        onPress: () => {},
+      },
+      {
+        text: "OK",
+        onPress: () => deslogar(navigation),
+      },
+    ]);
+  };
+
+  useEffect(() => {
+    verificarToken(navigation);
+  }, [navigation]);
 
   return (
     <View style={styles.container}>
@@ -47,7 +69,7 @@ export default function MinhaConta() {
       </View>
 
       <Text style={styles.legenda}>Sair da conta</Text>
-      <Pressable style={styles.botao} onPress={() => {}}>
+      <Pressable style={styles.botao} onPress={handleLogout}>
         <Text style={styles.textoBotao}>Sair</Text>
       </Pressable>
 
@@ -55,7 +77,10 @@ export default function MinhaConta() {
       <Text style={styles.textoAviso}>
         Se você eliminar a sua conta, não será possível recuperá-la depois.
       </Text>
-      <Pressable style={[styles.botao, styles.botaoEliminar]} onPress={() => {}}>
+      <Pressable
+        style={[styles.botao, styles.botaoEliminar]}
+        onPress={() => {}}
+      >
         <Text style={styles.textoBotao}>Eliminar</Text>
       </Pressable>
 
@@ -73,14 +98,8 @@ export default function MinhaConta() {
                 </Text>
               </Pressable>
             </View>
-            <TextInput
-              style={styles.input}
-              placeholder="Nome"
-            />
-            <TextInput
-              style={styles.input}
-              placeholder="Número de Telefone"
-            />
+            <TextInput style={styles.input} placeholder="Nome" />
+            <TextInput style={styles.input} placeholder="Número de Telefone" />
             <Pressable style={styles.botao} onPress={() => {}}>
               <Text style={styles.textoBotao}>Salvar</Text>
             </Pressable>

@@ -5,6 +5,7 @@ import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
 import 'react-native-reanimated';
+import Loading from './loading';
 
 
 
@@ -54,6 +55,7 @@ function RootLayoutNav() {
         <Stack.Screen name="index" options={{ headerShown: false }} />
         <Stack.Screen name="cadastro" options={{ headerShown: false }} />
         <Stack.Screen name="recuperarSenha" options={{ headerShown: false }} />
+        <Stack.Screen name="loading" options={{ headerShown: false }} />
       </Stack>
 
   );

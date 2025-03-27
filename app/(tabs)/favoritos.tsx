@@ -1,5 +1,3 @@
-import React, { useCallback, useState } from "react";
-import { useFocusEffect } from "@react-navigation/native";
 import {
   ActivityIndicator,
   Image,
@@ -9,32 +7,62 @@ import {
   Text,
   View,
 } from "react-native";
-import { MaterialIcons } from "@expo/vector-icons";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import React, { useCallback, useEffect, useState } from "react";
+import { useFocusEffect, useNavigation } from "@react-navigation/native";
 
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import BannerHotelFavoritos from "@/components/Banner-Hotel/BannerHotelFavoritos";
 import BannerVooFavoritos from "@/components/Banner-Voo/BannerVooFavoritos";
+import ModalHotel from "@/components/Modal/ModalHotel";
+import ModalVoo from "@/components/Modal/ModalVoo";
+import verificarToken from "../verificarToken";
+
+type Hotel = {
+  idHoteis: string;
+  imagens?: string[];
+  nome: string;
+  descricao: string;
+  avaliacao: number;
+  preco_diaria: string;
+};
+
+type Voo = {
+  idVoos: string;
+  imagens?: string[];
+  destino: string;
+  origem: string;
+  descricao: string;
+  saida: string;
+  data: string;
+  preco: string;
+};
 
 export default function Favoritos() {
-  const [opcaoSelecionada, setOpcaoSelecionada] = useState("hoteis");
-  const [modalHotelVisivel, setModalHotelVisivel] = useState(false);
-  const [modalVooVisivel, setModalVooVisivel] = useState(false);
-  const [hotelSelecionado, setHotelSelecionado] = useState(null);
-  const [vooSelecionado, setVooSelecionado] = useState(null);
-  const [hoteis, setHoteis] = useState([]);
-  const [voos, setVoos] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [idUsuario, setIdUsuario] = useState(null);
-  const [notificacao, setNotificacao] = useState(null);
+  const [opcaoSelecionada, setOpcaoSelecionada] = useState<"hoteis" | "voos">("hoteis");
+  const [modalHotelVisivel, setModalHotelVisivel] = useState<boolean>(false);
+  const [modalVooVisivel, setModalVooVisivel] = useState<boolean>(false);
+  const [hotelSelecionado, setHotelSelecionado] = useState<Hotel | null>(null);
+  const [vooSelecionado, setVooSelecionado] = useState<Voo | null>(null);
+  const [hoteis, setHoteis] = useState<Hotel[]>([]);
+  const [voos, setVoos] = useState<Voo[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [idUsuario, setIdUsuario] = useState<string | null>(null);
+  const [notificacao, setNotificacao] = useState<string | null>(null);
 
-  const mostrarNotificacao = (mensagem) => {
+  const navigation = useNavigation();
+
+  useEffect(() => {
+    verificarToken(navigation);
+  }, [navigation]);
+
+  const mostrarNotificacao = (mensagem: string): void => {
     setNotificacao(mensagem);
     setTimeout(() => {
       setNotificacao(null);
     }, 3000);
   };
 
-  const carregarDados = async () => {
+  const carregarDados = async (): Promise<void> => {
     try {
       setIsLoading(true);
 
@@ -44,7 +72,7 @@ export default function Favoritos() {
       if (!token || !usuarioId) {
         console.error("Token ou idUsuario não encontrado no AsyncStorage", {
           token,
-          idUsuario,
+          usuarioId,
         });
         return;
       }
@@ -63,7 +91,7 @@ export default function Favoritos() {
       );
 
       if (respostaHoteis.ok) {
-        const dadosHoteis = await respostaHoteis.json();
+        const dadosHoteis: Hotel[] = await respostaHoteis.json();
         setHoteis(Array.isArray(dadosHoteis) ? dadosHoteis : []);
       } else if (respostaHoteis.status === 404) {
         setHoteis([]);
@@ -87,7 +115,7 @@ export default function Favoritos() {
       );
 
       if (respostaVoos.ok) {
-        const dadosVoos = await respostaVoos.json();
+        const dadosVoos: Voo[] = await respostaVoos.json();
         setVoos(Array.isArray(dadosVoos) ? dadosVoos : []);
       } else if (respostaVoos.status === 404) {
         setVoos([]);
@@ -107,7 +135,7 @@ export default function Favoritos() {
     }
   };
 
-  const toggleFavorito = async (id, tipo) => {
+  const toggleFavorito = async (id: string, tipo: "hotel" | "voo"): Promise<void> => {
     try {
       const token = await AsyncStorage.getItem("token");
       const url = `https://backend-viajados.vercel.app/api/favoritos/${
@@ -149,21 +177,21 @@ export default function Favoritos() {
     }, [opcaoSelecionada])
   );
 
-  const opcaoPressionada = (opcao) => {
+  const opcaoPressionada = (opcao: "hoteis" | "voos"): void => {
     setOpcaoSelecionada(opcao);
   };
 
-  const bannerHotelPressionado = (hotel) => {
+  const bannerHotelPressionado = (hotel: Hotel): void => {
     setHotelSelecionado(hotel);
     setModalHotelVisivel(true);
   };
 
-  const bannerVooPressionado = (voo) => {
+  const bannerVooPressionado = (voo: Voo): void => {
     setVooSelecionado(voo);
     setModalVooVisivel(true);
   };
 
-  const formatarData = (dataISO) => {
+  const formatarData = (dataISO: string): string => {
     const data = new Date(dataISO);
     const dia = String(data.getDate()).padStart(2, "0");
     const mes = String(data.getMonth() + 1).padStart(2, "0");
@@ -179,178 +207,18 @@ export default function Favoritos() {
         </View>
       )}
 
-      {modalHotelVisivel && hotelSelecionado && (
-        <View style={styles.containerModal}>
-          <ScrollView style={styles.conteudoModal}>
-            <Text style={styles.tituloModal}>{hotelSelecionado.nome}</Text>
-            <View style={styles.containerCarrossel}>
-              <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                style={styles.rolarImagens}
-              >
-                {hotelSelecionado.imagens &&
-                Array.isArray(hotelSelecionado.imagens) ? (
-                  hotelSelecionado.imagens.map((image, index) => (
-                    <Image
-                      key={index}
-                      source={{ uri: image }}
-                      style={styles.imagemModal}
-                      onError={(e) =>
-                        console.log(
-                          `Erro ao carregar imagem: ${image}`,
-                          e.nativeEvent.error
-                        )
-                      }
-                    />
-                  ))
-                ) : (
-                  <Text>Imagens não disponíveis</Text>
-                )}
-              </ScrollView>
-            </View>
+      <ModalHotel
+        visible={modalHotelVisivel}
+        hotel={hotelSelecionado}
+        onClose={() => setModalHotelVisivel(false)}
+      />
 
-            <View style={styles.containerInformacoes}>
-              <Text style={styles.textoInformacoes}>
-                <Text style={{ fontWeight: "bold" }}>Preço: </Text>
-                {"R$ "}
-                {hotelSelecionado.preco_diaria || "Não informado"}
-              </Text>
-
-              <Text style={styles.textoInformacoes}>
-                <Text style={{ fontWeight: "bold" }}>Descrição:</Text>{" "}
-                {hotelSelecionado.descricao || "Não informado"}
-              </Text>
-            </View>
-            <View style={styles.containerAvaliacao}>
-              {Array.from({ length: 5 }).map((_, i) => (
-                <MaterialIcons
-                  key={i}
-                  name={
-                    i < (hotelSelecionado.avaliacao || 0)
-                      ? "star"
-                      : "star-border"
-                  }
-                  size={24}
-                  color="#000"
-                  style={styles.estrela}
-                />
-              ))}
-            </View>
-            <View style={styles.containerOferecimentos}>
-              <Text style={styles.tituloOferecimentos}>
-                O que a hospedagem oferece:
-              </Text>
-              <View style={styles.containerConteudoOferecimentos}>
-                <MaterialIcons name="ac-unit" size={30} color="#D6005D" />
-                <Text style={styles.textoOferecimentos}>Ar-condicionado</Text>
-              </View>
-              <View style={styles.containerConteudoOferecimentos}>
-                <MaterialIcons name="pool" size={30} color="#D6005D" />
-                <Text style={styles.textoOferecimentos}>Piscina</Text>
-              </View>
-              <View style={styles.containerConteudoOferecimentos}>
-                <MaterialIcons name="tv" size={30} color="#D6005D" />
-                <Text style={styles.textoOferecimentos}>TV a cabo</Text>
-              </View>
-              <View style={styles.containerConteudoOferecimentos}>
-                <MaterialIcons name="wifi" size={30} color="#D6005D" />
-                <Text style={styles.textoOferecimentos}>Wifi</Text>
-              </View>
-            </View>
-            <Pressable onPress={() => {}} style={styles.botaoEscolher}>
-              <Text style={styles.textoBotaoEscolher}>Escolher</Text>
-            </Pressable>
-            <Pressable
-              onPress={() => setModalHotelVisivel(false)}
-              style={styles.botaoFechar}
-            >
-              <Text style={styles.textoBotaoFechar}>Fechar</Text>
-            </Pressable>
-          </ScrollView>
-        </View>
-      )}
-
-      {modalVooVisivel && vooSelecionado && (
-        <View style={styles.containerModal}>
-          <ScrollView style={styles.conteudoModal}>
-            <View style={styles.containerCarrossel}>
-              <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                style={styles.rolarImagens}
-              >
-                {vooSelecionado.imagens &&
-                Array.isArray(vooSelecionado.imagens) ? (
-                  vooSelecionado.imagens.map((image, index) => (
-                    <Image
-                      key={index}
-                      source={{ uri: image }}
-                      style={styles.imagemModal}
-                      onError={(e) =>
-                        console.log(
-                          `Erro ao carregar imagem: ${image}`,
-                          e.nativeEvent.error
-                        )
-                      }
-                    />
-                  ))
-                ) : (
-                  <Text>Imagens não disponíveis</Text>
-                )}
-              </ScrollView>
-            </View>
-            <Text style={styles.tituloModal}>
-              {vooSelecionado.destino || "Destino não informado"}
-            </Text>
-            <View style={styles.containerInformacoes}>
-              <Text style={styles.textoInformacoes}>
-                Origem: {vooSelecionado.origem || "Não informado"}
-              </Text>
-              <Text style={styles.textoInformacoes}>
-                Data: {formatarData(vooSelecionado.data) || "Não informado"}
-              </Text>
-              <Text style={styles.textoInformacoes}>
-                Preço: R$ {vooSelecionado.preco || "Não informado"}
-              </Text>
-            </View>
-            <View style={styles.containerOferecimentos}>
-              <Text style={styles.tituloOferecimentos}>
-                O que o voo oferece:
-              </Text>
-              <View style={styles.containerConteudoOferecimentos}>
-                <MaterialIcons
-                  name="airplane-ticket"
-                  size={30}
-                  color="#D6005D"
-                />
-                <Text style={styles.textoOferecimentos}>Classe Econômica</Text>
-              </View>
-              <View style={styles.containerConteudoOferecimentos}>
-                <MaterialIcons name="ac-unit" size={30} color="#D6005D" />
-                <Text style={styles.textoOferecimentos}>Ar-condicionado</Text>
-              </View>
-              <View style={styles.containerConteudoOferecimentos}>
-                <MaterialIcons name="tv" size={30} color="#D6005D" />
-                <Text style={styles.textoOferecimentos}>TV a cabo</Text>
-              </View>
-              <View style={styles.containerConteudoOferecimentos}>
-                <MaterialIcons name="wifi" size={30} color="#D6005D" />
-                <Text style={styles.textoOferecimentos}>Wifi</Text>
-              </View>
-            </View>
-            <Pressable onPress={() => {}} style={styles.botaoEscolher}>
-              <Text style={styles.textoBotaoEscolher}>Escolher</Text>
-            </Pressable>
-            <Pressable
-              onPress={() => setModalVooVisivel(false)}
-              style={styles.botaoFechar}
-            >
-              <Text style={styles.textoBotaoFechar}>Fechar</Text>
-            </Pressable>
-          </ScrollView>
-        </View>
-      )}
+      <ModalVoo
+        visible={modalVooVisivel}
+        voo={vooSelecionado}
+        onClose={() => setModalVooVisivel(false)}
+        formatarData={formatarData}
+      />
 
       <ScrollView style={styles.container}>
         <View style={styles.containerLogo}>
@@ -401,7 +269,7 @@ export default function Favoritos() {
           </View>
           <ScrollView style={styles.carrossel}>
             {opcaoSelecionada === "hoteis" && (
-              <ScrollView style={styles.containerFavoritosLista}>
+              <ScrollView >
                 {isLoading ? (
                   <View>
                     <ActivityIndicator size="large" color="#D6005D" />
@@ -434,7 +302,7 @@ export default function Favoritos() {
               </ScrollView>
             )}
             {opcaoSelecionada === "voos" && (
-              <ScrollView style={styles.containerFavoritosLista}>
+              <ScrollView >
                 {isLoading ? (
                   <View>
                     <ActivityIndicator size="large" color="#D6005D" />
@@ -453,8 +321,6 @@ export default function Favoritos() {
                       }
                       destino={voo.destino || "Destino não informado"}
                       origem={voo.origem || "Origem não informada"}
-                      descricao={voo.descricao || "Sem descrição"}
-                      saida={voo.saida || "Horário não informado"}
                       data={voo.data || "Data não informada"}
                       preco={voo.preco || "Preço não disponível"}
                       onPress={() => bannerVooPressionado(voo)}
@@ -489,98 +355,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     borderRadius: 8,
     fontSize: 16,
-    fontWeight: "bold",
-  },
-  containerModal: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "rgba(0,0,0,0.5)",
-    zIndex: 5,
-  },
-  conteudoModal: {
-    maxWidth: "90%",
-    maxHeight: "85%",
-    backgroundColor: "#fff",
-    padding: 20,
-    borderRadius: 10,
-  },
-  tituloModal: {
-    fontSize: 20,
-    marginBottom: 2,
-    fontWeight: "bold",
-  },
-  containerAvaliacao: {
-    flexDirection: "row",
-    marginBottom: 10,
-  },
-  estrela: {
-    fontSize: 20,
-    marginRight: 3,
-  },
-  containerCarrossel: {
-    flexDirection: "row",
-    marginBottom: 5,
-  },
-  rolarImagens: {
-    flexDirection: "row",
-  },
-  imagemModal: {
-    width: 250,
-    height: 150,
-    marginRight: 10,
-  },
-  containerInformacoes: {
-    alignItems: "flex-start",
-  },
-  descricao: {
-    fontSize: 18,
-    marginBottom: 5,
-  },
-  textoInformacoes: {
-    fontSize: 16,
-    marginBottom: 5,
-  },
-  containerOferecimentos: {
-    display: "flex",
-  },
-  tituloOferecimentos: {
-    fontSize: 18,
-    fontWeight: "bold",
-    marginBottom: 10,
-  },
-  containerConteudoOferecimentos: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  textoOferecimentos: {
-    fontSize: 16,
-    marginLeft: 10,
-    color: "#555",
-  },
-  botaoEscolher: {
-    marginTop: 20,
-    padding: 10,
-    backgroundColor: "#D6005D",
-    borderRadius: 5,
-  },
-  textoBotaoEscolher: {
-    color: "#fff",
-    fontWeight: "bold",
-  },
-  botaoFechar: {
-    marginTop: 20,
-    marginBottom: 40,
-    padding: 10,
-    backgroundColor: "#EEE",
-    borderRadius: 5,
-  },
-  textoBotaoFechar: {
-    color: "#000",
     fontWeight: "bold",
   },
   container: {

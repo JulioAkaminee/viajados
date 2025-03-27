@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Image,
   Pressable,
@@ -7,13 +7,19 @@ import {
   Text,
   View,
 } from "react-native";
+import verificarToken from "../verificarToken";
+import { useNavigation } from "@react-navigation/native";
 
 export default function minhasViagens() {
+    const navigation = useNavigation();
   const [opcaoSelecionada, setOpcaoSelecionada] = useState("hoteis");
 
   const opcaoPressionada = (opcao) => {
     setOpcaoSelecionada(opcao);
   };
+      useEffect(() => {
+        verificarToken(navigation);
+      }, [navigation]);
 
   return (
     <>
