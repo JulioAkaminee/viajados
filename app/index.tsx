@@ -1,17 +1,93 @@
 import React, { useState } from "react";
-import { View, Text, StyleSheet, Image, StatusBar } from "react-native";
+import { Alert, Image, StatusBar, StyleSheet, Text, View } from "react-native";
 import { Link } from "expo-router";
+import { useNavigation } from "@react-navigation/native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 import Button from "../components/Button";
 import Input from "../components/Input";
 
 export default function Index() {
+  const navigation = useNavigation();
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [senha, setSenha] = useState("");
 
-  // Funcao handleContinue para o botao
-  const handleContinue = () => {
-    console.log("Botão Continuar pressionado");
+  const validaEmail = (email: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+
+  function navegarParaHome() {
+    navigation.navigate("(tabs)", { screen: "explorar" });
+  }
+
+  const salvarDados = async (token, idUsuario, email, nome) => {
+    try {
+      await AsyncStorage.setItem("token", token);
+      await AsyncStorage.setItem("idUsuario", String(idUsuario));
+      await AsyncStorage.setItem("email", email);
+      await AsyncStorage.setItem("nome", nome);
+      console.log("Dados salvos com sucesso!");
+    } catch (erro) {
+      console.log("Erro ao salvar dados:", erro);
+      throw erro;
+    }
+  };
+
+  const continuarPressionado = async () => {
+    if (!email.trim() || !validaEmail(email)) {
+      Alert.alert("Erro", "Por favor, insira um email válido.");
+      return;
+    }
+
+    if (!senha.trim()) {
+      Alert.alert("Erro", "O campo de senha não pode estar vazio.");
+      return;
+    }
+
+    const dadosUsuario = { email, senha };
+
+    try {
+      const resposta = await fetch(
+        "https://backend-viajados.vercel.app/api/login",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+          },
+          body: JSON.stringify(dadosUsuario),
+        }
+      );
+
+      const dados = await resposta.json();
+
+      if (resposta.status === 200) {
+        const { token, usuario } = dados;
+        const { idUsuario, email: emailUsuario, nome } = usuario;
+
+        await salvarDados(token, idUsuario, emailUsuario, nome);
+
+        Alert.alert("Sucesso", "Login realizado com sucesso!", [
+          {
+            text: "OK",
+            onPress: () => navegarParaHome(),
+          },
+        ]);
+      } else if (resposta.status === 404 || resposta.status === 401) {
+        Alert.alert("Erro", "Email e/ou senha incorretos!");
+      } else {
+        Alert.alert(
+          "Erro",
+          dados.message || "Falha ao realizar login. Tente novamente."
+        );
+      }
+    } catch (error) {
+      console.error("Erro na requisição:", error);
+      Alert.alert(
+        "Erro",
+        error.message === "Network request failed"
+          ? "Falha na conexão com o servidor. Verifique sua internet."
+          : "Ocorreu um erro inesperado. Tente novamente."
+      );
+    }
   };
 
   return (
@@ -19,10 +95,9 @@ export default function Index() {
       <StatusBar
         barStyle="dark-content"
         backgroundColor="#FDD5E9"
-        translucent={true}
+        translucent={false}
       />
       <View style={styles.container}>
-        {/* Logo */}
         <View style={styles.logoContainer}>
           <Image
             source={require("../assets/images/logo.png")}
@@ -30,7 +105,6 @@ export default function Index() {
           />
         </View>
 
-        {/* Campo de Email */}
         <Input
           label="Digite seu Email:"
           placeholder="email@example.com"
@@ -38,28 +112,22 @@ export default function Index() {
           value={email}
         />
 
-        {/* Campo de Senha */}
         <Input
           label="Digite sua Senha:"
           placeholder="*******"
           secureTextEntry
-          value={password}
-          onChange={setPassword}
+          value={senha}
+          onChange={setSenha}
         />
 
-        {/* Link "Esqueceu a senha?" */}
         <View style={styles.ContainerRecPass}>
-          <Link href="/(tabs)/explorar" style={styles.link}>
+          <Link href="/recuperarSenha" style={styles.link}>
             Esqueceu a senha?
           </Link>
         </View>
 
-        {/* Botão Continuar */}
-        <Link href={"/(tabs)/explorar"}>
-          <Button label={"Continuar"} onPress={handleContinue} />
-        </Link>
+        <Button label={"Continuar"} onPress={continuarPressionado} />
 
-        {/* Texto "Cadastre-se aqui" com Link */}
         <Text style={styles.textContainer}>
           Não tem uma conta?{" "}
           <Link href="/cadastro" style={styles.link}>
@@ -67,7 +135,6 @@ export default function Index() {
           </Link>
         </Text>
 
-        {/* Texto de Política de Privacidade */}
         <Text style={styles.termsText}>
           Ao criar uma conta, você concorda com a nossa{" "}
           <Text style={styles.link}>Política de privacidade</Text> e os nossos{" "}

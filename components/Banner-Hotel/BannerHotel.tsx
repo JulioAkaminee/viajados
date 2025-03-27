@@ -1,41 +1,37 @@
-import React, { useState } from "react";
-import { MaterialIcons } from "@expo/vector-icons";
+import React from "react";
 import {
-  StyleSheet,
-  View,
-  Pressable,
-  Text,
   Image,
   ImageSourcePropType,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
 } from "react-native";
+import { MaterialIcons } from "@expo/vector-icons";
 
 type Props = {
   imagem: ImageSourcePropType;
   nome: string;
   avaliacao: number;
-  inicio: string;
-  fim: string;
   descricao: string;
   preco: string;
+  favorito: boolean;
+  onFavoritar: () => void;
   onPress: () => void;
+  isFavoritando?: boolean;
 };
 
 export default function BannerHotel({
   imagem,
   nome,
   avaliacao,
-  inicio,
-  fim,
   descricao,
   preco,
+  favorito,
+  onFavoritar,
   onPress,
+  isFavoritando = false,
 }: Props) {
-  const [favorito, setFavorito] = useState(false);
-
-  const favoritando = () => {
-    setFavorito((prev) => !prev);
-  };
-
   const numeroEstrelas = (avaliacao: number) => {
     const estrelas = [];
     for (let i = 1; i <= 5; i++) {
@@ -51,14 +47,20 @@ export default function BannerHotel({
     return estrelas;
   };
 
+  const isFavorito = !!favorito;
+
   return (
     <Pressable onPress={onPress} style={styles.container}>
       <View style={{ position: "relative" }}>
-        <Pressable onPress={favoritando} style={styles.iconeFavorito}>
+        <Pressable
+          onPress={onFavoritar}
+          style={styles.iconeFavorito}
+          disabled={isFavoritando}
+        >
           <MaterialIcons
-            name={favorito ? "favorite" : "favorite-border"}
+            name={isFavorito ? "favorite" : "favorite-border"}
             size={24}
-            color={favorito ? "#D6005D" : "#000"}
+            color={isFavorito ? "#D6005D" : "#000"}
           />
         </Pressable>
         <Image source={imagem} style={styles.imagem} />
@@ -66,10 +68,8 @@ export default function BannerHotel({
       <Text style={styles.nome}>{nome}</Text>
       <View style={styles.avaliacao}>{numeroEstrelas(avaliacao)}</View>
       <Text style={styles.descricao}>{descricao}</Text>
-      <Text style={styles.inicio}><Text>Início:</Text> {inicio}</Text>
-      <Text style={styles.fim}>Fim: {fim}</Text>
       <Text style={styles.texto}>Preço por pessoa</Text>
-      <Text style={styles.preco}>{preco}</Text>
+      <Text style={styles.preco}>R$ {preco}</Text>
       <Text style={[styles.texto, { marginBottom: 10 }]}>
         Taxas e impostos não inclusos.
       </Text>
@@ -117,15 +117,6 @@ const styles = StyleSheet.create({
     textAlign: "left",
     marginHorizontal: 10,
     marginBottom: 5,
-  },
-  inicio: {
-    textAlign: "left",
-    marginHorizontal: 10,
-    marginBottom: 5,
-  },
-  fim: {
-    textAlign: "left",
-    marginHorizontal: 10,
   },
   texto: {
     textAlign: "left",

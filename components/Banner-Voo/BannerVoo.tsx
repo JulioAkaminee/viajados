@@ -1,22 +1,22 @@
-import React, { useState } from "react";
-import { MaterialIcons } from "@expo/vector-icons";
+import React from "react";
 import {
-  StyleSheet,
-  View,
-  Pressable,
-  Text,
   Image,
   ImageSourcePropType,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
 } from "react-native";
+import { MaterialIcons } from "@expo/vector-icons";
 
 type Props = {
   imagem: ImageSourcePropType;
   destino: string;
   origem: string;
-  saida: string;
   data: string;
-  descricao: string;
   preco: string;
+  favorito: boolean;
+  onFavoritar: () => void;
   onPress: () => void;
 };
 
@@ -24,22 +24,16 @@ export default function BannerVoo({
   imagem,
   destino,
   origem,
-  saida,
   data,
-  descricao,
   preco,
+  favorito,
+  onFavoritar,
   onPress,
 }: Props) {
-  const [favorito, setFavorito] = useState(false);
-
-  const favoritando = () => {
-    setFavorito((prev) => !prev);
-  };
-
   return (
     <Pressable onPress={onPress} style={styles.container}>
       <View style={{ position: "relative" }}>
-        <Pressable onPress={favoritando} style={styles.iconeFavorito}>
+        <Pressable onPress={onFavoritar} style={styles.iconeFavorito}>
           <MaterialIcons
             name={favorito ? "favorite" : "favorite-border"}
             size={24}
@@ -49,12 +43,10 @@ export default function BannerVoo({
         <Image source={imagem} style={styles.imagem} />
       </View>
       <Text style={styles.destino}>{destino}</Text>
-      <Text style={styles.descricao}>{descricao}</Text>
       <Text style={styles.origem}>Origem: {origem}</Text>
-      <Text style={styles.saida}>Saída: {saida}</Text>
       <Text style={styles.data}>Data: {data}</Text>
       <Text style={styles.texto}>Preço por pessoa</Text>
-      <Text style={styles.preco}>{preco}</Text>
+      <Text style={styles.preco}>R$ {preco}</Text>
       <Text style={[styles.texto, { marginBottom: 10 }]}>
         Taxas e impostos não inclusos.
       </Text>

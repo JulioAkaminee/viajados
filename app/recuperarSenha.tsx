@@ -1,35 +1,71 @@
 import React, { useState } from "react";
-import { View, Text, StyleSheet, Image } from "react-native";
+import { Alert, Image, StyleSheet, Text, View } from "react-native";
+import { useNavigation } from "@react-navigation/native";
 
 import Button from "../components/Button";
 import Input from "../components/Input";
 
 export default function RecuperarSenha() {
+  const navigation = useNavigation();
   const [email, setEmail] = useState("");
 
-  // Função handleSubmit para o botão
-  const handleSubmit = () => {
-    console.log("Botão Enviar pressionado");
+  const validaEmail = (email: string) => {
+    const resp = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return resp.test(email);
+  };
+
+  const enviarPressionado = async () => {
+    if (!email.trim() || !validaEmail(email)) {
+      Alert.alert("Erro:", "Por favor, insira um email válido.");
+      return;
+    }
+
+    const emailUsuario = { email };
+
+    try {
+      const resposta = await fetch(
+        "https://backend-viajados.vercel.app/api/alterarsenha",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(emailUsuario),
+        }
+      );
+
+      const dados = await resposta.json();
+
+      if (resposta.status === 200) {
+        Alert.alert("Sucesso:", "Email enviado com sucesso!", [
+          { text: "OK", onPress: () => navigation.navigate("index") },
+        ]);
+      } else {
+        Alert.alert(
+          "Erro:",
+          dados.message || "Falha ao enviar email. Tente novamente."
+        );
+      }
+    } catch (error) {
+      Alert.alert("Erro:", "Ocorreu um erro ao se conectar com o servidor.");
+    }
   };
 
   return (
     <View style={styles.container}>
-      {/* Logo */}
-      <View style={styles.logoContainer}>
+      <View style={styles.containerLogo}>
         <Image
           source={require("../assets/images/logo.png")}
           style={styles.logo}
         />
       </View>
 
-      {/* Titulo e descricao */}
-      <Text style={styles.title}>Recuperar senha</Text>
-      <Text style={styles.description}>
+      <Text style={styles.titulo}>Recuperar senha</Text>
+      <Text style={styles.descricao}>
         Coloque seu endereço de e-mail para receber o link de alteração de
         senha.
       </Text>
 
-      {/* Campo de Email */}
       <Input
         label="Digite Seu endereço de Email:"
         placeholder="email@example.com"
@@ -37,8 +73,7 @@ export default function RecuperarSenha() {
         onChange={setEmail}
       />
 
-      {/* Botao Enviar */}
-      <Button label={"Enviar"} onPress={handleSubmit} />
+      <Button label={"Enviar"} onPress={enviarPressionado} />
     </View>
   );
 }
@@ -51,7 +86,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-  logoContainer: {
+  containerLogo: {
     alignItems: "center",
     marginBottom: 50,
   },
@@ -60,13 +95,13 @@ const styles = StyleSheet.create({
     height: 90,
     marginBottom: 10,
   },
-  title: {
+  titulo: {
     fontSize: 24,
     fontWeight: "bold",
     color: "#D6005D",
     marginBottom: 20,
   },
-  description: {
+  descricao: {
     fontSize: 16,
     color: "#666",
     textAlign: "center",

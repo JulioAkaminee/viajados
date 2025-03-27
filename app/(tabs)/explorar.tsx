@@ -1,7 +1,6 @@
-import React, { useState } from "react";
 import {
+  ActivityIndicator,
   Image,
-  ImageSourcePropType,
   Pressable,
   ScrollView,
   StatusBar,
@@ -9,10 +8,16 @@ import {
   Text,
   View,
 } from "react-native";
-import { MaterialIcons } from "@expo/vector-icons";
+import React, { useCallback, useEffect, useState } from "react";
+import { useFocusEffect, useNavigation } from "@react-navigation/native";
 
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import BannerHotel from "@/components/Banner-Hotel/BannerHotel";
 import BannerVoo from "@/components/Banner-Voo/BannerVoo";
+import { MaterialIcons } from "@expo/vector-icons";
+import ModalHotel from "@/components/Modal/ModalHotel";
+import ModalVoo from "@/components/Modal/ModalVoo";
+import verificarToken from "../verificarToken";
 
 export default function Explorar() {
   const [opcaoSelecionada, setOpcaoSelecionada] = useState("hoteis");
@@ -20,299 +25,227 @@ export default function Explorar() {
   const [modalVooVisivel, setModalVooVisivel] = useState(false);
   const [hotelSelecionado, setHotelSelecionado] = useState(null);
   const [vooSelecionado, setVooSelecionado] = useState(null);
+  const [hoteis, setHoteis] = useState([]);
+  const [voos, setVoos] = useState([]);
+  const [nomeUsuario, setNomeUsuario] = useState("");
+  const [idUsuario, setIdUsuario] = useState(null);
+  const [favoritos, setFavoritos] = useState({});
+  const [isLoading, setIsLoading] = useState(true);
+  const [notificacao, setNotificacao] = useState(null);
 
-  {/*
-    pegando os dados utilizando api:
+  const navigation = useNavigation();
 
-    const [hoteis, setHoteis] = useState([]);
-    const [voos, setVoos] = useState([]);
+  useEffect(() => {
+    verificarToken(navigation);
+  }, [navigation]);
 
-    useEffect(() => {
-      fetch("http://localhost:3000/hoteis")
-        .then((response) => response.json())
-        .then((data) => setHoteis(data))
-        .catch((error) => console.error("Erro ao buscar hotéis:", error));
+  const carregarFavoritos = async (token, usuarioId) => {
+    try {
+      const novosFavoritos = {};
 
-      fetch("http://localhost:3000/voos")
-        .then((response) => response.json())
-        .then((data) => setVoos(data))
-        .catch((error) => console.error("Erro ao buscar voos:", error));
-    }, []);
-  */}
+      const respostaHoteis = await fetch(
+        `https://backend-viajados.vercel.app/api/favoritos/hoteis?idUsuario=${usuarioId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
-  const opcaoPressionada = (opcao: React.SetStateAction<string>) => {
+      if (respostaHoteis.ok) {
+        const hoteisFavoritos = await respostaHoteis.json();
+        if (Array.isArray(hoteisFavoritos)) {
+          hoteisFavoritos.forEach((hotel) => {
+            novosFavoritos[`hotel_${hotel.idHoteis}`] = true;
+          });
+        }
+      } else if (respostaHoteis.status === 404) {
+        console.log("Nenhum hotel favoritado encontrado");
+      } else {
+        throw new Error(`Erro na requisição de hotéis: ${respostaHoteis.status}`);
+      }
+
+      const respostaVoos = await fetch(
+        `https://backend-viajados.vercel.app/api/favoritos/voos?idUsuario=${usuarioId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (respostaVoos.ok) {
+        const voosFavoritos = await respostaVoos.json();
+        if (Array.isArray(voosFavoritos)) {
+          voosFavoritos.forEach((voo) => {
+            novosFavoritos[`voo_${voo.idVoos}`] = true;
+          });
+        }
+      } else if (respostaVoos.status === 404) {
+        console.log("Nenhum voo favoritado encontrado");
+      } else {
+        throw new Error(`Erro na requisição de voos: ${respostaVoos.status}`);
+      }
+
+      setFavoritos(novosFavoritos);
+    } catch (error) {
+      console.error("Erro ao carregar favoritos:", error.message || error);
+    }
+  };
+
+  const toggleFavorito = async (id, tipo) => {
+    try {
+      const token = await AsyncStorage.getItem("token");
+      const chaveFavorito = `${tipo}_${id}`;
+      const estaFavoritado = favoritos[chaveFavorito];
+      const url = `https://backend-viajados.vercel.app/api/favoritos/${tipo === "hotel" ? "hoteis" : "voos"}`;
+
+      const response = await fetch(url, {
+        method: estaFavoritado ? "DELETE" : "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          idUsuario,
+          [tipo === "hotel" ? "idHoteis" : "idVoos"]: id,
+        }),
+      });
+
+      if (response.ok) {
+        setFavoritos((prev) => {
+          const novosFavoritos = { ...prev };
+          if (estaFavoritado) {
+            delete novosFavoritos[chaveFavorito];
+          } else {
+            novosFavoritos[chaveFavorito] = true;
+          }
+          return novosFavoritos;
+        });
+
+        await carregarFavoritos(token, idUsuario);
+
+        const mensagem = estaFavoritado
+          ? tipo === "hotel"
+            ? "Hotel foi removido dos favoritos!"
+            : "Voo foi removido dos favoritos!"
+          : tipo === "hotel"
+          ? "Hotel foi adicionado aos favoritos!"
+          : "Voo foi adicionado aos favoritos!";
+        setNotificacao(mensagem);
+        setTimeout(() => setNotificacao(null), 3000);
+      } else {
+        const errorText = await response.text();
+        console.error("Erro ao atualizar favorito:", errorText);
+      }
+    } catch (error) {
+      console.error("Erro ao favoritar:", error);
+    }
+  };
+
+  const carregarDados = async () => {
+    setIsLoading(true);
+
+    try {
+      const nome = await AsyncStorage.getItem("nome");
+      const usuarioId = await AsyncStorage.getItem("idUsuario");
+      const token = await AsyncStorage.getItem("token");
+
+      if (nome) setNomeUsuario(nome);
+      if (usuarioId) setIdUsuario(usuarioId);
+
+      if (!token || !usuarioId) {
+        console.error("Token ou ID do usuário não encontrado");
+        return;
+      }
+
+      await carregarFavoritos(token, usuarioId);
+
+      const respostaHoteis = await fetch("https://backend-viajados.vercel.app/api/hoteis", {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (!respostaHoteis.ok) {
+        throw new Error(`Erro ao buscar hotéis: ${respostaHoteis.status}`);
+      }
+
+      const dadosHoteis = await respostaHoteis.json();
+      setHoteis(Array.isArray(dadosHoteis) ? dadosHoteis : dadosHoteis.data || []);
+
+      const respostaVoos = await fetch("https://backend-viajados.vercel.app/api/voos", {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (!respostaVoos.ok) {
+        throw new Error(`Erro ao buscar voos: ${respostaVoos.status}`);
+      }
+
+      const dadosVoos = await respostaVoos.json();
+      setVoos(Array.isArray(dadosVoos) ? dadosVoos : dadosVoos.data || []);
+      setIsLoading(false);
+    } catch (error) {
+      console.error("Erro ao carregar dados:", error);
+    }
+  };
+
+  useFocusEffect(
+    useCallback(() => {
+      carregarDados();
+    }, [opcaoSelecionada])
+  );
+
+  const opcaoPressionada = (opcao) => {
     setOpcaoSelecionada(opcao);
   };
 
-  const bannerHotelPressionado = (hotel: React.SetStateAction<null>) => {
+  const bannerHotelPressionado = (hotel) => {
     setHotelSelecionado(hotel);
     setModalHotelVisivel(true);
   };
 
-  const bannerVooPressionado = (voo: React.SetStateAction<null>) => {
+  const bannerVooPressionado = (voo) => {
     setVooSelecionado(voo);
     setModalVooVisivel(true);
   };
 
-  const hoteis = [
-    {
-      nome: "Hotel Paraíso",
-      avaliacao: 4,
-      inicio: "10 de Abril",
-      fim: "15 de Abril",
-      descricao: "Hotel de luxo com vista para o mar",
-      preco: "R$ 250,00",
-      localizacao: "Praia de Copacabana, Rio de Janeiro/RJ",
-      imagens: [
-        require("../../assets/images/hoteis/hotel-paraiso.jpg"),
-        require("../../assets/images/hoteis/hotel-paraiso-2.jpg"),
-        require("../../assets/images/hoteis/hotel-paraiso-3.jpg"),
-      ],
-    },
-    {
-      nome: "Pousada do Sol",
-      avaliacao: 3,
-      inicio: "12 de Abril",
-      fim: "18 de Abril",
-      descricao: "Aconchegante pousada no centro",
-      preco: "R$ 150,00",
-      localizacao: "Centro Histórico, Salvador/BA",
-      imagens: [
-        require("../../assets/images/hoteis/pousada-do-sol.jpg"),
-        require("../../assets/images/hoteis/pousada-do-sol-2.jpg"),
-        require("../../assets/images/hoteis/pousada-do-sol-3.jpg"),
-      ],
-    },
-    {
-      nome: "Resort das Águias",
-      avaliacao: 5,
-      inicio: "20 de Abril",
-      fim: "25 de Abril",
-      descricao: "Resort com piscinas termais",
-      preco: "R$ 450,00",
-      localizacao: "Serra Gaúcha, Porto Alegre/RS",
-      imagens: [
-        require("../../assets/images/hoteis/resort-das-aguias.jpg"),
-        require("../../assets/images/hoteis/resort-das-aguias-2.jpg"),
-        require("../../assets/images/hoteis/resort-das-aguias-3.jpeg"),
-      ],
-    },
-  ];
-
-  const voos = [
-    {
-      destino: "São Paulo",
-      origem: "Rio de Janeiro",
-      descricao: "Conheça a maior cidade do país",
-      saida: "08:00",
-      data: "01 de Abril",
-      preco: "R$ 300,00",
-      imagens: [
-        require("../../assets/images/voos/sp.jpg"),
-        require("../../assets/images/voos/sp-2.jpg"),
-        require("../../assets/images/voos/sp-3.jpg"),
-      ],
-    },
-    {
-      destino: "Salvador",
-      origem: "São Paulo",
-      descricao: "Aproveite as belas praias da capital baiana",
-      saida: "14:30",
-      data: "02 de Abril",
-      preco: "R$ 450,00",
-      imagens: [
-        require("../../assets/images/voos/salvador.jpg"),
-        require("../../assets/images/voos/salvador-2.jpg"),
-        require("../../assets/images/voos/salvador-3.jpg"),
-      ],
-    },
-    {
-      destino: "Porto Alegre",
-      origem: "Curitiba",
-      descricao: "Experimente o elogiado churrasco gaúcho",
-      saida: "10:15",
-      data: "03 de Abril",
-      preco: "R$ 280,00",
-      imagens: [
-        require("../../assets/images/voos/poa.jpg"),
-        require("../../assets/images/voos/poa-2.jpg"),
-        require("../../assets/images/voos/poa-3.jpeg"),
-      ],
-    },
-  ];
+  const formatarData = (dataISO) => {
+    const data = new Date(dataISO);
+    const dia = String(data.getDate()).padStart(2, "0");
+    const mes = String(data.getMonth() + 1).padStart(2, "0");
+    const ano = data.getFullYear();
+    return `${dia}/${mes}/${ano}`;
+  };
 
   return (
     <>
-      {modalHotelVisivel && hotelSelecionado && (
-        <View style={styles.containerModal}>
-          <ScrollView style={styles.conteudoModal}>
-            <Text style={styles.tituloModal}>{hotelSelecionado.nome}</Text>
-            <View style={styles.containerCarrossel}>
-              <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                style={styles.rolarImagens}
-              >
-                {hotelSelecionado.imagens.map(
-                  (
-                    image: ImageSourcePropType | undefined,
-                    index: React.Key | null | undefined
-                  ) => (
-                    <Image
-                      key={index}
-                      source={image}
-                      style={styles.imagemModal}
-                    />
-                  )
-                )}
-              </ScrollView>
-            </View>
-
-            <View style={styles.containerInformacoes}>
-              <Text style={styles.textoInformacoes}>
-                <Text style={{ fontWeight: "bold" }}>Localização:</Text>{" "}
-                {hotelSelecionado.localizacao}
-              </Text>
-              <Text style={styles.textoInformacoes}>
-                <Text style={{ fontWeight: "bold" }}>Início:</Text>{" "}
-                {hotelSelecionado.inicio}
-              </Text>
-              <Text style={styles.textoInformacoes}>
-                <Text style={{ fontWeight: "bold" }}>Fim:</Text>{" "}
-                {hotelSelecionado.fim}
-              </Text>
-              <Text style={styles.textoInformacoes}>
-                <Text style={{ fontWeight: "bold" }}>Preço:</Text>{" "}
-                {hotelSelecionado.preco}
-              </Text>
-            </View>
-            <View style={styles.containerAvaliacao}>
-              {Array.from({ length: 5 }).map((_, i) => (
-                <MaterialIcons
-                  key={i}
-                  name={i < hotelSelecionado.avaliacao ? "star" : "star-border"}
-                  size={24}
-                  color="#000"
-                  style={styles.estrela}
-                />
-              ))}
-            </View>
-            <View style={styles.containerOferecimentos}>
-              <Text style={styles.tituloOferecimentos}>
-                O que a hospedagem oferece:
-              </Text>
-              <View style={styles.containerConteudoOferecimentos}>
-                <MaterialIcons name="ac-unit" size={30} color="#D6005D" />
-                <Text style={styles.textoOferecimentos}>Ar-condicionado</Text>
-              </View>
-              <View style={styles.containerConteudoOferecimentos}>
-                <MaterialIcons name="pool" size={30} color="#D6005D" />
-                <Text style={styles.textoOferecimentos}>Piscina</Text>
-              </View>
-              <View style={styles.containerConteudoOferecimentos}>
-                <MaterialIcons name="tv" size={30} color="#D6005D" />
-                <Text style={styles.textoOferecimentos}>TV a cabo</Text>
-              </View>
-              <View style={styles.containerConteudoOferecimentos}>
-                <MaterialIcons name="wifi" size={30} color="#D6005D" />
-                <Text style={styles.textoOferecimentos}>Wifi</Text>
-              </View>
-            </View>
-            <Pressable onPress={() => {}} style={styles.botaoEscolher}>
-              <Text style={styles.textoBotaoEscolher}>Escolher</Text>
-            </Pressable>
-            <Pressable
-              onPress={() => setModalHotelVisivel(false)}
-              style={styles.botaoFechar}
-            >
-              <Text style={styles.textoBotaoFechar}>Fechar</Text>
-            </Pressable>
-          </ScrollView>
+      {notificacao && (
+        <View style={styles.notificacaoContainer}>
+          <Text style={styles.notificacaoTexto}>{notificacao}</Text>
         </View>
       )}
 
-      {modalVooVisivel && vooSelecionado && (
-        <View style={styles.containerModal}>
-          <ScrollView style={styles.conteudoModal}>
-            <View style={styles.containerCarrossel}>
-              <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                style={styles.rolarImagens}
-              >
-                {vooSelecionado.imagens.map(
-                  (
-                    image: ImageSourcePropType | undefined,
-                    index: React.Key | null | undefined
-                  ) => (
-                    <Image
-                      key={index}
-                      source={image}
-                      style={styles.imagemModal}
-                    />
-                  )
-                )}
-              </ScrollView>
-            </View>
-            <Text style={styles.tituloModal}>{vooSelecionado.destino}</Text>
-            <View style={styles.containerInformacoes}>
-              <Text style={styles.descricao}>{vooSelecionado.descricao}</Text>
-              <Text style={styles.textoInformacoes}>
-                Origem: {vooSelecionado.origem}
-              </Text>
-              <Text style={styles.textoInformacoes}>
-                Saída: {vooSelecionado.saida}
-              </Text>
-              <Text style={styles.textoInformacoes}>
-                Data: {vooSelecionado.data}
-              </Text>
-              <Text style={styles.textoInformacoes}>
-                Preço: {vooSelecionado.preco}
-              </Text>
-            </View>
-            <View style={styles.containerOferecimentos}>
-              <Text style={styles.tituloOferecimentos}>
-                O que o voo oferece:
-              </Text>
-              <View style={styles.containerConteudoOferecimentos}>
-                <MaterialIcons
-                  name="airplane-ticket"
-                  size={30}
-                  color="#D6005D"
-                />
-                <Text style={styles.textoOferecimentos}>Classe Econômica</Text>
-              </View>
-              <View style={styles.containerConteudoOferecimentos}>
-                <MaterialIcons name="ac-unit" size={30} color="#D6005D" />
-                <Text style={styles.textoOferecimentos}>Ar-condicionado</Text>
-              </View>
-              <View style={styles.containerConteudoOferecimentos}>
-                <MaterialIcons name="tv" size={30} color="#D6005D" />
-                <Text style={styles.textoOferecimentos}>TV a cabo</Text>
-              </View>
-              <View style={styles.containerConteudoOferecimentos}>
-                <MaterialIcons name="wifi" size={30} color="#D6005D" />
-                <Text style={styles.textoOferecimentos}>Wifi</Text>
-              </View>
-            </View>
-            <Pressable onPress={() => {}} style={styles.botaoEscolher}>
-              <Text style={styles.textoBotaoEscolher}>Escolher</Text>
-            </Pressable>
-            <Pressable
-              onPress={() => setModalVooVisivel(false)}
-              style={styles.botaoFechar}
-            >
-              <Text style={styles.textoBotaoFechar}>Fechar</Text>
-            </Pressable>
-          </ScrollView>
-        </View>
-      )}
-
-      <StatusBar
-        barStyle="dark-content"
-        backgroundColor="#FDD5E9"
-        translucent={false}
+      <ModalHotel
+        visible={modalHotelVisivel}
+        hotel={hotelSelecionado}
+        onClose={() => setModalHotelVisivel(false)}
       />
+
+      <ModalVoo
+        visible={modalVooVisivel}
+        voo={vooSelecionado}
+        onClose={() => setModalVooVisivel(false)}
+        formatarData={formatarData}
+      />
+
+      <StatusBar barStyle="dark-content" backgroundColor="#FDD5E9" translucent={false} />
       <ScrollView style={styles.container}>
         <View style={styles.containerLogo}>
           <Image
@@ -328,7 +261,7 @@ export default function Explorar() {
             style={styles.avatar}
           />
           <View>
-            <Text style={styles.saudacao}>Olá, Nome</Text>
+            <Text style={styles.saudacao}>Olá, {nomeUsuario || "Usuário"}</Text>
             <Text style={styles.texto}>Bem-vindo de volta!</Text>
           </View>
         </View>
@@ -338,27 +271,20 @@ export default function Explorar() {
           <Text style={styles.subTitulo}>Descubra novos lugares</Text>
           <View style={styles.filtroBusca}>
             <Pressable
-              style={[
-                styles.opcoesFiltro,
-                opcaoSelecionada === "hoteis" && styles.opcaoSelecionada,
-              ]}
+              style={[styles.opcoesFiltro, opcaoSelecionada === "hoteis" && styles.opcaoSelecionada]}
               onPress={() => opcaoPressionada("hoteis")}
             >
               <Text
                 style={[
                   styles.textoFiltro,
-                  opcaoSelecionada === "hoteis" &&
-                    styles.textoFiltroSelecionado,
+                  opcaoSelecionada === "hoteis" && styles.textoFiltroSelecionado,
                 ]}
               >
                 Hotéis
               </Text>
             </Pressable>
             <Pressable
-              style={[
-                styles.opcoesFiltro,
-                opcaoSelecionada === "voos" && styles.opcaoSelecionada,
-              ]}
+              style={[styles.opcoesFiltro, opcaoSelecionada === "voos" && styles.opcaoSelecionada]}
               onPress={() => opcaoPressionada("voos")}
             >
               <Text
@@ -371,45 +297,68 @@ export default function Explorar() {
               </Text>
             </Pressable>
           </View>
-
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            style={styles.carrossel}
-          >
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.carrossel}>
             {opcaoSelecionada === "hoteis" && (
               <>
-                {hoteis.map((hotel, index) => (
-                  <BannerHotel
-                    key={index}
-                    imagem={hotel.imagens[0]}
-                    nome={hotel.nome}
-                    avaliacao={hotel.avaliacao}
-                    inicio={hotel.inicio}
-                    fim={hotel.fim}
-                    descricao={hotel.descricao}
-                    preco={hotel.preco}
-                    onPress={() => bannerHotelPressionado(hotel)}
-                  />
-                ))}
+                {isLoading ? (
+                  <View style={styles.containerMensagem}>
+                    <ActivityIndicator size="large" color="#D6005D" />
+                    <Text style={styles.mensagem}>Carregando hotéis...</Text>
+                  </View>
+                ) : hoteis.length > 0 ? (
+                  hoteis.map((hotel, index) => (
+                    <BannerHotel
+                      key={`hotel_${hotel.idHoteis}_${index}`}
+                      imagem={
+                        hotel.imagens && hotel.imagens[0]
+                          ? { uri: hotel.imagens[0] }
+                          : require("../../assets/images/defaultImage.jpg")
+                      }
+                      nome={hotel.nome || "Hotel sem nome"}
+                      descricao={hotel.descricao || "Sem descrição"}
+                      avaliacao={hotel.avaliacao || 0}
+                      preco={hotel.preco_diaria || "Preço não disponível"}
+                      onPress={() => bannerHotelPressionado(hotel)}
+                      favorito={favoritos[`hotel_${hotel.idHoteis}`] || false}
+                      onFavoritar={() => toggleFavorito(hotel.idHoteis, "hotel")}
+                    />
+                  ))
+                ) : (
+                  <Text>Nenhum hotel disponível</Text>
+                )}
               </>
             )}
 
             {opcaoSelecionada === "voos" && (
               <>
-                {voos.map((voo, index) => (
-                  <BannerVoo
-                    key={index}
-                    imagem={voo.imagens[0]}
-                    destino={voo.destino}
-                    origem={voo.origem}
-                    descricao={voo.descricao}
-                    saida={voo.saida}
-                    data={voo.data}
-                    preco={voo.preco}
-                    onPress={() => bannerVooPressionado(voo)}
-                  />
-                ))}
+                {isLoading ? (
+                  <View style={styles.containerMensagem}>
+                    <ActivityIndicator size="large" color="#D6005D" />
+                    <Text style={styles.mensagem}>Carregando voos...</Text>
+                  </View>
+                ) : voos.length > 0 ? (
+                  voos.map((voo, index) => (
+                    <BannerVoo
+                      key={`voo_${voo.idVoos}_${index}`}
+                      imagem={
+                        voo.imagens && voo.imagens[0]
+                          ? { uri: voo.imagens[0] }
+                          : require("../../assets/images/defaultImage.jpg")
+                      }
+                      destino={voo.destino || "Destino não informado"}
+                      origem={voo.origem || "Origem não informada"}
+                      descricao={voo.descricao || "Sem descrição"}
+                      saida={voo.saida || "Horário não informado"}
+                      data={formatarData(voo.data) || "Data não informada"}
+                      preco={voo.preco || "Preço não disponível"}
+                      onPress={() => bannerVooPressionado(voo)}
+                      favorito={favoritos[`voo_${voo.idVoos}`] || false}
+                      onFavoritar={() => toggleFavorito(voo.idVoos, "voo")}
+                    />
+                  ))
+                ) : (
+                  <Text>Nenhum voo disponível</Text>
+                )}
               </>
             )}
           </ScrollView>
@@ -420,98 +369,22 @@ export default function Explorar() {
 }
 
 const styles = StyleSheet.create({
-  containerModal: {
+  notificacaoContainer: {
     position: "absolute",
-    top: 0,
+    top: 50,
     left: 0,
     right: 0,
-    bottom: 0,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "rgba(0,0,0,0.5)",
-    zIndex: 5,
-  },
-  conteudoModal: {
-    maxWidth: "90%",
-    maxHeight: "85%",
-    backgroundColor: "#fff",
-    padding: 20,
-    borderRadius: 10,
-  },
-  tituloModal: {
-    fontSize: 20,
-    marginBottom: 2,
-    fontWeight: "bold",
-  },
-  containerAvaliacao: {
-    flexDirection: "row",
-    marginBottom: 10,
-  },
-  estrela: {
-    fontSize: 20,
-    marginRight: 3,
-  },
-  containerCarrossel: {
-    flexDirection: "row",
-    marginBottom: 5,
-  },
-  rolarImagens: {
-    flexDirection: "row",
-  },
-  imagemModal: {
-    width: 250,
-    height: 150,
-    marginRight: 10,
-  },
-  containerInformacoes: {
-    alignItems: "flex-start",
-  },
-  descricao: {
-    fontSize: 18,
-    marginBottom: 5,
-  },
-  textoInformacoes: {
-    fontSize: 16,
-    marginBottom: 5,
-  },
-  containerOferecimentos: {
-    display: "flex",
-  },
-  tituloOferecimentos: {
-    fontSize: 18,
-    fontWeight: "bold",
-    marginBottom: 10,
-  },
-  containerConteudoOferecimentos: {
-    flexDirection: "row",
+    zIndex: 10,
     alignItems: "center",
   },
-  textoOferecimentos: {
-    fontSize: 16,
-    marginLeft: 10,
-    color: "#555",
-  },
-  botaoEscolher: {
-    marginTop: 20,
-    padding: 10,
-    backgroundColor: "#D6005D",
-    borderRadius: 5,
-  },
-  textoBotaoEscolher: {
+  notificacaoTexto: {
+    backgroundColor: "rgba(0, 0, 0, 0.8)",
     color: "#fff",
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+    fontSize: 16,
     fontWeight: "bold",
-  },
-  botaoFechar: {
-    marginTop: 20,
-    marginBottom: 10,
-    padding: 10,
-    backgroundColor: "#EEE",
-    borderRadius: 5,
-  },
-  textoBotaoFechar: {
-    color: "#000",
-    fontWeight: "bold",
-    marginBottom:30
   },
   container: {
     backgroundColor: "#FDD5E9",
@@ -578,5 +451,15 @@ const styles = StyleSheet.create({
   carrossel: {
     flexDirection: "row",
     marginBottom: 13,
+  },
+  containerMensagem: {
+    marginTop: 90,
+    marginLeft: 110,
+  },
+  mensagem: {
+    fontSize: 16,
+    color: "#666",
+    textAlign: "center",
+    marginVertical: 20,
   },
 });
