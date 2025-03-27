@@ -1,4 +1,5 @@
-import { Text, StyleSheet, TextInput, View } from "react-native";
+import React from "react";
+import { StyleSheet, Text, TextInput, View } from "react-native";
 
 type Props = {
   label?: string;
@@ -8,7 +9,13 @@ type Props = {
   onChange?: (text: string) => void;
 };
 
-function Input({ label, placeholder, onChange, value, secureTextEntry }: Props) {
+function Input({
+  label,
+  placeholder,
+  onChange,
+  value,
+  secureTextEntry,
+}: Props) {
   return (
     <View style={styles.container}>
       {label && <Text style={styles.label}>{label}</Text>}
@@ -18,7 +25,7 @@ function Input({ label, placeholder, onChange, value, secureTextEntry }: Props) 
         value={value}
         secureTextEntry={secureTextEntry}
         placeholderTextColor="#999"
-        onChangeText={onChange} 
+        onChangeText={onChange}
       />
     </View>
   );

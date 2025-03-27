@@ -1,13 +1,13 @@
 import React from "react";
-import { MaterialIcons } from "@expo/vector-icons";
 import {
-  StyleSheet,
-  View,
-  Pressable,
-  Text,
   Image,
   ImageSourcePropType,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
 } from "react-native";
+import { MaterialIcons } from "@expo/vector-icons";
 
 type Props = {
   imagem: ImageSourcePropType;
@@ -18,7 +18,7 @@ type Props = {
   favorito: boolean;
   onFavoritar: () => void;
   onPress: () => void;
-  isFavoritando?: boolean; // Opcional, para feedback de carregamento
+  isFavoritando?: boolean;
 };
 
 export default function BannerHotel({
@@ -47,7 +47,7 @@ export default function BannerHotel({
     return estrelas;
   };
 
-  const isFavorito = !!favorito; // Garante que seja booleano
+  const isFavorito = !!favorito;
 
   return (
     <Pressable onPress={onPress} style={styles.container}>

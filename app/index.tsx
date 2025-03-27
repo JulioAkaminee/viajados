@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { View, Text, StyleSheet, Image, StatusBar, Alert } from "react-native";
+import { Alert, Image, StatusBar, StyleSheet, Text, View } from "react-native";
 import { Link } from "expo-router";
 import { useNavigation } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -60,12 +60,9 @@ export default function Index() {
       const dados = await resposta.json();
 
       if (resposta.status === 200) {
-        console.log(dados);
-        // Extrai os dados do usuário da resposta
         const { token, usuario } = dados;
         const { idUsuario, email: emailUsuario, nome } = usuario;
 
-        // Salva os dados no AsyncStorage
         await salvarDados(token, idUsuario, emailUsuario, nome);
 
         Alert.alert("Sucesso", "Login realizado com sucesso!", [

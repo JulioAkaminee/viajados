@@ -1,13 +1,13 @@
 import React, { useState } from "react";
-import { MaterialIcons } from "@expo/vector-icons";
 import {
-  StyleSheet,
-  View,
-  Pressable,
-  Text,
   Image,
   ImageSourcePropType,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
 } from "react-native";
+import { MaterialIcons } from "@expo/vector-icons";
 
 type Props = {
   imagem: ImageSourcePropType;
@@ -16,7 +16,7 @@ type Props = {
   descricao: string;
   preco: string;
   onPress: () => void;
-  onDesfavoritar: () => void; // Alterado de onRemover para onDesfavoritar
+  onDesfavoritar: () => void;
 };
 
 export default function BannerHotelFavoritos({
@@ -28,11 +28,11 @@ export default function BannerHotelFavoritos({
   onPress,
   onDesfavoritar,
 }: Props) {
-  const [favorito, setFavorito] = useState(true); // Inicia como true, pois está na página de favoritos
+  const [favorito, setFavorito] = useState(true);
 
   const handleDesfavoritar = () => {
-    setFavorito(false); // Atualiza o estado local
-    onDesfavoritar(); // Chama a função passada pelo componente pai para remover do backend
+    setFavorito(false);
+    onDesfavoritar();
   };
 
   const numeroEstrelas = (avaliacao: number) => {
@@ -56,9 +56,9 @@ export default function BannerHotelFavoritos({
       <View style={styles.conteudo}>
         <Pressable onPress={handleDesfavoritar} style={styles.iconeFavorito}>
           <MaterialIcons
-            name={favorito ? "favorite" : "favorite-border"} // Mostra "favorite" enquanto favoritado
+            name={favorito ? "favorite" : "favorite-border"}
             size={18}
-            color={favorito ? "#D6005D" : "#000"} // Rosa quando favoritado, preto quando não
+            color={favorito ? "#D6005D" : "#000"}
           />
         </Pressable>
         <Text style={styles.nome}>{nome}</Text>

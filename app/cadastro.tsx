@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { View, Text, StyleSheet, Image, Alert, ScrollView } from "react-native";
+import { Alert, Image, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 
 import Button from "../components/Button";
@@ -50,7 +50,7 @@ export default function Cadastro() {
   };
 
   const continuarPressionado = async () => {
-    const nomeFormatado = nome.trim().replace(/\s+/g, ""); // Remove espaços extras
+    const nomeFormatado = nome.trim().replace(/\s+/g, "");
     const nacionalidadeFormatado = nacionalidade.trim().replace(/\s+/g, "");
     const cpfNumerico = cpf.replace(/\D/g, "");
     const sexoFormatado = sexo === "Masculino" ? "M" : "F";
@@ -97,7 +97,7 @@ export default function Cadastro() {
       nome: nomeFormatado,
       ativo: 1,
       cpf: cpfNumerico,
-      data_nascimento: dataFormatada, // Ajustado para o nome esperado pela API
+      data_nascimento: dataFormatada,
       nacionalidade: nacionalidadeFormatado,
       sexo: sexoFormatado,
     };
@@ -109,7 +109,7 @@ export default function Cadastro() {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            Accept: "application/json", // Boa prática adicionar
+            Accept: "application/json",
           },
           body: JSON.stringify(dadosUsuario),
         }

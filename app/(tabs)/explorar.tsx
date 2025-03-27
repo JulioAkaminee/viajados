@@ -1,6 +1,7 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useCallback, useState } from "react";
 import { useFocusEffect } from "@react-navigation/native";
 import {
+  ActivityIndicator,
   Image,
   Pressable,
   ScrollView,
@@ -11,7 +12,7 @@ import {
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { ActivityIndicator } from "react-native";
+
 import BannerHotel from "@/components/Banner-Hotel/BannerHotel";
 import BannerVoo from "@/components/Banner-Voo/BannerVoo";
 
@@ -27,12 +28,12 @@ export default function Explorar() {
   const [idUsuario, setIdUsuario] = useState(null);
   const [favoritos, setFavoritos] = useState({});
   const [isLoading, setIsLoading] = useState(true);
-  // Função para carregar favoritos do usuário
+  const [notificacao, setNotificacao] = useState(null);
+  
   const carregarFavoritos = async (token, usuarioId) => {
     try {
       const novosFavoritos = {};
 
-      // Carregar favoritos de hotéis
       const respostaHoteis = await fetch(
         `https://backend-viajados.vercel.app/api/favoritos/hoteis?idUsuario=${usuarioId}`,
         {
@@ -41,6 +42,7 @@ export default function Explorar() {
           },
         }
       );
+
       if (respostaHoteis.ok) {
         const hoteisFavoritos = await respostaHoteis.json();
         if (Array.isArray(hoteisFavoritos)) {
@@ -49,7 +51,6 @@ export default function Explorar() {
           });
         }
       } else if (respostaHoteis.status === 404) {
-        // Se não há hotéis favoritados, apenas continua sem adicionar ao objeto
         console.log("Nenhum hotel favoritado encontrado");
       } else {
         throw new Error(
@@ -57,7 +58,6 @@ export default function Explorar() {
         );
       }
 
-      // Carregar favoritos de voos
       const respostaVoos = await fetch(
         `https://backend-viajados.vercel.app/api/favoritos/voos?idUsuario=${usuarioId}`,
         {
@@ -66,6 +66,7 @@ export default function Explorar() {
           },
         }
       );
+
       if (respostaVoos.ok) {
         const voosFavoritos = await respostaVoos.json();
         if (Array.isArray(voosFavoritos)) {
@@ -74,7 +75,6 @@ export default function Explorar() {
           });
         }
       } else if (respostaVoos.status === 404) {
-        // Se não há voos favoritados, apenas continua sem adicionar ao objeto
         console.log("Nenhum voo favoritado encontrado");
       } else {
         throw new Error(`Erro na requisição de voos: ${respostaVoos.status}`);
@@ -86,7 +86,6 @@ export default function Explorar() {
     }
   };
 
-  // Função para favoritar/desfavoritar
   const toggleFavorito = async (id, tipo) => {
     try {
       const token = await AsyncStorage.getItem("token");
@@ -112,14 +111,24 @@ export default function Explorar() {
         setFavoritos((prev) => {
           const novosFavoritos = { ...prev };
           if (estaFavoritado) {
-            delete novosFavoritos[chaveFavorito]; // Remove a chave se desfavoritado
+            delete novosFavoritos[chaveFavorito];
           } else {
-            novosFavoritos[chaveFavorito] = true; // Adiciona a chave se favoritado
+            novosFavoritos[chaveFavorito] = true;
           }
           return novosFavoritos;
         });
-        // Recarrega os favoritos para garantir sincronia com o backend
+
         await carregarFavoritos(token, idUsuario);
+
+        const mensagem = estaFavoritado
+          ? tipo === "hotel"
+            ? "Hotel foi removido dos favoritos!"
+            : "Voo foi removido dos favoritos!"
+          : tipo === "hotel"
+          ? "Hotel foi adicionado aos favoritos!"
+          : "Voo foi adicionado aos favoritos!";
+        setNotificacao(mensagem);
+        setTimeout(() => setNotificacao(null), 3000);
       } else {
         const errorText = await response.text();
         console.error("Erro ao atualizar favorito:", errorText);
@@ -157,10 +166,13 @@ export default function Explorar() {
           },
         }
       );
+
       if (!respostaHoteis.ok) {
         throw new Error(`Erro ao buscar hotéis: ${respostaHoteis.status}`);
       }
+
       const dadosHoteis = await respostaHoteis.json();
+
       setHoteis(
         Array.isArray(dadosHoteis) ? dadosHoteis : dadosHoteis.data || []
       );
@@ -175,20 +187,24 @@ export default function Explorar() {
           },
         }
       );
+
       if (!respostaVoos.ok) {
         throw new Error(`Erro ao buscar voos: ${respostaVoos.status}`);
       }
+
       const dadosVoos = await respostaVoos.json();
+
       setVoos(Array.isArray(dadosVoos) ? dadosVoos : dadosVoos.data || []);
       setIsLoading(false);
     } catch (error) {
       console.error("Erro ao carregar dados:", error);
     }
   };
+
   useFocusEffect(
     useCallback(() => {
-      carregarDados(); // Chama a função de fetch quando a aba ganha foco
-    }, [opcaoSelecionada]) // Array de dependências vazio para evitar chamadas desnecessárias
+      carregarDados();
+    }, [opcaoSelecionada])
   );
 
   const opcaoPressionada = (opcao) => {
@@ -215,6 +231,12 @@ export default function Explorar() {
 
   return (
     <>
+      {notificacao && (
+        <View style={styles.notificacaoContainer}>
+          <Text style={styles.notificacaoTexto}>{notificacao}</Text>
+        </View>
+      )}
+
       {modalHotelVisivel && hotelSelecionado && (
         <View style={styles.containerModal}>
           <ScrollView style={styles.conteudoModal}>
@@ -441,44 +463,44 @@ export default function Explorar() {
             horizontal
             showsHorizontalScrollIndicator={false}
             style={styles.carrossel}
-            >
-              {opcaoSelecionada === "hoteis" && (
-                <>
-                  {isLoading ? (
-                    <View>
-                      <ActivityIndicator size="large" color="#D6005D" />
-                      <Text style={styles.mensagem}>Carregando hotéis...</Text>
-                    </View>
-                  ) : hoteis.length > 0 ? (
-                    hoteis.map((hotel, index) => (
-                      <BannerHotel
-                        key={`hotel_${hotel.idHoteis}_${index}`}
-                        imagem={
-                          hotel.imagens && hotel.imagens[0]
-                            ? { uri: hotel.imagens[0] }
-                            : require("../../assets/images/hoteis/defaultHotel.jpg")
-                        }
-                        nome={hotel.nome || "Hotel sem nome"}
-                        descricao={hotel.descricao || "Sem descrição"}
-                        avaliacao={hotel.avaliacao || 0}
-                        preco={hotel.preco_diaria || "Preço não disponível"}
-                        onPress={() => bannerHotelPressionado(hotel)}
-                        favorito={favoritos[`hotel_${hotel.idHoteis}`] || false}
-                        onFavoritar={() =>
-                          toggleFavorito(hotel.idHoteis, "hotel")
-                        }
-                      />
-                    ))
-                  ) : (
-                    <Text>Nenhum hotel disponível</Text>
-                  )}
-                </>
-              )}
+          >
+            {opcaoSelecionada === "hoteis" && (
+              <>
+                {isLoading ? (
+                  <View style={styles.containerMensagem}>
+                    <ActivityIndicator size="large" color="#D6005D" />
+                    <Text style={styles.mensagem}>Carregando hotéis...</Text>
+                  </View>
+                ) : hoteis.length > 0 ? (
+                  hoteis.map((hotel, index) => (
+                    <BannerHotel
+                      key={`hotel_${hotel.idHoteis}_${index}`}
+                      imagem={
+                        hotel.imagens && hotel.imagens[0]
+                          ? { uri: hotel.imagens[0] }
+                          : require("../../assets/images/defaultImage.jpg")
+                      }
+                      nome={hotel.nome || "Hotel sem nome"}
+                      descricao={hotel.descricao || "Sem descrição"}
+                      avaliacao={hotel.avaliacao || 0}
+                      preco={hotel.preco_diaria || "Preço não disponível"}
+                      onPress={() => bannerHotelPressionado(hotel)}
+                      favorito={favoritos[`hotel_${hotel.idHoteis}`] || false}
+                      onFavoritar={() =>
+                        toggleFavorito(hotel.idHoteis, "hotel")
+                      }
+                    />
+                  ))
+                ) : (
+                  <Text>Nenhum hotel disponível</Text>
+                )}
+              </>
+            )}
 
             {opcaoSelecionada === "voos" && (
               <>
                 {isLoading ? (
-                  <View>
+                  <View style={styles.containerMensagem}>
                     <ActivityIndicator size="large" color="#D6005D" />
                     <Text style={styles.mensagem}>Carregando voos...</Text>
                   </View>
@@ -489,7 +511,7 @@ export default function Explorar() {
                       imagem={
                         voo.imagens && voo.imagens[0]
                           ? { uri: voo.imagens[0] }
-                          : require("../../assets/images/hoteis/defaultHotel.jpg")
+                          : require("../../assets/images/defaultImage.jpg")
                       }
                       destino={voo.destino || "Destino não informado"}
                       origem={voo.origem || "Origem não informada"}
@@ -515,6 +537,23 @@ export default function Explorar() {
 }
 
 const styles = StyleSheet.create({
+  notificacaoContainer: {
+    position: "absolute",
+    top: 50,
+    left: 0,
+    right: 0,
+    zIndex: 10,
+    alignItems: "center",
+  },
+  notificacaoTexto: {
+    backgroundColor: "rgba(0, 0, 0, 0.8)",
+    color: "#fff",
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+    fontSize: 16,
+    fontWeight: "bold",
+  },
   containerModal: {
     position: "absolute",
     top: 0,
@@ -665,7 +704,10 @@ const styles = StyleSheet.create({
   carrossel: {
     flexDirection: "row",
     marginBottom: 13,
-   
+  },
+  containerMensagem: {
+    marginTop: 90,
+    marginLeft: 110,
   },
   mensagem: {
     fontSize: 16,

@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { View, Text, StyleSheet, Image, Alert } from "react-native";
+import { Alert, Image, StyleSheet, Text, View } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 
 import Button from "../components/Button";
