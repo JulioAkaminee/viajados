@@ -98,7 +98,7 @@ export default function MinhaConta() {
             data_nascimento: formatarData(data[0].data_nascimento),
             nacionalidade: data[0].nacionalidade || "Não informado",
             sexo: formatarSexo(data[0].sexo),
-            foto_usuario: data[0].foto_usuario ,
+            foto_usuario: data[0].foto_usuario || "https://via.placeholder.com/150", // Adicionando um fallback para a imagem
           });
         } else {
           Alert.alert("Erro", "Não foi possível carregar os dados de usuário.");
@@ -161,10 +161,10 @@ export default function MinhaConta() {
     <View style={styles.container}>
       <View style={styles.containerInformacoes}>
         <View style={styles.fotoNome}>
-          <Image
-            source={{ uri: usuario.foto_usuario }}
-            style={styles.imagemPerfil}
-          />
+        <Image
+  source={{ uri: `data:image/jpeg;base64,${usuario.foto_usuario}` }} // Convertendo base64 para exibição
+  style={styles.imagemPerfil}
+/>
           <Text style={styles.nome}>{usuario.nome}</Text>
           <Pressable onPress={() => setModalVisivel(true)}>
             <MaterialIcons name={"edit"} size={35} color="#D6005D" />
@@ -209,7 +209,7 @@ export default function MinhaConta() {
             <View style={styles.secaoModal}>
               <View style={{ display: "flex", justifyContent: "center", alignItems: "center", width: "100%", marginBottom: 20 }}>
                 <Image
-                  source={{ uri: usuario.foto_usuario }}
+                  source={{ uri: usuario.foto_usuario }} // Consumindo a URL da foto
                   style={styles.imagemPerfil}
                 />
               </View>
@@ -284,65 +284,60 @@ const styles = StyleSheet.create({
     width: "100%",
   },
   legenda: {
-    fontSize: 18,
+    fontSize: 16,
+    marginTop: 30,
     fontWeight: "bold",
-    color: "#D6005D",
-    marginTop: 20,
     textAlign: "center",
   },
   botao: {
     backgroundColor: "#D6005D",
-    padding: 12,
-    borderRadius: 20,
-    width: "40%",
-    alignItems: "center",
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 8,
     marginTop: 10,
   },
-  botaoEliminar: {
-    backgroundColor: "#D6005D",
-  },
   textoBotao: {
-    color: "white",
-    fontSize: 16,
-    fontWeight: "bold",
+    color: "#fff",
+    fontSize: 18,
   },
   textoAviso: {
-    color: "#000",
-    textAlign: "center",
-    marginVertical: 10,
     fontSize: 14,
-    width: "80%",
+    color: "#D6005D",
+    marginBottom: 10,
+    textAlign: "center",
+  },
+  botaoEliminar: {
+    backgroundColor: "#E83153",
   },
   containerModal: {
     flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
     justifyContent: "center",
     alignItems: "center",
+    backgroundColor: "rgba(0,0,0,0.5)",
   },
   conteudoModal: {
-    backgroundColor: "#FFCCE0",
+    backgroundColor: "#fff",
     padding: 20,
     borderRadius: 15,
-    width: "90%",
+    width: "80%",
     alignItems: "center",
   },
   secaoModal: {
-    width: "100%",
     flexDirection: "row",
-    justifyContent: "space-between",
-  },
-  botaoFechar: {
-    fontSize: 24,
-    color: "#FF007F",
-    position: "absolute",
-    top: 8,
-    right: 4,
+    alignItems: "center",
   },
   input: {
-    backgroundColor: "white",
     width: "100%",
     padding: 10,
-    borderRadius: 10,
-    marginBottom: 10,
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: "#ddd",
+    borderRadius: 8,
+  },
+  botaoFechar: {
+    fontSize: 35,
+    position: "absolute",
+    right: 10,
+    top: 10,
   },
 });
