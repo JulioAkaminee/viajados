@@ -1,4 +1,3 @@
-import React, { useEffect, useState } from "react";
 import {
   Alert,
   Image,
@@ -9,13 +8,33 @@ import {
   TextInput,
   View,
 } from "react-native";
-import { MaterialIcons } from "@expo/vector-icons";
-import { useNavigation } from "@react-navigation/native";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import React, { useEffect, useState } from "react";
 
-import deslogar from "../../functions/deslogar";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { MaterialIcons } from "@expo/vector-icons";
 import deletar from "../../functions/deletar";
+import deslogar from "../../functions/deslogar";
+import { useNavigation } from "@react-navigation/native";
 import verificarToken from "../verificarToken";
+
+const formatarData = (dataISO) => {
+  if (!dataISO) return "Não informado";
+  const data = new Date(dataISO);
+  const dia = String(data.getUTCDate()).padStart(2, "0");
+  const mes = String(data.getUTCMonth() + 1).padStart(2, "0");
+  const ano = data.getUTCFullYear();
+  return `${dia}/${mes}/${ano}`;
+};
+
+const formatarCPF = (cpf) => {
+  if (!cpf || cpf.length !== 11) return "Não informado";
+  return cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4");
+};
+
+const formatarSexo = (sexo) => {
+  if (!sexo) return "Não informado";
+  return sexo.toUpperCase() === "M" ? "Masculino" : sexo.toUpperCase() === "F" ? "Feminino" : "Não informado";
+};
 
 export default function MinhaConta() {
   const navigation = useNavigation();
@@ -23,24 +42,13 @@ export default function MinhaConta() {
   const [token, setToken] = useState(null);
   const [usuarioId, setUsuarioId] = useState(null);
   const [novoNome, setNovoNome] = useState("");
-  const [usuario, setUsuario] = useState({
-    nome: "",
-    cpf: "",
-    data_nascimento: "",
-    nacionalidade: "",
-    sexo: "",
-  });
+  const [usuario, setUsuario] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   const handleLogout = () => {
     Alert.alert("Sair da conta", "Tem certeza que deseja sair?", [
-      {
-        text: "Cancelar",
-        onPress: () => {},
-      },
-      {
-        text: "Sim",
-        onPress: () => deslogar(navigation),
-      },
+      { text: "Cancelar", onPress: () => {} },
+      { text: "Sim", onPress: () => deslogar(navigation) },
     ]);
   };
 
@@ -49,55 +57,57 @@ export default function MinhaConta() {
       "Excluir minha conta",
       "Tem certeza que deseja excluir sua conta?",
       [
-        {
-          text: "Cancelar",
-          onPress: () => {},
-        },
-        {
-          text: "Sim",
-          onPress: () => deletar(usuarioId, token, navigation),
-        },
+        { text: "Cancelar", onPress: () => {} },
+        { text: "Sim", onPress: () => deletar(usuarioId, token, navigation) },
       ]
     );
   };
 
   useEffect(() => {
     async function carregarDados() {
-      const tokenArmazenado = await AsyncStorage.getItem("token");
-      const idArmazenado = await AsyncStorage.getItem("idUsuario");
-      
-      if (tokenArmazenado && idArmazenado) {
+      try {
+        setIsLoading(true);
+        const tokenArmazenado = await AsyncStorage.getItem("token");
+        const idArmazenado = await AsyncStorage.getItem("idUsuario");
+
+        if (!tokenArmazenado || !idArmazenado) {
+          Alert.alert("Erro", "Credenciais não encontradas");
+          return;
+        }
+
         setToken(tokenArmazenado);
         setUsuarioId(idArmazenado);
-  
-        try {
-          const response = await fetch(
-            `https://backend-viajados.vercel.app/api/alterardados/dadosusuario?idUsuario=${idArmazenado}`,
-            {
-              method: "GET",
-              headers: {
-                Authorization: `Bearer ${tokenArmazenado}`,
-              },
-            }
-          );
-  
-          const data = await response.json();
-  
-          if (response.ok) {
-            setUsuario({
-              nome: data.nome,
-              cpf: data.cpf,
-              data_nascimento: data.data_nascimento,
-              nacionalidade: data.nacionalidade,
-              sexo: data.sexo,
-            });
-          } else {
-            Alert.alert("Erro", "Não foi possível carregar os dados de usuário.");
+
+        const response = await fetch(
+          `https://backend-viajados.vercel.app/api/alterardados/dadosusuario?idUsuario=${idArmazenado}`,
+          {
+            method: "GET",
+            headers: {
+              Authorization: `Bearer ${tokenArmazenado}`,
+            },
           }
-        } catch (error) {
-          console.error(error);
-          Alert.alert("Erro", "Erro ao buscar os dados do usuário.");
+        );
+
+        const data = await response.json();
+        console.log("Dados da Api:", data);
+
+        if (response.ok && data.length > 0) {
+          setUsuario({
+            nome: data[0].nome || "Não informado",
+            cpf: formatarCPF(data[0].cpf),
+            data_nascimento: formatarData(data[0].data_nascimento),
+            nacionalidade: data[0].nacionalidade || "Não informado",
+            sexo: formatarSexo(data[0].sexo),
+            foto_usuario: data[0].foto_usuario ,
+          });
+        } else {
+          Alert.alert("Erro", "Não foi possível carregar os dados de usuário.");
         }
+      } catch (error) {
+        console.error(error);
+        Alert.alert("Erro", "Erro ao buscar os dados do usuário.");
+      } finally {
+        setIsLoading(false);
       }
     }
 
@@ -128,45 +138,52 @@ export default function MinhaConta() {
 
       if (response.ok) {
         Alert.alert("Sucesso", "Nome atualizado com sucesso!");
+        setUsuario((prev) => ({ ...prev, nome: novoNome }));
         setModalVisivel(false);
       } else {
-        Alert.alert(
-          "Erro",
-          data.mensagem || "Não foi possível atualizar o nome."
-        );
+        Alert.alert("Erro", data.mensagem || "Não foi possível atualizar o nome.");
       }
     } catch (error) {
-      Alert.alert("Erro", "Ocorreu um erro ao atualizar o nome.");
       console.error(error);
+      Alert.alert("Erro", "Ocorreu um erro ao atualizar o nome.");
     }
   };
+
+  if (isLoading || !usuario) {
+    return (
+      <View style={styles.container}>
+        <Text>Carregando dados...</Text>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
       <View style={styles.containerInformacoes}>
         <View style={styles.fotoNome}>
           <Image
-            source={require("../../assets/images/user-icon.png")}
+            source={{ uri: usuario.foto_usuario }}
             style={styles.imagemPerfil}
           />
-          <Text style={styles.nome}>{usuario.nome || "Dado não encontrado"}</Text>
+          <Text style={styles.nome}>{usuario.nome}</Text>
           <Pressable onPress={() => setModalVisivel(true)}>
             <MaterialIcons name={"edit"} size={35} color="#D6005D" />
           </Pressable>
         </View>
 
         <Text style={styles.informacoes}>
-          <Text style={{ fontWeight: "bold" }}>CPF:</Text> {usuario.cpf || "Dado não encontrado"}
+          <Text style={{ fontWeight: "bold" }}>CPF:</Text> {usuario.cpf}
         </Text>
         <Text style={styles.informacoes}>
           <Text style={{ fontWeight: "bold" }}>Data de nascimento:</Text>{" "}
-          {usuario.data_nascimento || "Dado não encontrado"}
+          {usuario.data_nascimento}
         </Text>
         <Text style={styles.informacoes}>
-          <Text style={{ fontWeight: "bold" }}>Nacionalidade:</Text> {usuario.nacionalidade || "Dado não encontrado"}
+          <Text style={{ fontWeight: "bold" }}>Nacionalidade:</Text>{" "}
+          {usuario.nacionalidade}
         </Text>
         <Text style={styles.informacoes}>
-          <Text style={{ fontWeight: "bold" }}>Sexo:</Text> {usuario.sexo || "Dado não encontrado"}
+          <Text style={{ fontWeight: "bold" }}>Sexo:</Text> {usuario.sexo}
         </Text>
       </View>
 
@@ -190,10 +207,12 @@ export default function MinhaConta() {
         <View style={styles.containerModal}>
           <View style={styles.conteudoModal}>
             <View style={styles.secaoModal}>
-              <Image
-                source={require("../../assets/images/user-icon.png")}
-                style={{ left: 130, marginBottom: 10, ...styles.imagemPerfil }}
-              />
+              <View style={{ display: "flex", justifyContent: "center", alignItems: "center", width: "100%", marginBottom: 20 }}>
+                <Image
+                  source={{ uri: usuario.foto_usuario }}
+                  style={styles.imagemPerfil}
+                />
+              </View>
               <Pressable onPress={() => setModalVisivel(false)}>
                 <Text style={styles.botaoFechar}>
                   <MaterialIcons name={"close"} size={35} color="#D6005D" />
