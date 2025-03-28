@@ -12,7 +12,7 @@ import { useNavigation } from "@react-navigation/native";
 
 export default function minhasViagens() {
     const navigation = useNavigation();
-  const [opcaoSelecionada, setOpcaoSelecionada] = useState("hoteis");
+  const [opcaoSelecionada, setOpcaoSelecionada] = useState("agendado");
 
   const opcaoPressionada = (opcao) => {
     setOpcaoSelecionada(opcao);
@@ -39,34 +39,34 @@ export default function minhasViagens() {
             <Pressable
               style={[
                 styles.opcoesFiltro,
-                opcaoSelecionada === "hoteis" && styles.opcaoSelecionada,
+                opcaoSelecionada === "agendado" && styles.opcaoSelecionada,
               ]}
-              onPress={() => opcaoPressionada("hoteis")}
+              onPress={() => opcaoPressionada("agendado")}
             >
               <Text
                 style={[
                   styles.textoFiltro,
-                  opcaoSelecionada === "hoteis" &&
+                  opcaoSelecionada === "agendado" &&
                     styles.textoFiltroSelecionado,
                 ]}
               >
-                Hotéis
+                Agendado
               </Text>
             </Pressable>
             <Pressable
               style={[
                 styles.opcoesFiltro,
-                opcaoSelecionada === "voos" && styles.opcaoSelecionada,
+                opcaoSelecionada === "finalizado" && styles.opcaoSelecionada,
               ]}
-              onPress={() => opcaoPressionada("voos")}
+              onPress={() => opcaoPressionada("finalizado")}
             >
               <Text
                 style={[
                   styles.textoFiltro,
-                  opcaoSelecionada === "voos" && styles.textoFiltroSelecionado,
+                  opcaoSelecionada === "finalizado" && styles.textoFiltroSelecionado,
                 ]}
               >
-                Voos
+                Finalizado
               </Text>
             </Pressable>
           </View>

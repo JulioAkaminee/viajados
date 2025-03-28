@@ -95,7 +95,6 @@ export default function Favoritos() {
         setHoteis(Array.isArray(dadosHoteis) ? dadosHoteis : []);
       } else if (respostaHoteis.status === 404) {
         setHoteis([]);
-        console.log("Nenhum hotel favoritado encontrado");
       } else {
         const textoHoteis = await respostaHoteis.text();
         throw new Error(
@@ -119,7 +118,6 @@ export default function Favoritos() {
         setVoos(Array.isArray(dadosVoos) ? dadosVoos : []);
       } else if (respostaVoos.status === 404) {
         setVoos([]);
-        console.log("Nenhum voo favoritado encontrado");
       } else {
         const textoVoos = await respostaVoos.text();
         throw new Error(

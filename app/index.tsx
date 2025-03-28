@@ -24,9 +24,7 @@ export default function Index() {
       await AsyncStorage.setItem("idUsuario", String(idUsuario));
       await AsyncStorage.setItem("email", email);
       await AsyncStorage.setItem("nome", nome);
-      console.log("Dados salvos com sucesso!");
     } catch (erro) {
-      console.log("Erro ao salvar dados:", erro);
       throw erro;
     }
   };

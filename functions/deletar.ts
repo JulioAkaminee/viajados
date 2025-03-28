@@ -15,15 +15,13 @@ const deletar = async (usuarioId, token, navigation) => {
     const data = await response.json();
 
     if (response.ok) {
-      console.log("Conta deletada com sucesso:", data);
+      navigation.reset({
+        index: 0,
+        routes: [{ name: "index" }],
+      });
     } else {
       console.error("Erro ao deletar conta:", data);
-    }
-
-    navigation.reset({
-      index: 0,
-      routes: [{ name: "index" }],
-    });
+    }    
   } catch (error) {
     console.error("Erro ao deletar conta:", error);
 

@@ -28,6 +28,7 @@ export default function Explorar() {
   const [hoteis, setHoteis] = useState([]);
   const [voos, setVoos] = useState([]);
   const [nomeUsuario, setNomeUsuario] = useState("");
+  const [fotoUsuario, setFotoUsuario] = useState(null);
   const [idUsuario, setIdUsuario] = useState(null);
   const [favoritos, setFavoritos] = useState({});
   const [isLoading, setIsLoading] = useState(true);
@@ -59,10 +60,10 @@ export default function Explorar() {
             novosFavoritos[`hotel_${hotel.idHoteis}`] = true;
           });
         }
-      } else if (respostaHoteis.status === 404) {
-        console.log("Nenhum hotel favoritado encontrado");
       } else {
-        throw new Error(`Erro na requisição de hotéis: ${respostaHoteis.status}`);
+        throw new Error(
+          `Erro na requisição de hotéis: ${respostaHoteis.status}`
+        );
       }
 
       const respostaVoos = await fetch(
@@ -81,8 +82,6 @@ export default function Explorar() {
             novosFavoritos[`voo_${voo.idVoos}`] = true;
           });
         }
-      } else if (respostaVoos.status === 404) {
-        console.log("Nenhum voo favoritado encontrado");
       } else {
         throw new Error(`Erro na requisição de voos: ${respostaVoos.status}`);
       }
@@ -98,7 +97,9 @@ export default function Explorar() {
       const token = await AsyncStorage.getItem("token");
       const chaveFavorito = `${tipo}_${id}`;
       const estaFavoritado = favoritos[chaveFavorito];
-      const url = `https://backend-viajados.vercel.app/api/favoritos/${tipo === "hotel" ? "hoteis" : "voos"}`;
+      const url = `https://backend-viajados.vercel.app/api/favoritos/${
+        tipo === "hotel" ? "hoteis" : "voos"
+      }`;
 
       const response = await fetch(url, {
         method: estaFavoritado ? "DELETE" : "POST",
@@ -159,30 +160,67 @@ export default function Explorar() {
         return;
       }
 
+      const respostaUsuario = await fetch(
+        `https://backend-viajados.vercel.app/api/alterardados/dadosusuario?idUsuario=${usuarioId}`,
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (respostaUsuario.ok) {
+        const dadosUsuario = await respostaUsuario.json();
+        if (dadosUsuario.length > 0) {
+          const foto = dadosUsuario[0].foto_usuario;
+          setFotoUsuario(
+            foto
+              ? foto.startsWith("data:")
+                ? foto
+                : `data:image/jpeg;base64,${foto}`
+              : null
+          );
+        }
+      } else {
+        console.error(
+          "Erro ao carregar dados do usuário:",
+          respostaUsuario.status
+        );
+      }
+
       await carregarFavoritos(token, usuarioId);
 
-      const respostaHoteis = await fetch("https://backend-viajados.vercel.app/api/hoteis", {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-      });
+      const respostaHoteis = await fetch(
+        "https://backend-viajados.vercel.app/api/hoteis",
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
 
       if (!respostaHoteis.ok) {
         throw new Error(`Erro ao buscar hotéis: ${respostaHoteis.status}`);
       }
 
       const dadosHoteis = await respostaHoteis.json();
-      setHoteis(Array.isArray(dadosHoteis) ? dadosHoteis : dadosHoteis.data || []);
+      setHoteis(
+        Array.isArray(dadosHoteis) ? dadosHoteis : dadosHoteis.data || []
+      );
 
-      const respostaVoos = await fetch("https://backend-viajados.vercel.app/api/voos", {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-      });
+      const respostaVoos = await fetch(
+        "https://backend-viajados.vercel.app/api/voos",
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
 
       if (!respostaVoos.ok) {
         throw new Error(`Erro ao buscar voos: ${respostaVoos.status}`);
@@ -190,9 +228,10 @@ export default function Explorar() {
 
       const dadosVoos = await respostaVoos.json();
       setVoos(Array.isArray(dadosVoos) ? dadosVoos : dadosVoos.data || []);
-      setIsLoading(false);
     } catch (error) {
       console.error("Erro ao carregar dados:", error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -245,7 +284,11 @@ export default function Explorar() {
         formatarData={formatarData}
       />
 
-      <StatusBar barStyle="dark-content" backgroundColor="#FDD5E9" translucent={false} />
+      <StatusBar
+        barStyle="dark-content"
+        backgroundColor="#FDD5E9"
+        translucent={false}
+      />
       <ScrollView style={styles.container}>
         <View style={styles.containerLogo}>
           <Image
@@ -257,7 +300,11 @@ export default function Explorar() {
 
         <View style={styles.containerInfoUsuario}>
           <Image
-            source={require("../../assets/images/user-icon.png")}
+            source={
+              fotoUsuario
+                ? { uri: fotoUsuario }
+                : require("../../assets/images/user-icon.png")
+            }
             style={styles.avatar}
           />
           <View>
@@ -271,20 +318,27 @@ export default function Explorar() {
           <Text style={styles.subTitulo}>Descubra novos lugares</Text>
           <View style={styles.filtroBusca}>
             <Pressable
-              style={[styles.opcoesFiltro, opcaoSelecionada === "hoteis" && styles.opcaoSelecionada]}
+              style={[
+                styles.opcoesFiltro,
+                opcaoSelecionada === "hoteis" && styles.opcaoSelecionada,
+              ]}
               onPress={() => opcaoPressionada("hoteis")}
             >
               <Text
                 style={[
                   styles.textoFiltro,
-                  opcaoSelecionada === "hoteis" && styles.textoFiltroSelecionado,
+                  opcaoSelecionada === "hoteis" &&
+                    styles.textoFiltroSelecionado,
                 ]}
               >
                 Hotéis
               </Text>
             </Pressable>
             <Pressable
-              style={[styles.opcoesFiltro, opcaoSelecionada === "voos" && styles.opcaoSelecionada]}
+              style={[
+                styles.opcoesFiltro,
+                opcaoSelecionada === "voos" && styles.opcaoSelecionada,
+              ]}
               onPress={() => opcaoPressionada("voos")}
             >
               <Text
@@ -297,7 +351,11 @@ export default function Explorar() {
               </Text>
             </Pressable>
           </View>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.carrossel}>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            style={styles.carrossel}
+          >
             {opcaoSelecionada === "hoteis" && (
               <>
                 {isLoading ? (
@@ -320,7 +378,9 @@ export default function Explorar() {
                       preco={hotel.preco_diaria || "Preço não disponível"}
                       onPress={() => bannerHotelPressionado(hotel)}
                       favorito={favoritos[`hotel_${hotel.idHoteis}`] || false}
-                      onFavoritar={() => toggleFavorito(hotel.idHoteis, "hotel")}
+                      onFavoritar={() =>
+                        toggleFavorito(hotel.idHoteis, "hotel")
+                      }
                     />
                   ))
                 ) : (
@@ -407,6 +467,7 @@ const styles = StyleSheet.create({
     width: 50,
     height: 50,
     marginRight: 10,
+    borderRadius: 25,
   },
   saudacao: {
     fontSize: 18,

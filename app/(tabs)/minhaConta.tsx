@@ -9,12 +9,14 @@ import {
   View,
 } from "react-native";
 import React, { useEffect, useState } from "react";
-
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import * as ImagePicker from "expo-image-picker";
+import * as ImageManipulator from "expo-image-manipulator";
 import { MaterialIcons } from "@expo/vector-icons";
+import { useNavigation } from "@react-navigation/native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+
 import deletar from "../../functions/deletar";
 import deslogar from "../../functions/deslogar";
-import { useNavigation } from "@react-navigation/native";
 import verificarToken from "../verificarToken";
 
 const formatarData = (dataISO) => {
@@ -33,7 +35,11 @@ const formatarCPF = (cpf) => {
 
 const formatarSexo = (sexo) => {
   if (!sexo) return "Não informado";
-  return sexo.toUpperCase() === "M" ? "Masculino" : sexo.toUpperCase() === "F" ? "Feminino" : "Não informado";
+  return sexo.toUpperCase() === "M"
+    ? "Masculino"
+    : sexo.toUpperCase() === "F"
+    ? "Feminino"
+    : "Não informado";
 };
 
 export default function MinhaConta() {
@@ -43,6 +49,7 @@ export default function MinhaConta() {
   const [usuarioId, setUsuarioId] = useState(null);
   const [novoNome, setNovoNome] = useState("");
   const [usuario, setUsuario] = useState(null);
+  const [novaFoto, setNovaFoto] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 
   const handleLogout = () => {
@@ -89,7 +96,6 @@ export default function MinhaConta() {
         );
 
         const data = await response.json();
-        console.log("Dados da Api:", data);
 
         if (response.ok && data.length > 0) {
           setUsuario({
@@ -98,7 +104,8 @@ export default function MinhaConta() {
             data_nascimento: formatarData(data[0].data_nascimento),
             nacionalidade: data[0].nacionalidade || "Não informado",
             sexo: formatarSexo(data[0].sexo),
-            foto_usuario: data[0].foto_usuario || "https://via.placeholder.com/150", // Adicionando um fallback para a imagem
+            foto_usuario:
+              data[0].foto_usuario || "https://via.placeholder.com/150",
           });
         } else {
           Alert.alert("Erro", "Não foi possível carregar os dados de usuário.");
@@ -115,37 +122,120 @@ export default function MinhaConta() {
     verificarToken(navigation);
   }, [navigation]);
 
+  const selecionarFoto = async () => {
+    const resultado = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      quality: 1,
+    });
+
+    if (!resultado.canceled) {
+      const uri = resultado.assets[0].uri;
+
+      const manipResult = await ImageManipulator.manipulateAsync(
+        uri,
+        [{ resize: { width: 400 } }],
+        {
+          compress: 0.5,
+          format: ImageManipulator.SaveFormat.JPEG,
+          base64: true,
+        }
+      );
+
+      const base64Size = (manipResult.base64.length * 3) / 4 / 1024 / 1024;
+
+      if (base64Size > 5) {
+        Alert.alert(
+          "Erro",
+          "A imagem é muito grande, mesmo após compressão. Tente uma imagem menor."
+        );
+        return;
+      }
+
+      setNovaFoto(manipResult.base64);
+    }
+  };
+
   const handleSalvar = async () => {
-    if (!novoNome.trim()) {
-      Alert.alert("Erro", "O nome não pode estar vazio.");
+    if ((!novoNome.trim() || novoNome === usuario.nome) && !novaFoto) {
+      Alert.alert("Erro", "Nenhum dado foi alterado.");
       return;
     }
 
     try {
-      const response = await fetch(
-        `https://backend-viajados.vercel.app/api/alterardados?idUsuario=${usuarioId}`,
-        {
-          method: "PUT",
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ nome: novoNome }),
+      if (novoNome.trim() && novoNome !== usuario.nome) {
+        const responseNome = await fetch(
+          `https://backend-viajados.vercel.app/api/alterardados?idUsuario=${usuarioId}`,
+          {
+            method: "PUT",
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ nome: novoNome }),
+          }
+        );
+
+        const dataNome = await responseNome.json();
+        if (!responseNome.ok) {
+          throw new Error(dataNome.mensagem || "Erro ao atualizar o nome.");
         }
-      );
-
-      const data = await response.json();
-
-      if (response.ok) {
-        Alert.alert("Sucesso", "Nome atualizado com sucesso!");
-        setUsuario((prev) => ({ ...prev, nome: novoNome }));
-        setModalVisivel(false);
-      } else {
-        Alert.alert("Erro", data.mensagem || "Não foi possível atualizar o nome.");
       }
+
+      if (novaFoto && novaFoto !== usuario.foto_usuario) {
+        const payload = JSON.stringify({
+          idUsuario: usuarioId,
+          foto_usuario: novaFoto,
+        });
+        const payloadSize = (payload.length * 3) / 4 / 1024 / 1024;
+
+        if (payloadSize > 5) {
+          throw new Error("O tamanho da requisição excede o limite de 5 MB.");
+        }
+
+        const responseFoto = await fetch(
+          "https://backend-viajados.vercel.app/api/salvar-imagem",
+          {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+            body: payload,
+          }
+        );
+
+        const responseText = await responseFoto.text();
+
+        let dataFoto;
+        try {
+          dataFoto = JSON.parse(responseText);
+        } catch (parseError) {
+          if (
+            responseText.trim() === "Foto do usuário cadastrada com sucesso!"
+          ) {
+            dataFoto = { mensagem: responseText };
+          } else {
+            throw new Error("Resposta inesperada do servidor: " + responseText);
+          }
+        }
+
+        if (!responseFoto.ok) {
+          throw new Error(dataFoto.mensagem || "Erro ao atualizar a foto.");
+        }
+      }
+
+      setUsuario((prev) => ({
+        ...prev,
+        nome: novoNome.trim() && novoNome !== prev.nome ? novoNome : prev.nome,
+        foto_usuario: novaFoto || prev.foto_usuario,
+      }));
+      setNovaFoto(null);
+      Alert.alert("Sucesso", "Dados atualizados com sucesso!");
+      setModalVisivel(false);
     } catch (error) {
-      console.error(error);
-      Alert.alert("Erro", "Ocorreu um erro ao atualizar o nome.");
+      console.error("Erro no handleSalvar:", error);
+      Alert.alert("Erro", error.message);
     }
   };
 
@@ -161,10 +251,14 @@ export default function MinhaConta() {
     <View style={styles.container}>
       <View style={styles.containerInformacoes}>
         <View style={styles.fotoNome}>
-        <Image
-  source={{ uri: `data:image/jpeg;base64,${usuario.foto_usuario}` }} // Convertendo base64 para exibição
-  style={styles.imagemPerfil}
-/>
+          <Image
+            source={{
+              uri: usuario.foto_usuario.startsWith("data:")
+                ? usuario.foto_usuario
+                : `data:image/jpeg;base64,${usuario.foto_usuario}`,
+            }}
+            style={styles.imagemPerfil}
+          />
           <Text style={styles.nome}>{usuario.nome}</Text>
           <Pressable onPress={() => setModalVisivel(true)}>
             <MaterialIcons name={"edit"} size={35} color="#D6005D" />
@@ -207,16 +301,34 @@ export default function MinhaConta() {
         <View style={styles.containerModal}>
           <View style={styles.conteudoModal}>
             <View style={styles.secaoModal}>
-              <View style={{ display: "flex", justifyContent: "center", alignItems: "center", width: "100%", marginBottom: 20 }}>
+              <Pressable
+                onPress={selecionarFoto}
+                style={{
+                  display: "flex",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  width: "100%",
+                  marginBottom: 20,
+                  position: "relative",
+                }}
+              >
                 <Image
-                  source={{ uri: usuario.foto_usuario }} // Consumindo a URL da foto
-                  style={styles.imagemPerfil}
+                  source={{
+                    uri: novaFoto
+                      ? `data:image/jpeg;base64,${novaFoto}`
+                      : usuario.foto_usuario.startsWith("data:")
+                      ? usuario.foto_usuario
+                      : `data:image/jpeg;base64,${usuario.foto_usuario}`,
+                  }}
+                  style={styles.imagemModal}
                 />
-              </View>
-              <Pressable onPress={() => setModalVisivel(false)}>
-                <Text style={styles.botaoFechar}>
-                  <MaterialIcons name={"close"} size={35} color="#D6005D" />
-                </Text>
+                <Text style={styles.textoAlterar}>Toque para Alterar</Text>
+              </Pressable>
+              <Pressable
+                style={styles.botaoFechar}
+                onPress={() => setModalVisivel(false)}
+              >
+                <MaterialIcons name={"close"} size={35} color="#D6005D" />
               </Pressable>
             </View>
             <TextInput
@@ -301,9 +413,11 @@ const styles = StyleSheet.create({
     fontSize: 18,
   },
   textoAviso: {
+    width: "80%",
     fontSize: 14,
-    color: "#D6005D",
-    marginBottom: 10,
+    color: "#000",
+    fontWeight: "300",
+    marginBottom: 5,
     textAlign: "center",
   },
   botaoEliminar: {
@@ -326,10 +440,15 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
   },
+  imagemModal: {
+    width: "100%",
+    height: 250,
+    borderRadius: 20,
+  },
   input: {
     width: "100%",
     padding: 10,
-    marginBottom: 20,
+    marginBottom: 10,
     borderWidth: 1,
     borderColor: "#ddd",
     borderRadius: 8,
@@ -339,5 +458,12 @@ const styles = StyleSheet.create({
     position: "absolute",
     right: 10,
     top: 10,
+  },
+  textoAlterar: {
+    position: "absolute",
+    color: "#D6005D",
+    fontSize: 16,
+    fontWeight: "bold",
+    textAlign: "center",
   },
 });
