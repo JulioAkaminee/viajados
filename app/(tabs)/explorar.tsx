@@ -1,4 +1,3 @@
-import React, { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Image,
@@ -9,12 +8,12 @@ import {
   Text,
   View,
 } from "react-native";
+import React, { useCallback, useEffect, useState } from "react";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
 
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import BannerHotel from "@/components/Banner-Hotel/BannerHotel";
 import BannerVoo from "@/components/Banner-Voo/BannerVoo";
-
 import ModalHotel from "@/components/Modal/ModalHotel";
 import ModalVoo from "@/components/Modal/ModalVoo";
 import verificarToken from "../verificarToken";
@@ -290,13 +289,7 @@ export default function Explorar() {
         translucent={false}
       />
       <ScrollView style={styles.container}>
-        <View style={styles.containerLogo}>
-          <Image
-            source={require("../../assets/images/logo.png")}
-            style={styles.logo}
-            resizeMode="contain"
-          />
-        </View>
+      
 
         <View style={styles.containerInfoUsuario}>
           <Image

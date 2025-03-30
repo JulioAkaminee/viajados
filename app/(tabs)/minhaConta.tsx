@@ -1,4 +1,8 @@
+import * as ImageManipulator from "expo-image-manipulator";
+import * as ImagePicker from "expo-image-picker";
+
 import {
+  ActivityIndicator,
   Alert,
   Image,
   Modal,
@@ -9,16 +13,15 @@ import {
   View,
 } from "react-native";
 import React, { useEffect, useState } from "react";
-import * as ImagePicker from "expo-image-picker";
-import * as ImageManipulator from "expo-image-manipulator";
-import { MaterialIcons } from "@expo/vector-icons";
-import { useNavigation } from "@react-navigation/native";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { MaterialIcons } from "@expo/vector-icons";
 import deletar from "../../functions/deletar";
 import deslogar from "../../functions/deslogar";
+import { useNavigation } from "@react-navigation/native";
 import verificarToken from "../verificarToken";
 
+// Funções de formatação
 const formatarData = (dataISO) => {
   if (!dataISO) return "Não informado";
   const data = new Date(dataISO);
@@ -153,11 +156,15 @@ export default function MinhaConta() {
       }
 
       setNovaFoto(manipResult.base64);
+      setUsuario((prev) => ({
+        ...prev,
+        foto_usuario: manipResult.base64,
+      }));
     }
   };
 
   const handleSalvar = async () => {
-    if ((!novoNome.trim() || novoNome === usuario.nome) && !novaFoto) {
+    if (!novoNome.trim() && !novaFoto) {
       Alert.alert("Erro", "Nenhum dado foi alterado.");
       return;
     }
@@ -228,7 +235,6 @@ export default function MinhaConta() {
       setUsuario((prev) => ({
         ...prev,
         nome: novoNome.trim() && novoNome !== prev.nome ? novoNome : prev.nome,
-        foto_usuario: novaFoto || prev.foto_usuario,
       }));
       setNovaFoto(null);
       Alert.alert("Sucesso", "Dados atualizados com sucesso!");
@@ -239,107 +245,90 @@ export default function MinhaConta() {
     }
   };
 
-  if (isLoading || !usuario) {
+  if (isLoading) {
     return (
-      <View style={styles.container}>
-        <Text>Carregando dados...</Text>
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#d6005d" />
+        <Text style={styles.loadingText}>Carregando perfil...</Text>
       </View>
     );
   }
 
   return (
     <View style={styles.container}>
-      <View style={styles.containerInformacoes}>
-        <View style={styles.fotoNome}>
+      <View style={styles.header}>
+        <View style={styles.profileImageContainer}>
           <Image
             source={{
               uri: usuario.foto_usuario.startsWith("data:")
                 ? usuario.foto_usuario
                 : `data:image/jpeg;base64,${usuario.foto_usuario}`,
             }}
-            style={styles.imagemPerfil}
+            style={styles.profileImage}
           />
-          <Text style={styles.nome}>{usuario.nome}</Text>
-          <Pressable onPress={() => setModalVisivel(true)}>
-            <MaterialIcons name={"edit"} size={35} color="#D6005D" />
+          <Pressable onPress={selecionarFoto} style={styles.changePhotoButton}>
+            <MaterialIcons name="photo-camera" size={20} color="#FFFFFF" />
           </Pressable>
         </View>
-
-        <Text style={styles.informacoes}>
-          <Text style={{ fontWeight: "bold" }}>CPF:</Text> {usuario.cpf}
-        </Text>
-        <Text style={styles.informacoes}>
-          <Text style={{ fontWeight: "bold" }}>Data de nascimento:</Text>{" "}
-          {usuario.data_nascimento}
-        </Text>
-        <Text style={styles.informacoes}>
-          <Text style={{ fontWeight: "bold" }}>Nacionalidade:</Text>{" "}
-          {usuario.nacionalidade}
-        </Text>
-        <Text style={styles.informacoes}>
-          <Text style={{ fontWeight: "bold" }}>Sexo:</Text> {usuario.sexo}
-        </Text>
+        <View style={styles.nameContainer}>
+          <Text style={styles.userName}>{usuario.nome}</Text>
+          <Pressable onPress={() => setModalVisivel(true)} style={styles.editButton}>
+            <MaterialIcons name="edit" size={20} color="#d6005d" />
+          </Pressable>
+        </View>
+        <Pressable 
+          onPress={handleLogout} 
+          style={styles.logoutButton}
+        >
+          <MaterialIcons name="logout" size={20} color="#d6005d" />
+        </Pressable>
       </View>
 
-      <Text style={styles.legenda}>Sair da conta</Text>
-      <Pressable style={styles.botao} onPress={handleLogout}>
-        <Text style={styles.textoBotao}>Sair</Text>
-      </Pressable>
+      <View style={styles.infoContainer}>
+        <InfoItem label="CPF" value={usuario.cpf} />
+        <InfoItem label="Data de Nascimento" value={usuario.data_nascimento} />
+        <InfoItem label="Nacionalidade" value={usuario.nacionalidade} />
+        <InfoItem label="Sexo" value={usuario.sexo} />
+      </View>
 
-      <Text style={styles.legenda}>Excluir minha conta</Text>
-      <Text style={styles.textoAviso}>
-        Se você excluir a sua conta, não será possível recuperá-la depois.
-      </Text>
-      <Pressable
-        style={[styles.botao, styles.botaoEliminar]}
-        onPress={handleDelete}
+      <View style={styles.actionsContainer}>
+        <Pressable style={styles.deleteButton} onPress={handleDelete}>
+          <Text style={styles.deleteButtonText}>Excluir Conta</Text>
+        </Pressable>
+      </View>
+
+      <Modal
+        animationType="fade"
+        transparent={true}
+        visible={modalVisivel}
+        onRequestClose={() => setModalVisivel(false)}
       >
-        <Text style={styles.textoBotao}>Excluir</Text>
-      </Pressable>
-
-      <Modal visible={modalVisivel} animationType="slide" transparent>
-        <View style={styles.containerModal}>
-          <View style={styles.conteudoModal}>
-            <View style={styles.secaoModal}>
-              <Pressable
-                onPress={selecionarFoto}
-                style={{
-                  display: "flex",
-                  justifyContent: "center",
-                  alignItems: "center",
-                  width: "100%",
-                  marginBottom: 20,
-                  position: "relative",
-                }}
-              >
-                <Image
-                  source={{
-                    uri: novaFoto
-                      ? `data:image/jpeg;base64,${novaFoto}`
-                      : usuario.foto_usuario.startsWith("data:")
-                      ? usuario.foto_usuario
-                      : `data:image/jpeg;base64,${usuario.foto_usuario}`,
-                  }}
-                  style={styles.imagemModal}
-                />
-                <Text style={styles.textoAlterar}>Toque para Alterar</Text>
-              </Pressable>
-              <Pressable
-                style={styles.botaoFechar}
-                onPress={() => setModalVisivel(false)}
-              >
-                <MaterialIcons name={"close"} size={35} color="#D6005D" />
-              </Pressable>
-            </View>
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Editar Nome</Text>
+            
             <TextInput
-              style={styles.input}
-              placeholder={usuario.nome || "Nome"}
               value={novoNome}
               onChangeText={setNovoNome}
+              placeholder="Novo nome"
+              style={styles.input}
+              placeholderTextColor="#888888"
             />
-            <Pressable style={styles.botao} onPress={handleSalvar}>
-              <Text style={styles.textoBotao}>Salvar</Text>
-            </Pressable>
+
+            <View style={styles.modalActions}>
+              <Pressable 
+                onPress={handleSalvar} 
+                style={styles.saveButton}
+              >
+                <Text style={styles.buttonText}>Salvar</Text>
+              </Pressable>
+              <Pressable 
+                onPress={() => setModalVisivel(false)} 
+                style={styles.cancelButton}
+              >
+                <Text style={styles.buttonText}>Cancelar</Text>
+              </Pressable>
+            </View>
           </View>
         </View>
       </Modal>
@@ -347,123 +336,180 @@ export default function MinhaConta() {
   );
 }
 
+const InfoItem = ({ label, value }) => (
+  <View style={styles.infoItem}>
+    <Text style={styles.infoLabel}>{label}</Text>
+    <Text style={styles.infoValue}>{value}</Text>
+  </View>
+);
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#FDD5E9",
-    alignItems: "center",
-    paddingTop: 50,
-  },
-  containerInformacoes: {
-    backgroundColor: "white",
     padding: 20,
-    borderRadius: 15,
-    width: "90%",
-    alignItems: "center",
-    marginBottom: 10,
-    shadowColor: "#000",
-    shadowOpacity: 0.2,
-    shadowRadius: 5,
-    elevation: 5,
   },
-  fotoNome: {
-    width: "100%",
+  header: {
+    alignItems: "center",
+    paddingVertical: 30,
+    paddingHorizontal: 20,
+      borderWidth: 1,
+    borderColor: "#d6005d",
+    position: "relative",
+    borderRadius:10
+  },
+  profileImageContainer: {
+    position: "relative",
+    marginBottom: 15,
+    
+  },
+  profileImage: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    borderWidth: 2,
+    borderColor: "white",
+  },
+  changePhotoButton: {
+    position: "absolute",
+    right: 5,
+    bottom: 5,
+    backgroundColor: "#d6005d",
+    padding: 8,
+    borderRadius: 20,
+  },
+  nameContainer: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
-    position: "relative",
-    marginBottom: 20,
+    gap: 10,
   },
-  imagemPerfil: {
-    width: 60,
-    height: 60,
-    borderRadius: 40,
-    marginRight: 10,
+  userName: {
+    fontSize: 26,
+    fontWeight: "500",
+    color: "black",
+    letterSpacing: 0.5,
   },
-  nome: {
-    fontSize: 20,
-    fontWeight: "bold",
+  editButton: {
+    padding: 8,
+  },
+  logoutButton: {
     position: "absolute",
-    textAlign: "center",
-    marginTop: 35,
-    marginLeft: 75,
+    right: 20,
+    top: 20,
+    padding: 8,
   },
-  informacoes: {
-    fontSize: 14,
-    color: "#333",
-    marginBottom: 5,
-    textAlign: "left",
-    width: "100%",
-  },
-  legenda: {
-    fontSize: 16,
-    marginTop: 30,
-    fontWeight: "bold",
-    textAlign: "center",
-  },
-  botao: {
-    backgroundColor: "#D6005D",
-    paddingVertical: 10,
-    paddingHorizontal: 20,
+  infoContainer: {
+    borderWidth: 1,
+    borderColor: "#d6005d",
     borderRadius: 8,
-    marginTop: 10,
+    padding: 20,
+    marginTop: 20,
   },
-  textoBotao: {
-    color: "#fff",
-    fontSize: 18,
+  infoItem: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    paddingVertical: 15,
+    borderBottomWidth: 1,
+    borderBottomColor: "#3A3A3A",
   },
-  textoAviso: {
-    width: "80%",
-    fontSize: 14,
-    color: "#000",
-    fontWeight: "300",
-    marginBottom: 5,
-    textAlign: "center",
+  infoLabel: {
+    fontSize: 16,
+    color: "black",
+    fontWeight: "400",
   },
-  botaoEliminar: {
-    backgroundColor: "#E83153",
+  infoValue: {
+    fontSize: 16,
+    color: "black",
+    fontWeight: "400",
   },
-  containerModal: {
+  actionsContainer: {
+    marginTop: 30,
+    alignItems: "center",
+  },
+  deleteButton: {
+    borderWidth: 1,
+    borderColor: "#d6005d",
+    paddingVertical: 15,
+    paddingHorizontal: 25,
+    borderRadius: 8,
+    width: "100%",
+    alignItems: "center",
+  },
+  deleteButtonText: {
+    color: "#d6005d",
+    fontSize: 16,
+    fontWeight: "500",
+    letterSpacing: 0.5,
+  },
+  modalOverlay: {
     flex: 1,
+    backgroundColor: "rgba(0, 0, 0, 0.7)",
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "rgba(0,0,0,0.5)",
   },
-  conteudoModal: {
-    backgroundColor: "#fff",
-    padding: 20,
-    borderRadius: 15,
-    width: "80%",
-    alignItems: "center",
+  modalContent: {
+    backgroundColor: "#2A2A2A",
+    width: "85%",
+    padding: 25,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "#d6005d",
   },
-  secaoModal: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  imagemModal: {
-    width: "100%",
-    height: 250,
-    borderRadius: 20,
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: "500",
+    color: "#FFFFFF",
+    marginBottom: 20,
+    textAlign: "center",
+    letterSpacing: 0.5,
   },
   input: {
     width: "100%",
-    padding: 10,
-    marginBottom: 10,
-    borderWidth: 1,
-    borderColor: "#ddd",
-    borderRadius: 8,
-  },
-  botaoFechar: {
-    fontSize: 35,
-    position: "absolute",
-    right: 10,
-    top: 10,
-  },
-  textoAlterar: {
-    position: "absolute",
-    color: "#D6005D",
+    padding: 12,
+    borderRadius: 6,
+    backgroundColor: "#3A3A3A",
+    marginBottom: 20,
     fontSize: 16,
-    fontWeight: "bold",
-    textAlign: "center",
+    color: "#FFFFFF",
+    borderWidth: 1,
+    borderColor: "#d6005d",
+  },
+  modalActions: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    gap: 15,
+  },
+  saveButton: {
+    flex: 1,
+    backgroundColor: "#d6005d",
+    paddingVertical: 12,
+    borderRadius: 6,
+    alignItems: "center",
+  },
+  cancelButton: {
+    flex: 1,
+    borderWidth: 1,
+    borderColor: "#d6005d",
+    paddingVertical: 12,
+    borderRadius: 6,
+    alignItems: "center",
+  },
+  buttonText: {
+    color: "#FFFFFF",
+    fontSize: 16,
+    fontWeight: "500",
+    letterSpacing: 0.5,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#1A1A1A",
+  },
+  loadingText: {
+    marginTop: 12,
+    fontSize: 16,
+    color: "#888888",
+    letterSpacing: 0.5,
   },
 });
