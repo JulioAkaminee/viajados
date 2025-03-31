@@ -20,13 +20,19 @@ export default function Cadastro() {
   const validaEmail = (email: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
   const formatarCpf = (text: string) => {
-    let cpfFormatado = text.replace(/\D/g, "");
-    cpfFormatado = cpfFormatado.replace(/(\d{3})(\d)/, "$1.$2");
-    cpfFormatado = cpfFormatado.replace(/(\d{3})(\d)/, "$1.$2");
-    cpfFormatado = cpfFormatado.replace(/(\d{3})(\d{1,2})$/, "$1-$2");
-    if (cpfFormatado.length <= 14) {
-      setCpf(cpfFormatado);
+    let cpfFormatado = text.replace(/\D/g, ""); // Remove qualquer caractere não numérico
+  
+    // Limita o comprimento do CPF para 11 dígitos
+    cpfFormatado = cpfFormatado.slice(0, 11);
+  
+    // Aplica a formatação: xxx.xxx.xxx-xx
+    if (cpfFormatado.length <= 11) {
+      cpfFormatado = cpfFormatado.replace(/(\d{3})(\d)/, "$1.$2");
+      cpfFormatado = cpfFormatado.replace(/(\d{3})(\d)/, "$1.$2");
+      cpfFormatado = cpfFormatado.replace(/(\d{3})(\d{1,2})$/, "$1-$2");
     }
+  
+    setCpf(cpfFormatado); // Atualiza o estado com o CPF formatado
   };
 
   const formatarDataInput = (text: string) => {
@@ -57,49 +63,50 @@ export default function Cadastro() {
     const cpfNumerico = cpf.replace(/\D/g, "");
     const sexoFormatado = sexo === "Masculino" ? "M" : "F";
     const dataFormatada = converterDataParaEnvio(dtNasc);
-
+  
+    // Validação de campos com mensagens específicas
     if (!nomeFormatado) {
       Alert.alert("Erro", "O campo Nome não pode estar vazio.");
-      setIsLoading(false); // Desativa o loading
+      setIsLoading(false);
       return;
     }
-
+  
     if (cpfNumerico.length !== 11) {
-      Alert.alert("Erro", "CPF inválido.");
-      setIsLoading(false); // Desativa o loading
+      Alert.alert("Erro", "CPF inválido. O CPF deve ter 11 dígitos.");
+      setIsLoading(false);
       return;
     }
-
-    if (!dataFormatada) {
+  
+    if (!dtNasc) {
       Alert.alert("Erro", "O campo Data de Nascimento não pode estar vazio.");
-      setIsLoading(false); // Desativa o loading
+      setIsLoading(false);
       return;
     }
-
+  
     if (!nacionalidadeFormatado) {
       Alert.alert("Erro", "O campo Nacionalidade não pode estar vazio.");
-      setIsLoading(false); // Desativa o loading
+      setIsLoading(false);
       return;
     }
-
+  
     if (!email.trim() || !validaEmail(email)) {
       Alert.alert("Erro", "Por favor, insira um email válido.");
-      setIsLoading(false); // Desativa o loading
+      setIsLoading(false);
       return;
     }
-
+  
     if (!senha.trim() || !confSenha.trim()) {
       Alert.alert("Erro", "Os campos de senha não podem estar vazios.");
-      setIsLoading(false); // Desativa o loading
+      setIsLoading(false);
       return;
     }
-
+  
     if (senha !== confSenha) {
       Alert.alert("Erro", "As senhas não coincidem.");
-      setIsLoading(false); // Desativa o loading
+      setIsLoading(false);
       return;
     }
-
+  
     const dadosUsuario = {
       email: email,
       senha: senha,
@@ -110,7 +117,7 @@ export default function Cadastro() {
       nacionalidade: nacionalidadeFormatado,
       sexo: sexoFormatado,
     };
-
+  
     try {
       const resposta = await fetch(
         "https://backend-viajados.vercel.app/api/cadastro",
@@ -123,9 +130,10 @@ export default function Cadastro() {
           body: JSON.stringify(dadosUsuario),
         }
       );
-
+  
       const dados = await resposta.json();
-
+      console.log(dados);  // Para depuração
+  
       if (resposta.status === 201) {
         Alert.alert("Sucesso", "Cadastro realizado com sucesso!", [
           { text: "OK", onPress: () => navigation.navigate("index") },
@@ -140,7 +148,7 @@ export default function Cadastro() {
       Alert.alert("Erro", "Ocorreu um erro ao se conectar com o servidor.");
       console.error("Erro na requisição:", error);
     } finally {
-      setIsLoading(false); // Desativa o loading após a requisição
+      setIsLoading(false);
     }
   };
 

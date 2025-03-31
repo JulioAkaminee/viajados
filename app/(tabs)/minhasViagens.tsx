@@ -1,10 +1,11 @@
 import {
+  ActivityIndicator,
   Image,
   Pressable,
   ScrollView,
   StyleSheet,
   Text,
-  View,
+  View
 } from "react-native";
 import React, { useEffect, useState } from "react";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
@@ -26,7 +27,12 @@ export default function MinhasViagens() {
     setOpcaoSelecionada(opcao);
   };
 
+    useEffect(() => {
+      verificarToken(navigation);
+    }, [navigation]);
+
   const fetchHospedagens = async () => {
+    setIsLoading(true);
     if (idUsuario) {
       try {
         const token = await AsyncStorage.getItem("token");
@@ -61,6 +67,7 @@ export default function MinhasViagens() {
   };
 
   const fetchVoos = async () => {
+    setIsLoading(true);
     if (idUsuario) {
       try {
         const token = await AsyncStorage.getItem("token");
@@ -106,18 +113,11 @@ export default function MinhasViagens() {
   };
 
   useEffect(() => {
-    verificarToken(navigation);
     getIdUsuario();
-  }, [navigation]);
+    fetchHospedagens();
+    fetchVoos();
+  }, [ opcaoSelecionada]);
 
-  useFocusEffect(
-    React.useCallback(() => {
-      if (idUsuario) {
-        fetchHospedagens();
-        fetchVoos();  // Chama a função para buscar os voos
-      }
-    }, [idUsuario, opcaoSelecionada])  // Recarrega ao trocar a tab
-  );
 
   return (
     <ScrollView style={styles.container}>
@@ -173,7 +173,10 @@ export default function MinhasViagens() {
 
       <View style={styles.containerItens}>
         {isLoading ? (
-          <Text>Carregando...</Text>
+          <>
+          <ActivityIndicator size="large" color="#D6005D" />
+          <Text style={{textAlign:"center"}}>Carregando...</Text>
+          </>
         ) : (
           <>
             {opcaoSelecionada === "agendado" &&

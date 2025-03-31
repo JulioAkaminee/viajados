@@ -1,21 +1,137 @@
 import {
+  Alert,
+  Button,
   Image,
-  Modl,
+  Modal,
   Pressable,
   ScrollView,
   StyleSheet,
   Text,
-  View
+  TextInput,
+  View,
 } from "react-native";
+import React, { useState } from "react";
 
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { MaterialIcons } from "@expo/vector-icons";
-import React from "react";
 
 const ModalHotel = ({ visible, hotel, onClose }) => {
+  const [modalReservaVisible, setModalReservaVisible] = useState(false);
+  const [dataEntrada, setDataEntrada] = useState("");
+  const [dataSaida, setDataSaida] = useState("");
+
   if (!visible || !hotel) return null;
 
+  const reservarHotel = async () => {
+    try {
+      const idUsuario = await AsyncStorage.getItem("idUsuario");
+      const token = await AsyncStorage.getItem("token");
+
+      if (!idUsuario || !token) {
+        Alert.alert("Erro", "Usuário não autenticado");
+        return;
+      }
+
+      // Validação do formato da data (DD/MM/YYYY)
+      const dateRegex = /^\d{2}\/\d{2}\/\d{4}$/;
+      if (!dateRegex.test(dataEntrada) || !dateRegex.test(dataSaida)) {
+        Alert.alert("Erro", "Por favor, insira as datas no formato DD/MM/YYYY (ex.: 10/04/2025).");
+        return;
+      }
+
+      // Converte DD/MM/YYYY para YYYY-MM-DD
+      const [diaE, mesE, anoE] = dataEntrada.split("/");
+      const [diaS, mesS, anoS] = dataSaida.split("/");
+      const formattedDataEntrada = `${anoE}-${mesE}-${diaE}`;
+      const formattedDataSaida = `${anoS}-${mesS}-${diaS}`;
+
+      const entradaDate = new Date(formattedDataEntrada);
+      const saidaDate = new Date(formattedDataSaida);
+
+      if (isNaN(entradaDate) || isNaN(saidaDate)) {
+        Alert.alert("Erro", "Datas inválidas. Verifique os valores inseridos.");
+        return;
+      }
+
+      if (saidaDate <= entradaDate) {
+        Alert.alert("Erro", "A data de saída deve ser posterior à data de entrada.");
+        return;
+      }
+
+      const requestBody = {
+        idHoteis: hotel.idHoteis,
+        idUsuario,
+        data_entrada: formattedDataEntrada,
+        data_saida: formattedDataSaida,
+      };
+
+      console.log("Enviando requisição com body:", JSON.stringify(requestBody));
+      console.log("Token:", token);
+      console.log("URL:", "https://backend-viajados.vercel.app/api/reservas/hospedagens");
+
+      const response = await fetch(
+        "https://backend-viajados.vercel.app/api/reservas/hospedagens", // Corrigido para a rota correta
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify(requestBody),
+        }
+      );
+
+      // Log do status e resposta bruta
+      console.log("Status da resposta:", response.status);
+      const responseText = await response.text();
+      console.log("Resposta do servidor (bruta):", responseText);
+
+      let result;
+      try {
+        result = JSON.parse(responseText);
+      } catch (parseError) {
+        Alert.alert(
+          "Erro no servidor",
+          `Não foi possível processar a resposta. Status: ${response.status}. Veja o console para detalhes.`
+        );
+        console.error("Erro ao parsear JSON:", parseError);
+        return;
+      }
+
+      if (response.ok) {
+        Alert.alert("Sucesso", "Reserva realizada com sucesso!");
+        setModalReservaVisible(false);
+        onClose();
+      } else {
+        Alert.alert("Erro", result.message || `Erro ao reservar hotel (Status: ${response.status})`);
+      }
+    } catch (error) {
+      Alert.alert("Erro", "Falha na requisição: " + error.message);
+    }
+  };
+
+  const formatarDataInput = (text, setter) => {
+    // Remove tudo exceto números
+    let cleaned = text.replace(/\D/g, "");
+
+    // Limita a 8 dígitos (DDMMYYYY)
+    if (cleaned.length > 8) cleaned = cleaned.slice(0, 8);
+
+    // Adiciona barras automaticamente
+    let formatted = "";
+    if (cleaned.length > 4) {
+      formatted = `${cleaned.slice(0, 2)}/${cleaned.slice(2, 4)}/${cleaned.slice(4)}`;
+    } else if (cleaned.length > 2) {
+      formatted = `${cleaned.slice(0, 2)}/${cleaned.slice(2)}`;
+    } else {
+      formatted = cleaned;
+    }
+
+    setter(formatted);
+  };
+
   return (
-    <View style={styles.containerModal} >
+    <View style={styles.containerModal}>
       <ScrollView style={styles.conteudoModal}>
         <Text style={styles.tituloModal}>{hotel.nome}</Text>
         <View style={styles.containerCarrossel}>
@@ -75,13 +191,54 @@ const ModalHotel = ({ visible, hotel, onClose }) => {
             <Text style={styles.textoOferecimentos}>Wifi</Text>
           </View>
         </View>
-        <Pressable onPress={() => {}} style={styles.botaoEscolher}>
+        <Pressable
+          onPress={() => setModalReservaVisible(true)}
+          style={styles.botaoEscolher}
+        >
           <Text style={styles.textoBotaoEscolher}>Escolher</Text>
         </Pressable>
         <Pressable onPress={onClose} style={styles.botaoFechar}>
           <Text style={styles.textoBotaoFechar}>Fechar</Text>
         </Pressable>
       </ScrollView>
+
+      {/* Modal de Reserva */}
+      <Modal visible={modalReservaVisible} animationType="slide" transparent>
+        <View style={styles.modalReservaContainer}>
+          <View style={styles.modalReservaContent}>
+            <Text style={styles.modalReservaTitle}>Escolha as Datas</Text>
+
+            <Text style={styles.label}>Data de Entrada (DD/MM/YYYY):</Text>
+            <TextInput
+              style={styles.input}
+              value={dataEntrada}
+              onChangeText={(text) => formatarDataInput(text, setDataEntrada)}
+              placeholder="10/04/2025"
+              keyboardType="numeric"
+              maxLength={10}
+            />
+
+            <Text style={styles.label}>Data de Saída (DD/MM/YYYY):</Text>
+            <TextInput
+              style={styles.input}
+              value={dataSaida}
+              onChangeText={(text) => formatarDataInput(text, setDataSaida)}
+              placeholder="15/04/2025"
+              keyboardType="numeric"
+              maxLength={10}
+            />
+
+            <View style={styles.buttonContainer}>
+              <Button title="Reservar" onPress={reservarHotel} />
+              <Button
+                title="Cancelar"
+                onPress={() => setModalReservaVisible(false)}
+                color="red"
+              />
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 };
@@ -172,6 +329,45 @@ const styles = StyleSheet.create({
   textoBotaoFechar: {
     color: "#000",
     fontWeight: "bold",
+  },
+  modalReservaContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0,0,0,0.5)",
+  },
+  modalReservaContent: {
+    backgroundColor: "white",
+    padding: 20,
+    borderRadius: 10,
+    width: "80%",
+    alignItems: "center",
+  },
+  modalReservaTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+    marginBottom: 10,
+  },
+  label: {
+    fontSize: 16,
+    marginTop: 10,
+    marginBottom: 5,
+  },
+  input: {
+    width: "100%",
+    borderWidth: 1,
+    borderColor: "#ccc",
+    padding: 10,
+    marginBottom: 10,
+    borderRadius: 5,
+    textAlign: "center",
+    color: "#333",
+  },
+  buttonContainer: {
+    marginTop: 20,
+    width: "100%",
+    flexDirection: "row",
+    justifyContent: "space-around",
   },
 });
 
