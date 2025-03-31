@@ -1,4 +1,3 @@
-import React, { useEffect, useState } from "react";
 import {
   Image,
   Pressable,
@@ -7,72 +6,198 @@ import {
   Text,
   View,
 } from "react-native";
-import verificarToken from "../verificarToken";
+import React, { useEffect, useState } from "react";
+
+import AsyncStorage from "@react-native-async-storage/async-storage"; // Importando AsyncStorage
+import BannerMinhasViagens from "@/components/Banner-MinhasViagens/BannerMinhasVIagens"; // Componente atualizado
+import BannerMinhasViagensVoo from "@/components/Banner-MinhasViagens/BannerMinhasViagensVoo"; // Componente para voos
 import { useNavigation } from "@react-navigation/native";
+import verificarToken from "../verificarToken";
 
-export default function minhasViagens() {
-    const navigation = useNavigation();
+export default function MinhasViagens() {
+  const navigation = useNavigation();
   const [opcaoSelecionada, setOpcaoSelecionada] = useState("agendado");
+  const [hospedagens, setHospedagens] = useState([]);  // Inicializa como array vazio
+  const [voos, setVoos] = useState([]);  // Novo estado para os voos
+  const [isLoading, setIsLoading] = useState(true);
+  const [idUsuario, setIdUsuario] = useState(null);
 
-  const opcaoPressionada = (opcao) => {
+  const opcaoPressionada = (opcao: string) => {
     setOpcaoSelecionada(opcao);
   };
-      useEffect(() => {
-        verificarToken(navigation);
-      }, [navigation]);
+
+  const fetchHospedagens = async () => {
+    if (idUsuario) {
+      try {
+        const token = await AsyncStorage.getItem("token");
+        if (token) {
+          const response = await fetch(
+            `https://backend-viajados.vercel.app/api/reservas/hospedagens/${idUsuario}`,
+            {
+              method: "GET",
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            }
+          );
+  
+          const data = await response.json();
+          if (Array.isArray(data.data)) {
+            setHospedagens(data.data);
+          } else {
+            console.error("Dados de hospedagem não são um array", data);
+            setHospedagens([]);
+          }
+        } else {
+          console.error("Token não encontrado no AsyncStorage");
+        }
+      } catch (error) {
+        console.error("Erro ao buscar hospedagens:", error);
+        setHospedagens([]);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+  };
+
+  const fetchVoos = async () => {
+    if (idUsuario) {
+      try {
+        const token = await AsyncStorage.getItem("token");
+        if (token) {
+          const response = await fetch(
+            `https://backend-viajados.vercel.app/api/reservas/voos/${idUsuario}`,
+            {
+              method: "GET",
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            }
+          );
+  
+          const data = await response.json();
+          if (Array.isArray(data.data)) {
+            setVoos(data.data);
+          } else {
+            console.error("Dados de voos não são um array", data);
+            setVoos([]);
+          }
+        } else {
+          console.error("Token não encontrado no AsyncStorage");
+        }
+      } catch (error) {
+        console.error("Erro ao buscar voos:", error);
+        setVoos([]);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+  };
+
+  const getIdUsuario = async () => {
+    try {
+      const id = await AsyncStorage.getItem("idUsuario");
+      if (id !== null) {
+        setIdUsuario(id);
+      }
+    } catch (error) {
+      console.error("Erro ao ler idUsuario do AsyncStorage", error);
+    }
+  };
+
+  useEffect(() => {
+    verificarToken(navigation);
+    getIdUsuario();
+  }, [navigation]);
+
+  useEffect(() => {
+    if (idUsuario) {
+      fetchHospedagens();
+      fetchVoos();  // Chama a função para buscar os voos
+    }
+  }, [idUsuario]);
 
   return (
-    <>
-      <ScrollView style={styles.container}>
-        <View style={styles.containerLogo}>
-          <Image
-            source={require("../../assets/images/logo.png")}
-            style={styles.logo}
-            resizeMode="contain"
-          />
+    <ScrollView style={styles.container}>
+      <View style={styles.containerLogo}>
+        <Image
+          source={require("../../assets/images/logo.png")}
+          style={styles.logo}
+          resizeMode="contain"
+        />
+      </View>
+
+      <View style={styles.containerMinhasViagens}>
+        <View style={styles.viewTitulo}>
+          <Text style={styles.titulo}>Minhas Viagens</Text>
         </View>
-        <View style={styles.containerMinhasViagens}>
-          <View style={styles.viewTitulo}>
-            <Text style={styles.titulo}>Minhas Viagens</Text>
-          </View>
-          <View style={styles.filtroBusca}>
-            <Pressable
+
+        <View style={styles.filtroBusca}>
+          <Pressable
+            style={[
+              styles.opcoesFiltro,
+              opcaoSelecionada === "agendado" && styles.opcaoSelecionada,
+            ]}
+            onPress={() => opcaoPressionada("agendado")}
+          >
+            <Text
               style={[
-                styles.opcoesFiltro,
-                opcaoSelecionada === "agendado" && styles.opcaoSelecionada,
+                styles.textoFiltro,
+                opcaoSelecionada === "agendado" && styles.textoFiltroSelecionado,
               ]}
-              onPress={() => opcaoPressionada("agendado")}
             >
-              <Text
-                style={[
-                  styles.textoFiltro,
-                  opcaoSelecionada === "agendado" &&
-                    styles.textoFiltroSelecionado,
-                ]}
-              >
-                Agendado
-              </Text>
-            </Pressable>
-            <Pressable
+              Agendado
+            </Text>
+          </Pressable>
+
+          <Pressable
+            style={[
+              styles.opcoesFiltro,
+              opcaoSelecionada === "finalizado" && styles.opcaoSelecionada,
+            ]}
+            onPress={() => opcaoPressionada("finalizado")}
+          >
+            <Text
               style={[
-                styles.opcoesFiltro,
-                opcaoSelecionada === "finalizado" && styles.opcaoSelecionada,
+                styles.textoFiltro,
+                opcaoSelecionada === "finalizado" && styles.textoFiltroSelecionado,
               ]}
-              onPress={() => opcaoPressionada("finalizado")}
             >
-              <Text
-                style={[
-                  styles.textoFiltro,
-                  opcaoSelecionada === "finalizado" && styles.textoFiltroSelecionado,
-                ]}
-              >
-                Finalizado
-              </Text>
-            </Pressable>
-          </View>
+              Finalizado
+            </Text>
+          </Pressable>
         </View>
-      </ScrollView>
-    </>
+      </View>
+
+      {isLoading ? (
+        <Text>Carregando...</Text>
+      ) : (
+        <>
+          {opcaoSelecionada === "agendado" &&
+            hospedagens
+              .filter((item) => item.status === "agendado")
+              .map((item) => (
+                <BannerMinhasViagens
+                  key={item.idHospedagem}
+                  hotelData={item}
+                  onPress={() => console.log(`Detalhes do hotel: ${item.nome}`)}
+                />
+              ))}
+
+          {/* Exibindo voos agendados */}
+          {opcaoSelecionada === "agendado" &&
+            voos
+              .filter((item) => item.status === "agendado")
+              .map((item) => (
+                <BannerMinhasViagensVoo
+                  key={item.idReserva}
+                  vooData={item}
+                  onPress={() => console.log(`Detalhes do voo: ${item.idReserva}`)}
+                />
+              ))}
+        </>
+      )}
+    </ScrollView>
   );
 }
 
@@ -88,9 +213,6 @@ const styles = StyleSheet.create({
     width: 80,
     height: 80,
     marginVertical: 15,
-  },
-  texto: {
-    fontSize: 14,
   },
   containerMinhasViagens: {
     marginVertical: 20,

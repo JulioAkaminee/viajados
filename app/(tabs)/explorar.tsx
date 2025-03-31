@@ -6,6 +6,7 @@ import {
   StatusBar,
   StyleSheet,
   Text,
+  TouchableOpacity,
   View,
 } from "react-native";
 import React, { useCallback, useEffect, useState } from "react";
@@ -295,6 +296,7 @@ export default function Explorar() {
         translucent={false}
       />
       <ScrollView style={styles.container}>
+            <TouchableOpacity onPress={() => navigation.navigate("minhaConta")}>
         <View style={styles.containerInfoUsuario}>
           <Image
             source={
@@ -304,11 +306,12 @@ export default function Explorar() {
             }
             style={styles.avatar}
           />
-          <View>
-            <Text style={styles.saudacao}>Olá, {nomeUsuario || "Usuário"}</Text>
-            <Text style={styles.texto}>Bem-vindo de volta!</Text>
-          </View>
+      <View>
+        <Text style={styles.saudacao}>Olá, {nomeUsuario || "Usuário"}</Text>
+        <Text style={styles.texto}>Bem-vindo de volta!</Text>
+      </View>
         </View>
+    </TouchableOpacity>
 
         <View style={styles.containerExplorar}>
           <Text style={styles.titulo}>Explorar</Text>
