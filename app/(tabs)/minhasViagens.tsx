@@ -7,11 +7,11 @@ import {
   View,
 } from "react-native";
 import React, { useEffect, useState } from "react";
+import { useFocusEffect, useNavigation } from "@react-navigation/native";
 
-import AsyncStorage from "@react-native-async-storage/async-storage"; // Importando AsyncStorage
-import BannerMinhasViagens from "@/components/Banner-MinhasViagens/BannerMinhasVIagens"; // Componente atualizado
-import BannerMinhasViagensVoo from "@/components/Banner-MinhasViagens/BannerMinhasViagensVoo"; // Componente para voos
-import { useNavigation } from "@react-navigation/native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import BannerMinhasViagens from "@/components/Banner-MinhasViagens/BannerMinhasVIagens";
+import BannerMinhasViagensVoo from "@/components/Banner-MinhasViagens/BannerMinhasViagensVoo";
 import verificarToken from "../verificarToken";
 
 export default function MinhasViagens() {
@@ -40,7 +40,7 @@ export default function MinhasViagens() {
               },
             }
           );
-  
+
           const data = await response.json();
           if (Array.isArray(data.data)) {
             setHospedagens(data.data);
@@ -74,7 +74,7 @@ export default function MinhasViagens() {
               },
             }
           );
-  
+
           const data = await response.json();
           if (Array.isArray(data.data)) {
             setVoos(data.data);
@@ -110,12 +110,14 @@ export default function MinhasViagens() {
     getIdUsuario();
   }, [navigation]);
 
-  useEffect(() => {
-    if (idUsuario) {
-      fetchHospedagens();
-      fetchVoos();  // Chama a função para buscar os voos
-    }
-  }, [idUsuario]);
+  useFocusEffect(
+    React.useCallback(() => {
+      if (idUsuario) {
+        fetchHospedagens();
+        fetchVoos();  // Chama a função para buscar os voos
+      }
+    }, [idUsuario, opcaoSelecionada])  // Recarrega ao trocar a tab
+  );
 
   return (
     <ScrollView style={styles.container}>
@@ -134,16 +136,16 @@ export default function MinhasViagens() {
 
         <View style={styles.filtroBusca}>
           <Pressable
-            style={[
-              styles.opcoesFiltro,
+            style={[ 
+              styles.opcoesFiltro, 
               opcaoSelecionada === "agendado" && styles.opcaoSelecionada,
             ]}
             onPress={() => opcaoPressionada("agendado")}
           >
             <Text
-              style={[
-                styles.textoFiltro,
-                opcaoSelecionada === "agendado" && styles.textoFiltroSelecionado,
+              style={[ 
+                styles.textoFiltro, 
+                opcaoSelecionada === "agendado" && styles.textoFiltroSelecionado 
               ]}
             >
               Agendado
@@ -151,16 +153,16 @@ export default function MinhasViagens() {
           </Pressable>
 
           <Pressable
-            style={[
-              styles.opcoesFiltro,
+            style={[ 
+              styles.opcoesFiltro, 
               opcaoSelecionada === "finalizado" && styles.opcaoSelecionada,
             ]}
             onPress={() => opcaoPressionada("finalizado")}
           >
             <Text
-              style={[
-                styles.textoFiltro,
-                opcaoSelecionada === "finalizado" && styles.textoFiltroSelecionado,
+              style={[ 
+                styles.textoFiltro, 
+                opcaoSelecionada === "finalizado" && styles.textoFiltroSelecionado 
               ]}
             >
               Finalizado
@@ -169,34 +171,54 @@ export default function MinhasViagens() {
         </View>
       </View>
 
-      {isLoading ? (
-        <Text>Carregando...</Text>
-      ) : (
-        <>
-          {opcaoSelecionada === "agendado" &&
-            hospedagens
-              .filter((item) => item.status === "agendado")
-              .map((item) => (
-                <BannerMinhasViagens
-                  key={item.idHospedagem}
-                  hotelData={item}
-                  onPress={() => console.log(`Detalhes do hotel: ${item.nome}`)}
-                />
-              ))}
-
-          {/* Exibindo voos agendados */}
-          {opcaoSelecionada === "agendado" &&
-            voos
-              .filter((item) => item.status === "agendado")
-              .map((item) => (
-                <BannerMinhasViagensVoo
-                  key={item.idReserva}
-                  vooData={item}
-                  onPress={() => console.log(`Detalhes do voo: ${item.idReserva}`)}
-                />
-              ))}
-        </>
-      )}
+      <View style={styles.containerItens}>
+        {isLoading ? (
+          <Text>Carregando...</Text>
+        ) : (
+          <>
+            {opcaoSelecionada === "agendado" &&
+              hospedagens
+                .filter((item) => item.status === "agendado")
+                .map((item) => (
+                  <BannerMinhasViagens
+                    key={item.idHospedagem}
+                    hotelData={item}
+                    onPress={() => console.log(`Detalhes do hotel: ${item.nome}`)}
+                  />
+                ))}
+            {opcaoSelecionada === "agendado" &&
+              voos
+                .filter((item) => item.status === "agendado")
+                .map((item) => (
+                  <BannerMinhasViagensVoo
+                    key={item.idReserva}
+                    vooData={item}
+                    onPress={() => console.log(`Detalhes do voo: ${item.idReserva}`)}
+                  />
+                ))}
+            {opcaoSelecionada === "finalizado" &&
+              hospedagens
+                .filter((item) => item.status === "finalizado")
+                .map((item) => (
+                  <BannerMinhasViagens
+                    key={item.idHospedagem}
+                    hotelData={item}
+                    onPress={() => console.log(`Detalhes do hotel: ${item.nome}`)}
+                  />
+                ))}
+            {opcaoSelecionada === "finalizado" &&
+              voos
+                .filter((item) => item.status === "finalizado")
+                .map((item) => (
+                  <BannerMinhasViagensVoo
+                    key={item.idReserva}
+                    vooData={item}
+                    onPress={() => console.log(`Detalhes do voo: ${item.idReserva}`)}
+                  />
+                ))}
+          </>
+        )}
+      </View>
     </ScrollView>
   );
 }
@@ -217,6 +239,9 @@ const styles = StyleSheet.create({
   containerMinhasViagens: {
     marginVertical: 20,
   },
+  containerItens: {
+    marginBottom: 40,
+  },
   titulo: {
     fontSize: 22,
     fontWeight: "bold",
@@ -235,7 +260,6 @@ const styles = StyleSheet.create({
   },
   filtroBusca: {
     flexDirection: "row",
-    marginBottom: 20,
   },
   opcoesFiltro: {
     paddingVertical: 8,
