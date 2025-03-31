@@ -1,4 +1,9 @@
+import * as ImageManipulator from "expo-image-manipulator";
+import * as ImagePicker from "expo-image-picker";
+
 import {
+  ActivityIndicator,
+  Alert,
   Image,
   Modal,
   Pressable,
@@ -9,100 +14,321 @@ import {
 } from "react-native";
 import React, { useEffect, useState } from "react";
 
-import { Alert } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { MaterialIcons } from "@expo/vector-icons";
+import deletar from "../../functions/deletar";
 import deslogar from "../../functions/deslogar";
 import { useNavigation } from "@react-navigation/native";
 import verificarToken from "../verificarToken";
 
+// Funções de formatação
+const formatarData = (dataISO) => {
+  if (!dataISO) return "Não informado";
+  const data = new Date(dataISO);
+  const dia = String(data.getUTCDate()).padStart(2, "0");
+  const mes = String(data.getUTCMonth() + 1).padStart(2, "0");
+  const ano = data.getUTCFullYear();
+  return `${dia}/${mes}/${ano}`;
+};
+
+const formatarCPF = (cpf) => {
+  if (!cpf || cpf.length !== 11) return "Não informado";
+  return cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4");
+};
+
+const formatarSexo = (sexo) => {
+  if (!sexo) return "Não informado";
+  return sexo.toUpperCase() === "M"
+    ? "Masculino"
+    : sexo.toUpperCase() === "F"
+    ? "Feminino"
+    : "Não informado";
+};
+
 export default function MinhaConta() {
   const navigation = useNavigation();
   const [modalVisivel, setModalVisivel] = useState(false);
+  const [token, setToken] = useState(null);
+  const [usuarioId, setUsuarioId] = useState(null);
+  const [novoNome, setNovoNome] = useState("");
+  const [usuario, setUsuario] = useState(null);
+  const [novaFoto, setNovaFoto] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+
   const handleLogout = () => {
-    Alert.alert("Desconectar", "Tem certeza que quer desconectar?", [
-      {
-        text: "Cancelar",
-        onPress: () => {},
-      },
-      {
-        text: "OK",
-        onPress: () => deslogar(navigation),
-      },
+    Alert.alert("Sair da conta", "Tem certeza que deseja sair?", [
+      { text: "Cancelar", onPress: () => {} },
+      { text: "Sim", onPress: () => deslogar(navigation) },
     ]);
   };
 
+  const handleDelete = () => {
+    Alert.alert(
+      "Excluir minha conta",
+      "Tem certeza que deseja excluir sua conta?",
+      [
+        { text: "Cancelar", onPress: () => {} },
+        { text: "Sim", onPress: () => deletar(usuarioId, token, navigation) },
+      ]
+    );
+  };
+
   useEffect(() => {
+    async function carregarDados() {
+      try {
+        setIsLoading(true);
+        const tokenArmazenado = await AsyncStorage.getItem("token");
+        const idArmazenado = await AsyncStorage.getItem("idUsuario");
+
+        if (!tokenArmazenado || !idArmazenado) {
+          Alert.alert("Erro", "Credenciais não encontradas");
+          return;
+        }
+
+        setToken(tokenArmazenado);
+        setUsuarioId(idArmazenado);
+
+        const response = await fetch(
+          `https://backend-viajados.vercel.app/api/alterardados/dadosusuario?idUsuario=${idArmazenado}`,
+          {
+            method: "GET",
+            headers: {
+              Authorization: `Bearer ${tokenArmazenado}`,
+            },
+          }
+        );
+
+        const data = await response.json();
+
+        if (response.ok && data.length > 0) {
+          setUsuario({
+            nome: data[0].nome || "Não informado",
+            cpf: formatarCPF(data[0].cpf),
+            data_nascimento: formatarData(data[0].data_nascimento),
+            nacionalidade: data[0].nacionalidade || "Não informado",
+            sexo: formatarSexo(data[0].sexo),
+            foto_usuario:
+              data[0].foto_usuario || "https://via.placeholder.com/150",
+          });
+        } else {
+          Alert.alert("Erro", "Não foi possível carregar os dados de usuário.");
+        }
+      } catch (error) {
+        console.error(error);
+        Alert.alert("Erro", "Erro ao buscar os dados do usuário.");
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
+    carregarDados();
     verificarToken(navigation);
   }, [navigation]);
 
+  const selecionarFoto = async () => {
+    const resultado = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      quality: 1,
+    });
+
+    if (!resultado.canceled) {
+      const uri = resultado.assets[0].uri;
+
+      const manipResult = await ImageManipulator.manipulateAsync(
+        uri,
+        [{ resize: { width: 400 } }],
+        {
+          compress: 0.5,
+          format: ImageManipulator.SaveFormat.JPEG,
+          base64: true,
+        }
+      );
+
+      const base64Size = (manipResult.base64.length * 3) / 4 / 1024 / 1024;
+
+      if (base64Size > 5) {
+        Alert.alert(
+          "Erro",
+          "A imagem é muito grande, mesmo após compressão. Tente uma imagem menor."
+        );
+        return;
+      }
+
+      setNovaFoto(manipResult.base64);
+      setUsuario((prev) => ({
+        ...prev,
+        foto_usuario: manipResult.base64,
+      }));
+    }
+  };
+
+  const handleSalvar = async () => {
+    if (!novoNome.trim() && !novaFoto) {
+      Alert.alert("Erro", "Nenhum dado foi alterado.");
+      return;
+    }
+
+    try {
+      if (novoNome.trim() && novoNome !== usuario.nome) {
+        const responseNome = await fetch(
+          `https://backend-viajados.vercel.app/api/alterardados?idUsuario=${usuarioId}`,
+          {
+            method: "PUT",
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ nome: novoNome }),
+          }
+        );
+
+        const dataNome = await responseNome.json();
+        if (!responseNome.ok) {
+          throw new Error(dataNome.mensagem || "Erro ao atualizar o nome.");
+        }
+      }
+
+      if (novaFoto && novaFoto !== usuario.foto_usuario) {
+        const payload = JSON.stringify({
+          idUsuario: usuarioId,
+          foto_usuario: novaFoto,
+        });
+        const payloadSize = (payload.length * 3) / 4 / 1024 / 1024;
+
+        if (payloadSize > 5) {
+          throw new Error("O tamanho da requisição excede o limite de 5 MB.");
+        }
+
+        const responseFoto = await fetch(
+          "https://backend-viajados.vercel.app/api/salvar-imagem",
+          {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+            body: payload,
+          }
+        );
+
+        const responseText = await responseFoto.text();
+
+        let dataFoto;
+        try {
+          dataFoto = JSON.parse(responseText);
+        } catch (parseError) {
+          if (
+            responseText.trim() === "Foto do usuário cadastrada com sucesso!"
+          ) {
+            dataFoto = { mensagem: responseText };
+          } else {
+            throw new Error("Resposta inesperada do servidor: " + responseText);
+          }
+        }
+
+        if (!responseFoto.ok) {
+          throw new Error(dataFoto.mensagem || "Erro ao atualizar a foto.");
+        }
+      }
+
+      setUsuario((prev) => ({
+        ...prev,
+        nome: novoNome.trim() && novoNome !== prev.nome ? novoNome : prev.nome,
+      }));
+      setNovaFoto(null);
+      Alert.alert("Sucesso", "Dados atualizados com sucesso!");
+      setModalVisivel(false);
+    } catch (error) {
+      console.error("Erro no handleSalvar:", error);
+      Alert.alert("Erro", error.message);
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#d6005d" />
+        <Text style={styles.loadingText}>Carregando perfil...</Text>
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
-      <View style={styles.containerInformacoes}>
-        <View style={styles.fotoNome}>
+      <View style={styles.header}>
+        <View style={styles.profileImageContainer}>
           <Image
-            source={require("../../assets/images/user-icon.png")}
-            style={styles.imagemPerfil}
+            source={{
+              uri: usuario.foto_usuario.startsWith("data:")
+                ? usuario.foto_usuario
+                : `data:image/jpeg;base64,${usuario.foto_usuario}`,
+            }}
+            style={styles.profileImage}
           />
-          <Text style={styles.nome}>Nome</Text>
-          <Pressable onPress={() => setModalVisivel(true)}>
-            <MaterialIcons name={"edit"} size={35} color="#D6005D" />
+          <Pressable onPress={selecionarFoto} style={styles.changePhotoButton}>
+            <MaterialIcons name="photo-camera" size={20} color="#FFFFFF" />
           </Pressable>
         </View>
-
-        <Text style={styles.informacoes}>
-          <Text style={{ fontWeight: "bold" }}>Número de telefone:</Text>{" "}
-          11978105988
-        </Text>
-        <Text style={styles.informacoes}>
-          <Text style={{ fontWeight: "bold" }}>CPF:</Text> 000.000.000-00
-        </Text>
-        <Text style={styles.informacoes}>
-          <Text style={{ fontWeight: "bold" }}>Data de nascimento:</Text>{" "}
-          11/02/1999
-        </Text>
-        <Text style={styles.informacoes}>
-          <Text style={{ fontWeight: "bold" }}>Nacionalidade:</Text> Brasileiro
-        </Text>
-        <Text style={styles.informacoes}>
-          <Text style={{ fontWeight: "bold" }}>Sexo:</Text> Masculino
-        </Text>
+        <View style={styles.nameContainer}>
+          <Text style={styles.userName}>{usuario.nome}</Text>
+          <Pressable onPress={() => setModalVisivel(true)} style={styles.editButton}>
+            <MaterialIcons name="edit" size={20} color="#d6005d" />
+          </Pressable>
+        </View>
+        <Pressable 
+          onPress={handleLogout} 
+          style={styles.logoutButton}
+        >
+          <MaterialIcons name="logout" size={20} color="#d6005d" />
+        </Pressable>
       </View>
 
-      <Text style={styles.legenda}>Sair da conta</Text>
-      <Pressable style={styles.botao} onPress={handleLogout}>
-        <Text style={styles.textoBotao}>Sair</Text>
-      </Pressable>
+      <View style={styles.infoContainer}>
+        <InfoItem label="CPF" value={usuario.cpf} />
+        <InfoItem label="Data de Nascimento" value={usuario.data_nascimento} />
+        <InfoItem label="Nacionalidade" value={usuario.nacionalidade} />
+        <InfoItem label="Sexo" value={usuario.sexo} />
+      </View>
 
-      <Text style={styles.legenda}>Eliminar minha conta</Text>
-      <Text style={styles.textoAviso}>
-        Se você eliminar a sua conta, não será possível recuperá-la depois.
-      </Text>
-      <Pressable
-        style={[styles.botao, styles.botaoEliminar]}
-        onPress={() => {}}
+      <View style={styles.actionsContainer}>
+        <Pressable style={styles.deleteButton} onPress={handleDelete}>
+          <Text style={styles.deleteButtonText}>Excluir Conta</Text>
+        </Pressable>
+      </View>
+
+      <Modal
+        animationType="fade"
+        transparent={true}
+        visible={modalVisivel}
+        onRequestClose={() => setModalVisivel(false)}
       >
-        <Text style={styles.textoBotao}>Eliminar</Text>
-      </Pressable>
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Editar Nome</Text>
+            
+            <TextInput
+              value={novoNome}
+              onChangeText={setNovoNome}
+              placeholder="Novo nome"
+              style={styles.input}
+              placeholderTextColor="#888888"
+            />
 
-      <Modal visible={modalVisivel} animationType="slide" transparent>
-        <View style={styles.containerModal}>
-          <View style={styles.conteudoModal}>
-            <View style={styles.secaoModal}>
-              <Image
-                source={require("../../assets/images/user-icon.png")}
-                style={{ left: 130, marginBottom: 10, ...styles.imagemPerfil }}
-              />
-              <Pressable onPress={() => setModalVisivel(false)}>
-                <Text style={styles.botaoFechar}>
-                  <MaterialIcons name={"close"} size={35} color="#D6005D" />
-                </Text>
+            <View style={styles.modalActions}>
+              <Pressable 
+                onPress={handleSalvar} 
+                style={styles.saveButton}
+              >
+                <Text style={styles.buttonText}>Salvar</Text>
+              </Pressable>
+              <Pressable 
+                onPress={() => setModalVisivel(false)} 
+                style={styles.cancelButton}
+              >
+                <Text style={styles.buttonText}>Cancelar</Text>
               </Pressable>
             </View>
-            <TextInput style={styles.input} placeholder="Nome" />
-            <TextInput style={styles.input} placeholder="Número de Telefone" />
-            <Pressable style={styles.botao} onPress={() => {}}>
-              <Text style={styles.textoBotao}>Salvar</Text>
-            </Pressable>
           </View>
         </View>
       </Modal>
@@ -110,114 +336,180 @@ export default function MinhaConta() {
   );
 }
 
+const InfoItem = ({ label, value }) => (
+  <View style={styles.infoItem}>
+    <Text style={styles.infoLabel}>{label}</Text>
+    <Text style={styles.infoValue}>{value}</Text>
+  </View>
+);
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#FDD5E9",
-    alignItems: "center",
-    paddingTop: 50,
-  },
-  containerInformacoes: {
-    backgroundColor: "white",
     padding: 20,
-    borderRadius: 15,
-    width: "90%",
-    alignItems: "center",
-    marginBottom: 10,
-    shadowColor: "#000",
-    shadowOpacity: 0.2,
-    shadowRadius: 5,
-    elevation: 5,
   },
-  fotoNome: {
-    width: "100%",
+  header: {
+    alignItems: "center",
+    paddingVertical: 30,
+    paddingHorizontal: 20,
+      borderWidth: 1,
+    borderColor: "#d6005d",
+    position: "relative",
+    borderRadius:10
+  },
+  profileImageContainer: {
+    position: "relative",
+    marginBottom: 15,
+    
+  },
+  profileImage: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    borderWidth: 2,
+    borderColor: "white",
+  },
+  changePhotoButton: {
+    position: "absolute",
+    right: 5,
+    bottom: 5,
+    backgroundColor: "#d6005d",
+    padding: 8,
+    borderRadius: 20,
+  },
+  nameContainer: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
-    position: "relative",
-    marginBottom: 20,
+    gap: 10,
   },
-  imagemPerfil: {
-    width: 60,
-    height: 60,
-    borderRadius: 40,
-    marginRight: 10,
+  userName: {
+    fontSize: 26,
+    fontWeight: "500",
+    color: "black",
+    letterSpacing: 0.5,
   },
-  nome: {
-    fontSize: 20,
-    fontWeight: "bold",
+  editButton: {
+    padding: 8,
+  },
+  logoutButton: {
     position: "absolute",
-    textAlign: "center",
-    marginTop: 35,
-    marginLeft: 75,
+    right: 20,
+    top: 20,
+    padding: 8,
   },
-  informacoes: {
-    fontSize: 14,
-    color: "#333",
-    marginBottom: 5,
-    textAlign: "left",
-    width: "100%",
-  },
-  legenda: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: "#D6005D",
+  infoContainer: {
+    borderWidth: 1,
+    borderColor: "#d6005d",
+    borderRadius: 8,
+    padding: 20,
     marginTop: 20,
-    textAlign: "center",
   },
-  botao: {
-    backgroundColor: "#D6005D",
-    padding: 12,
-    borderRadius: 20,
-    width: "40%",
-    alignItems: "center",
-    marginTop: 10,
+  infoItem: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    paddingVertical: 15,
+    borderBottomWidth: 1,
+    borderBottomColor: "#3A3A3A",
   },
-  botaoEliminar: {
-    backgroundColor: "#D6005D",
-  },
-  textoBotao: {
-    color: "white",
+  infoLabel: {
     fontSize: 16,
-    fontWeight: "bold",
+    color: "black",
+    fontWeight: "400",
   },
-  textoAviso: {
-    color: "#000",
-    textAlign: "center",
-    marginVertical: 10,
-    fontSize: 14,
-    width: "80%",
+  infoValue: {
+    fontSize: 16,
+    color: "black",
+    fontWeight: "400",
   },
-  containerModal: {
+  actionsContainer: {
+    marginTop: 30,
+    alignItems: "center",
+  },
+  deleteButton: {
+    borderWidth: 1,
+    borderColor: "#d6005d",
+    paddingVertical: 15,
+    paddingHorizontal: 25,
+    borderRadius: 8,
+    width: "100%",
+    alignItems: "center",
+  },
+  deleteButtonText: {
+    color: "#d6005d",
+    fontSize: 16,
+    fontWeight: "500",
+    letterSpacing: 0.5,
+  },
+  modalOverlay: {
     flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    backgroundColor: "rgba(0, 0, 0, 0.7)",
     justifyContent: "center",
     alignItems: "center",
   },
-  conteudoModal: {
-    backgroundColor: "#FFCCE0",
-    padding: 20,
-    borderRadius: 15,
-    width: "90%",
-    alignItems: "center",
+  modalContent: {
+    backgroundColor: "#2A2A2A",
+    width: "85%",
+    padding: 25,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "#d6005d",
   },
-  secaoModal: {
-    width: "100%",
-    flexDirection: "row",
-    justifyContent: "space-between",
-  },
-  botaoFechar: {
-    fontSize: 24,
-    color: "#FF007F",
-    position: "absolute",
-    top: 8,
-    right: 4,
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: "500",
+    color: "#FFFFFF",
+    marginBottom: 20,
+    textAlign: "center",
+    letterSpacing: 0.5,
   },
   input: {
-    backgroundColor: "white",
     width: "100%",
-    padding: 10,
-    borderRadius: 10,
-    marginBottom: 10,
+    padding: 12,
+    borderRadius: 6,
+    backgroundColor: "#3A3A3A",
+    marginBottom: 20,
+    fontSize: 16,
+    color: "#FFFFFF",
+    borderWidth: 1,
+    borderColor: "#d6005d",
+  },
+  modalActions: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    gap: 15,
+  },
+  saveButton: {
+    flex: 1,
+    backgroundColor: "#d6005d",
+    paddingVertical: 12,
+    borderRadius: 6,
+    alignItems: "center",
+  },
+  cancelButton: {
+    flex: 1,
+    borderWidth: 1,
+    borderColor: "#d6005d",
+    paddingVertical: 12,
+    borderRadius: 6,
+    alignItems: "center",
+  },
+  buttonText: {
+    color: "#FFFFFF",
+    fontSize: 16,
+    fontWeight: "500",
+    letterSpacing: 0.5,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#FDD5E9",
+  },
+  loadingText: {
+    marginTop: 12,
+    fontSize: 16,
+    color: "#888888",
+    letterSpacing: 0.5,
   },
 });

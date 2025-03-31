@@ -1,5 +1,5 @@
-import React from "react";
 import {
+  ActivityIndicator,
   Image,
   ImageSourcePropType,
   Pressable,
@@ -7,7 +7,9 @@ import {
   Text,
   View,
 } from "react-native";
+
 import { MaterialIcons } from "@expo/vector-icons";
+import React from "react";
 
 type Props = {
   imagem: ImageSourcePropType;
@@ -18,7 +20,7 @@ type Props = {
   favorito: boolean;
   onFavoritar: () => void;
   onPress: () => void;
-  isFavoritando?: boolean;
+  isLoading?: boolean; // Alterado de isFavoritando para isLoading para consistência
 };
 
 export default function BannerHotel({
@@ -30,7 +32,7 @@ export default function BannerHotel({
   favorito,
   onFavoritar,
   onPress,
-  isFavoritando = false,
+  isLoading = false,
 }: Props) {
   const numeroEstrelas = (avaliacao: number) => {
     const estrelas = [];
@@ -55,13 +57,17 @@ export default function BannerHotel({
         <Pressable
           onPress={onFavoritar}
           style={styles.iconeFavorito}
-          disabled={isFavoritando}
+          disabled={isLoading}
         >
-          <MaterialIcons
-            name={isFavorito ? "favorite" : "favorite-border"}
-            size={24}
-            color={isFavorito ? "#D6005D" : "#000"}
-          />
+          {isLoading ? (
+            <ActivityIndicator size="small" color="#D6005D" />
+          ) : (
+            <MaterialIcons
+              name={isFavorito ? "favorite" : "favorite-border"}
+              size={24}
+              color={isFavorito ? "#D6005D" : "#000"}
+            />
+          )}
         </Pressable>
         <Image source={imagem} style={styles.imagem} />
       </View>
@@ -100,6 +106,10 @@ const styles = StyleSheet.create({
     padding: 4,
     elevation: 5,
     zIndex: 1,
+    minWidth: 32, // Adicionado para manter consistência no tamanho durante loading
+    minHeight: 32,
+    justifyContent: "center",
+    alignItems: "center",
   },
   nome: {
     fontWeight: "bold",

@@ -3,6 +3,7 @@ import {
   Image,
   Pressable,
   ScrollView,
+  StatusBar,
   StyleSheet,
   Text,
   View,
@@ -17,37 +18,18 @@ import ModalHotel from "@/components/Modal/ModalHotel";
 import ModalVoo from "@/components/Modal/ModalVoo";
 import verificarToken from "../verificarToken";
 
-type Hotel = {
-  idHoteis: string;
-  imagens?: string[];
-  nome: string;
-  descricao: string;
-  avaliacao: number;
-  preco_diaria: string;
-};
-
-type Voo = {
-  idVoos: string;
-  imagens?: string[];
-  destino: string;
-  origem: string;
-  descricao: string;
-  saida: string;
-  data: string;
-  preco: string;
-};
-
 export default function Favoritos() {
-  const [opcaoSelecionada, setOpcaoSelecionada] = useState<"hoteis" | "voos">("hoteis");
-  const [modalHotelVisivel, setModalHotelVisivel] = useState<boolean>(false);
-  const [modalVooVisivel, setModalVooVisivel] = useState<boolean>(false);
-  const [hotelSelecionado, setHotelSelecionado] = useState<Hotel | null>(null);
-  const [vooSelecionado, setVooSelecionado] = useState<Voo | null>(null);
-  const [hoteis, setHoteis] = useState<Hotel[]>([]);
-  const [voos, setVoos] = useState<Voo[]>([]);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [idUsuario, setIdUsuario] = useState<string | null>(null);
-  const [notificacao, setNotificacao] = useState<string | null>(null);
+  const [opcaoSelecionada, setOpcaoSelecionada] = useState("hoteis");
+  const [modalHotelVisivel, setModalHotelVisivel] = useState(false);
+  const [modalVooVisivel, setModalVooVisivel] = useState(false);
+  const [hotelSelecionado, setHotelSelecionado] = useState(null);
+  const [vooSelecionado, setVooSelecionado] = useState(null);
+  const [hoteis, setHoteis] = useState([]);
+  const [voos, setVoos] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [idUsuario, setIdUsuario] = useState(null);
+  const [notificacao, setNotificacao] = useState(null);
+  const [desfavoritandoIds, setDesfavoritandoIds] = useState({});
 
   const navigation = useNavigation();
 
@@ -55,14 +37,12 @@ export default function Favoritos() {
     verificarToken(navigation);
   }, [navigation]);
 
-  const mostrarNotificacao = (mensagem: string): void => {
+  const mostrarNotificacao = (mensagem) => {
     setNotificacao(mensagem);
-    setTimeout(() => {
-      setNotificacao(null);
-    }, 3000);
+    setTimeout(() => setNotificacao(null), 3000);
   };
 
-  const carregarDados = async (): Promise<void> => {
+  const carregarDados = async () => {
     try {
       setIsLoading(true);
 
@@ -91,11 +71,10 @@ export default function Favoritos() {
       );
 
       if (respostaHoteis.ok) {
-        const dadosHoteis: Hotel[] = await respostaHoteis.json();
+        const dadosHoteis = await respostaHoteis.json();
         setHoteis(Array.isArray(dadosHoteis) ? dadosHoteis : []);
       } else if (respostaHoteis.status === 404) {
         setHoteis([]);
-        console.log("Nenhum hotel favoritado encontrado");
       } else {
         const textoHoteis = await respostaHoteis.text();
         throw new Error(
@@ -115,11 +94,10 @@ export default function Favoritos() {
       );
 
       if (respostaVoos.ok) {
-        const dadosVoos: Voo[] = await respostaVoos.json();
+        const dadosVoos = await respostaVoos.json();
         setVoos(Array.isArray(dadosVoos) ? dadosVoos : []);
       } else if (respostaVoos.status === 404) {
         setVoos([]);
-        console.log("Nenhum voo favoritado encontrado");
       } else {
         const textoVoos = await respostaVoos.text();
         throw new Error(
@@ -135,9 +113,18 @@ export default function Favoritos() {
     }
   };
 
-  const toggleFavorito = async (id: string, tipo: "hotel" | "voo"): Promise<void> => {
+  const toggleFavorito = async (id, tipo) => {
+    const chave = `${tipo}_${id}`;
     try {
+      setDesfavoritandoIds(prev => ({ ...prev, [chave]: true }));
+
       const token = await AsyncStorage.getItem("token");
+      if (!token || !idUsuario) {
+        console.error("Token ou ID do usuário não encontrado");
+        mostrarNotificacao("Erro: Faça login novamente");
+        return;
+      }
+
       const url = `https://backend-viajados.vercel.app/api/favoritos/${
         tipo === "hotel" ? "hoteis" : "voos"
       }`;
@@ -156,18 +143,28 @@ export default function Favoritos() {
 
       if (response.ok) {
         if (tipo === "hotel") {
-          setHoteis((prev) => prev.filter((hotel) => hotel.idHoteis !== id));
+          setHoteis(prev => prev.filter(hotel => hotel.idHoteis !== id));
           mostrarNotificacao("Hotel foi removido dos favoritos!");
         } else {
-          setVoos((prev) => prev.filter((voo) => voo.idVoos !== id));
+          setVoos(prev => prev.filter(voo => voo.idVoos !== id));
           mostrarNotificacao("Voo foi removido dos favoritos!");
         }
       } else {
-        const errorText = await response.text();
-        console.error("Erro ao remover favorito:", errorText);
+        let errorMessage = "Erro desconhecido";
+        try {
+          const errorText = await response.text();
+          errorMessage = errorText || `Erro ${response.status}`;
+        } catch (e) {
+          errorMessage = `Erro ${response.status}`;
+        }
+        console.error("Erro ao remover favorito:", errorMessage);
+        mostrarNotificacao("Erro ao remover favorito");
       }
     } catch (error) {
       console.error("Erro ao desfavoritar:", error);
+      mostrarNotificacao("Erro ao remover favorito");
+    } finally {
+      setDesfavoritandoIds(prev => ({ ...prev, [chave]: false }));
     }
   };
 
@@ -177,21 +174,21 @@ export default function Favoritos() {
     }, [opcaoSelecionada])
   );
 
-  const opcaoPressionada = (opcao: "hoteis" | "voos"): void => {
+  const opcaoPressionada = (opcao) => {
     setOpcaoSelecionada(opcao);
   };
 
-  const bannerHotelPressionado = (hotel: Hotel): void => {
+  const bannerHotelPressionado = (hotel) => {
     setHotelSelecionado(hotel);
     setModalHotelVisivel(true);
   };
 
-  const bannerVooPressionado = (voo: Voo): void => {
+  const bannerVooPressionado = (voo) => {
     setVooSelecionado(voo);
     setModalVooVisivel(true);
   };
 
-  const formatarData = (dataISO: string): string => {
+  const formatarData = (dataISO) => {
     const data = new Date(dataISO);
     const dia = String(data.getDate()).padStart(2, "0");
     const mes = String(data.getMonth() + 1).padStart(2, "0");
@@ -220,6 +217,11 @@ export default function Favoritos() {
         formatarData={formatarData}
       />
 
+      <StatusBar
+        barStyle="dark-content"
+        backgroundColor="#FDD5E9"
+        translucent={false}
+      />
       <ScrollView style={styles.container}>
         <View style={styles.containerLogo}>
           <Image
@@ -243,8 +245,7 @@ export default function Favoritos() {
               <Text
                 style={[
                   styles.textoFiltro,
-                  opcaoSelecionada === "hoteis" &&
-                    styles.textoFiltroSelecionado,
+                  opcaoSelecionada === "hoteis" && styles.textoFiltroSelecionado,
                 ]}
               >
                 Hotéis
@@ -269,9 +270,9 @@ export default function Favoritos() {
           </View>
           <ScrollView style={styles.carrossel}>
             {opcaoSelecionada === "hoteis" && (
-              <ScrollView >
+              <ScrollView>
                 {isLoading ? (
-                  <View>
+                  <View style={styles.containerMensagem}>
                     <ActivityIndicator size="large" color="#D6005D" />
                     <Text style={styles.mensagem}>Carregando hotéis...</Text>
                   </View>
@@ -291,9 +292,8 @@ export default function Favoritos() {
                       avaliacao={hotel.avaliacao || 0}
                       preco={hotel.preco_diaria || "Preço não disponível"}
                       onPress={() => bannerHotelPressionado(hotel)}
-                      onDesfavoritar={() =>
-                        toggleFavorito(hotel.idHoteis, "hotel")
-                      }
+                      onDesfavoritar={() => toggleFavorito(hotel.idHoteis, "hotel")}
+                      isLoading={desfavoritandoIds[`hotel_${hotel.idHoteis}`]}
                     />
                   ))
                 ) : (
@@ -302,9 +302,9 @@ export default function Favoritos() {
               </ScrollView>
             )}
             {opcaoSelecionada === "voos" && (
-              <ScrollView >
+              <ScrollView>
                 {isLoading ? (
-                  <View>
+                  <View style={styles.containerMensagem}>
                     <ActivityIndicator size="large" color="#D6005D" />
                     <Text style={styles.mensagem}>Carregando voos...</Text>
                   </View>
@@ -321,10 +321,11 @@ export default function Favoritos() {
                       }
                       destino={voo.destino || "Destino não informado"}
                       origem={voo.origem || "Origem não informada"}
-                      data={voo.data || "Data não informada"}
+                      data={formatarData(voo.data) || "Data não informada"}
                       preco={voo.preco || "Preço não disponível"}
                       onPress={() => bannerVooPressionado(voo)}
                       onDesfavoritar={() => toggleFavorito(voo.idVoos, "voo")}
+                      isLoading={desfavoritandoIds[`voo_${voo.idVoos}`]}
                     />
                   ))
                 ) : (
@@ -369,18 +370,8 @@ const styles = StyleSheet.create({
     height: 80,
     marginVertical: 15,
   },
-  texto: {
-    fontSize: 14,
-  },
   containerFavoritos: {
     marginVertical: 20,
-  },
-  titulo: {
-    fontSize: 22,
-    fontWeight: "bold",
-    color: "#fff",
-    marginLeft: 20,
-    marginTop: 10,
   },
   viewTitulo: {
     width: 200,
@@ -390,6 +381,13 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 20,
     marginBottom: 20,
     marginLeft: -20,
+  },
+  titulo: {
+    fontSize: 22,
+    fontWeight: "bold",
+    color: "#fff",
+    marginLeft: 20,
+    marginTop: 10,
   },
   filtroBusca: {
     flexDirection: "row",
@@ -405,15 +403,20 @@ const styles = StyleSheet.create({
   opcaoSelecionada: {
     backgroundColor: "#D6005D",
   },
-  textoFiltroSelecionado: {
-    color: "#fff",
-  },
   textoFiltro: {
     color: "#D6005D",
     fontWeight: "bold",
   },
+  textoFiltroSelecionado: {
+    color: "#fff",
+  },
   carrossel: {
     marginBottom: 13,
+  },
+  containerMensagem: {
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 20,
   },
   mensagem: {
     fontSize: 16,

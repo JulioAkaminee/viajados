@@ -1,5 +1,5 @@
-import React, { useState } from "react";
 import {
+  ActivityIndicator,
   Image,
   ImageSourcePropType,
   Pressable,
@@ -7,17 +7,9 @@ import {
   Text,
   View,
 } from "react-native";
-import { MaterialIcons } from "@expo/vector-icons";
+import React, { useState } from "react";
 
-type Props = {
-  imagem: ImageSourcePropType;
-  destino: string;
-  origem: string;
-  data: string;
-  preco: string;
-  onPress: () => void;
-  onDesfavoritar: () => void;
-};
+import { MaterialIcons } from "@expo/vector-icons";
 
 export default function BannerVooFavoritos({
   imagem,
@@ -27,36 +19,41 @@ export default function BannerVooFavoritos({
   preco,
   onPress,
   onDesfavoritar,
-}: Props) {
+  isLoading = false,
+}) {
   const [favorito, setFavorito] = useState(true);
 
   const handleDesfavoritar = () => {
-    setFavorito(false);
-    onDesfavoritar();
+    if (!isLoading) {
+      setFavorito(false);
+      onDesfavoritar();
+    }
   };
 
-  const formatarData = (dataISO) => {
-    const data = new Date(dataISO);
-    const dia = String(data.getDate()).padStart(2, "0");
-    const mes = String(data.getMonth() + 1).padStart(2, "0");
-    const ano = data.getFullYear();
-    return `${dia}/${mes}/${ano}`;
-  };
+ 
 
   return (
     <Pressable onPress={onPress} style={styles.container}>
       <Image source={imagem} style={styles.imagem} />
       <View style={styles.conteudo}>
-        <Pressable onPress={handleDesfavoritar} style={styles.iconeFavorito}>
-          <MaterialIcons
-            name={favorito ? "favorite" : "favorite-border"}
-            size={18}
-            color={favorito ? "#D6005D" : "#000"}
-          />
+        <Pressable 
+          onPress={handleDesfavoritar} 
+          style={styles.iconeFavorito}
+          disabled={isLoading}
+        >
+          {isLoading ? (
+            <ActivityIndicator size="small" color="#D6005D" />
+          ) : (
+            <MaterialIcons
+              name={favorito ? "favorite" : "favorite-border"}
+              size={18}
+              color={favorito ? "#D6005D" : "#000"}
+            />
+          )}
         </Pressable>
         <Text style={styles.destino}>{destino}</Text>
         <Text style={styles.origem}>Origem: {origem}</Text>
-        <Text style={styles.data}>Data: {formatarData(data)}</Text>
+        <Text style={styles.data}>Data: {data}</Text>
         <Text style={styles.texto}>Preço por pessoa</Text>
         <Text style={styles.preco}>R$ {preco}</Text>
         <Text style={styles.texto}>Taxas e impostos não inclusos.</Text>
@@ -92,6 +89,10 @@ const styles = StyleSheet.create({
     paddingVertical: 3,
     paddingHorizontal: 5,
     zIndex: 1,
+    minWidth: 28,
+    minHeight: 28,
+    justifyContent: "center",
+    alignItems: "center",
   },
   destino: {
     fontWeight: "bold",
@@ -100,10 +101,6 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   origem: {
-    fontSize: 12,
-    marginBottom: 4,
-  },
-  saida: {
     fontSize: 12,
     marginBottom: 4,
   },

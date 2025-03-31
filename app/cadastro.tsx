@@ -15,6 +15,7 @@ export default function Cadastro() {
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
   const [confSenha, setConfSenha] = useState("");
+  const [isLoading, setIsLoading] = useState(false); // Estado para o loading
 
   const validaEmail = (email: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
@@ -29,34 +30,28 @@ export default function Cadastro() {
   };
 
   const formatarDataInput = (text: string) => {
-    // Remove tudo que não é dígito
     let data = text.replace(/\D/g, "");
-  
-    // Limita a 8 dígitos (ddmmaaaa)
     if (data.length > 8) {
       data = data.slice(0, 8);
     }
-  
-    // Aplica a formatação progressiva
     if (data.length > 4) {
       data = `${data.slice(0, 2)}/${data.slice(2, 4)}/${data.slice(4)}`;
     } else if (data.length > 2) {
       data = `${data.slice(0, 2)}/${data.slice(2)}`;
     }
-  
-    // Atualiza o estado com a data formatada
     setDtNasc(data);
   };
 
   const converterDataParaEnvio = (data: string) => {
-    const partes = data.split("-");
+    const partes = data.split("/");
     if (partes.length === 3) {
       return `${partes[2]}-${partes[1]}-${partes[0]}`;
     }
     return data;
   };
-
+  
   const continuarPressionado = async () => {
+    setIsLoading(true); // Ativa o loading
     const nomeFormatado = nome.trim().replace(/\s+/g, "");
     const nacionalidadeFormatado = nacionalidade.trim().replace(/\s+/g, "");
     const cpfNumerico = cpf.replace(/\D/g, "");
@@ -65,36 +60,43 @@ export default function Cadastro() {
 
     if (!nomeFormatado) {
       Alert.alert("Erro", "O campo Nome não pode estar vazio.");
+      setIsLoading(false); // Desativa o loading
       return;
     }
 
     if (cpfNumerico.length !== 11) {
       Alert.alert("Erro", "CPF inválido.");
+      setIsLoading(false); // Desativa o loading
       return;
     }
 
     if (!dataFormatada) {
       Alert.alert("Erro", "O campo Data de Nascimento não pode estar vazio.");
+      setIsLoading(false); // Desativa o loading
       return;
     }
 
     if (!nacionalidadeFormatado) {
       Alert.alert("Erro", "O campo Nacionalidade não pode estar vazio.");
+      setIsLoading(false); // Desativa o loading
       return;
     }
 
     if (!email.trim() || !validaEmail(email)) {
       Alert.alert("Erro", "Por favor, insira um email válido.");
+      setIsLoading(false); // Desativa o loading
       return;
     }
 
     if (!senha.trim() || !confSenha.trim()) {
       Alert.alert("Erro", "Os campos de senha não podem estar vazios.");
+      setIsLoading(false); // Desativa o loading
       return;
     }
 
     if (senha !== confSenha) {
       Alert.alert("Erro", "As senhas não coincidem.");
+      setIsLoading(false); // Desativa o loading
       return;
     }
 
@@ -137,8 +139,11 @@ export default function Cadastro() {
     } catch (error) {
       Alert.alert("Erro", "Ocorreu um erro ao se conectar com o servidor.");
       console.error("Erro na requisição:", error);
+    } finally {
+      setIsLoading(false); // Desativa o loading após a requisição
     }
   };
+
   return (
     <ScrollView style={styles.container}>
       <View style={styles.containerLogo}>
@@ -217,7 +222,11 @@ export default function Cadastro() {
         onChange={setConfSenha}
       />
 
-      <Button label={"Continuar"} onPress={continuarPressionado} />
+      <Button 
+        label={isLoading ? "Carregando..." : "Cadastrar"} 
+        onPress={continuarPressionado}
+        disabled={isLoading} // Desativa o botão enquanto carrega
+      />
 
       <Text style={styles.textoTermos}>
         Ao criar uma conta, você concorda com a nossa{" "}

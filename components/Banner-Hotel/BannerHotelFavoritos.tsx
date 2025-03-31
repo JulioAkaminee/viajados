@@ -1,5 +1,5 @@
-import React, { useState } from "react";
 import {
+  ActivityIndicator,
   Image,
   ImageSourcePropType,
   Pressable,
@@ -7,6 +7,8 @@ import {
   Text,
   View,
 } from "react-native";
+import React, { useState } from "react";
+
 import { MaterialIcons } from "@expo/vector-icons";
 
 type Props = {
@@ -17,6 +19,7 @@ type Props = {
   preco: string;
   onPress: () => void;
   onDesfavoritar: () => void;
+  isLoading?: boolean; // Adicionado para controle de loading
 };
 
 export default function BannerHotelFavoritos({
@@ -27,12 +30,15 @@ export default function BannerHotelFavoritos({
   preco,
   onPress,
   onDesfavoritar,
+  isLoading = false,
 }: Props) {
   const [favorito, setFavorito] = useState(true);
 
   const handleDesfavoritar = () => {
-    setFavorito(false);
-    onDesfavoritar();
+    if (!isLoading) {
+      setFavorito(false);
+      onDesfavoritar();
+    }
   };
 
   const numeroEstrelas = (avaliacao: number) => {
@@ -54,12 +60,20 @@ export default function BannerHotelFavoritos({
     <Pressable onPress={onPress} style={styles.container}>
       <Image source={imagem} style={styles.imagem} />
       <View style={styles.conteudo}>
-        <Pressable onPress={handleDesfavoritar} style={styles.iconeFavorito}>
-          <MaterialIcons
-            name={favorito ? "favorite" : "favorite-border"}
-            size={18}
-            color={favorito ? "#D6005D" : "#000"}
-          />
+        <Pressable 
+          onPress={handleDesfavoritar} 
+          style={styles.iconeFavorito}
+          disabled={isLoading}
+        >
+          {isLoading ? (
+            <ActivityIndicator size="small" color="#D6005D" />
+          ) : (
+            <MaterialIcons
+              name={favorito ? "favorite" : "favorite-border"}
+              size={18}
+              color={favorito ? "#D6005D" : "#000"}
+            />
+          )}
         </Pressable>
         <Text style={styles.nome}>{nome}</Text>
         <View style={styles.avaliacao}>{numeroEstrelas(avaliacao)}</View>
@@ -99,6 +113,10 @@ const styles = StyleSheet.create({
     paddingVertical: 3,
     paddingHorizontal: 5,
     zIndex: 1,
+    minWidth: 28, // Adicionado para consistência durante loading
+    minHeight: 28,
+    justifyContent: "center",
+    alignItems: "center",
   },
   nome: {
     fontWeight: "bold",

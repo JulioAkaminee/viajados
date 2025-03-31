@@ -27,12 +27,6 @@ const ModalVoo = ({ visible, voo, onClose, formatarData }) => {
                   key={index}
                   source={{ uri: image }}
                   style={styles.imagemModal}
-                  onError={(e) =>
-                    console.log(
-                      `Erro ao carregar imagem: ${image}`,
-                      e.nativeEvent.error
-                    )
-                  }
                 />
               ))
             ) : (

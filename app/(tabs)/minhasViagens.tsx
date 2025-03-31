@@ -1,4 +1,3 @@
-import React, { useEffect, useState } from "react";
 import {
   Image,
   Pressable,
@@ -7,72 +6,220 @@ import {
   Text,
   View,
 } from "react-native";
+import React, { useEffect, useState } from "react";
+import { useFocusEffect, useNavigation } from "@react-navigation/native";
+
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import BannerMinhasViagens from "@/components/Banner-MinhasViagens/BannerMinhasVIagens";
+import BannerMinhasViagensVoo from "@/components/Banner-MinhasViagens/BannerMinhasViagensVoo";
 import verificarToken from "../verificarToken";
-import { useNavigation } from "@react-navigation/native";
 
-export default function minhasViagens() {
-    const navigation = useNavigation();
-  const [opcaoSelecionada, setOpcaoSelecionada] = useState("hoteis");
+export default function MinhasViagens() {
+  const navigation = useNavigation();
+  const [opcaoSelecionada, setOpcaoSelecionada] = useState("agendado");
+  const [hospedagens, setHospedagens] = useState([]);  // Inicializa como array vazio
+  const [voos, setVoos] = useState([]);  // Novo estado para os voos
+  const [isLoading, setIsLoading] = useState(true);
+  const [idUsuario, setIdUsuario] = useState(null);
 
-  const opcaoPressionada = (opcao) => {
+  const opcaoPressionada = (opcao: string) => {
     setOpcaoSelecionada(opcao);
   };
-      useEffect(() => {
-        verificarToken(navigation);
-      }, [navigation]);
+
+  const fetchHospedagens = async () => {
+    if (idUsuario) {
+      try {
+        const token = await AsyncStorage.getItem("token");
+        if (token) {
+          const response = await fetch(
+            `https://backend-viajados.vercel.app/api/reservas/hospedagens/${idUsuario}`,
+            {
+              method: "GET",
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            }
+          );
+
+          const data = await response.json();
+          if (Array.isArray(data.data)) {
+            setHospedagens(data.data);
+          } else {
+            console.error("Dados de hospedagem não são um array", data);
+            setHospedagens([]);
+          }
+        } else {
+          console.error("Token não encontrado no AsyncStorage");
+        }
+      } catch (error) {
+        console.error("Erro ao buscar hospedagens:", error);
+        setHospedagens([]);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+  };
+
+  const fetchVoos = async () => {
+    if (idUsuario) {
+      try {
+        const token = await AsyncStorage.getItem("token");
+        if (token) {
+          const response = await fetch(
+            `https://backend-viajados.vercel.app/api/reservas/voos/${idUsuario}`,
+            {
+              method: "GET",
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            }
+          );
+
+          const data = await response.json();
+          if (Array.isArray(data.data)) {
+            setVoos(data.data);
+          } else {
+            console.error("Dados de voos não são um array", data);
+            setVoos([]);
+          }
+        } else {
+          console.error("Token não encontrado no AsyncStorage");
+        }
+      } catch (error) {
+        console.error("Erro ao buscar voos:", error);
+        setVoos([]);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+  };
+
+  const getIdUsuario = async () => {
+    try {
+      const id = await AsyncStorage.getItem("idUsuario");
+      if (id !== null) {
+        setIdUsuario(id);
+      }
+    } catch (error) {
+      console.error("Erro ao ler idUsuario do AsyncStorage", error);
+    }
+  };
+
+  useEffect(() => {
+    verificarToken(navigation);
+    getIdUsuario();
+  }, [navigation]);
+
+  useFocusEffect(
+    React.useCallback(() => {
+      if (idUsuario) {
+        fetchHospedagens();
+        fetchVoos();  // Chama a função para buscar os voos
+      }
+    }, [idUsuario, opcaoSelecionada])  // Recarrega ao trocar a tab
+  );
 
   return (
-    <>
-      <ScrollView style={styles.container}>
-        <View style={styles.containerLogo}>
-          <Image
-            source={require("../../assets/images/logo.png")}
-            style={styles.logo}
-            resizeMode="contain"
-          />
+    <ScrollView style={styles.container}>
+      <View style={styles.containerLogo}>
+        <Image
+          source={require("../../assets/images/logo.png")}
+          style={styles.logo}
+          resizeMode="contain"
+        />
+      </View>
+
+      <View style={styles.containerMinhasViagens}>
+        <View style={styles.viewTitulo}>
+          <Text style={styles.titulo}>Minhas Viagens</Text>
         </View>
-        <View style={styles.containerMinhasViagens}>
-          <View style={styles.viewTitulo}>
-            <Text style={styles.titulo}>Minhas Viagens</Text>
-          </View>
-          <View style={styles.filtroBusca}>
-            <Pressable
-              style={[
-                styles.opcoesFiltro,
-                opcaoSelecionada === "hoteis" && styles.opcaoSelecionada,
+
+        <View style={styles.filtroBusca}>
+          <Pressable
+            style={[ 
+              styles.opcoesFiltro, 
+              opcaoSelecionada === "agendado" && styles.opcaoSelecionada,
+            ]}
+            onPress={() => opcaoPressionada("agendado")}
+          >
+            <Text
+              style={[ 
+                styles.textoFiltro, 
+                opcaoSelecionada === "agendado" && styles.textoFiltroSelecionado 
               ]}
-              onPress={() => opcaoPressionada("hoteis")}
             >
-              <Text
-                style={[
-                  styles.textoFiltro,
-                  opcaoSelecionada === "hoteis" &&
-                    styles.textoFiltroSelecionado,
-                ]}
-              >
-                Hotéis
-              </Text>
-            </Pressable>
-            <Pressable
-              style={[
-                styles.opcoesFiltro,
-                opcaoSelecionada === "voos" && styles.opcaoSelecionada,
+              Agendado
+            </Text>
+          </Pressable>
+
+          <Pressable
+            style={[ 
+              styles.opcoesFiltro, 
+              opcaoSelecionada === "finalizado" && styles.opcaoSelecionada,
+            ]}
+            onPress={() => opcaoPressionada("finalizado")}
+          >
+            <Text
+              style={[ 
+                styles.textoFiltro, 
+                opcaoSelecionada === "finalizado" && styles.textoFiltroSelecionado 
               ]}
-              onPress={() => opcaoPressionada("voos")}
             >
-              <Text
-                style={[
-                  styles.textoFiltro,
-                  opcaoSelecionada === "voos" && styles.textoFiltroSelecionado,
-                ]}
-              >
-                Voos
-              </Text>
-            </Pressable>
-          </View>
+              Finalizado
+            </Text>
+          </Pressable>
         </View>
-      </ScrollView>
-    </>
+      </View>
+
+      <View style={styles.containerItens}>
+        {isLoading ? (
+          <Text>Carregando...</Text>
+        ) : (
+          <>
+            {opcaoSelecionada === "agendado" &&
+              hospedagens
+                .filter((item) => item.status === "agendado")
+                .map((item) => (
+                  <BannerMinhasViagens
+                    key={item.idHospedagem}
+                    hotelData={item}
+                    onPress={() => console.log(`Detalhes do hotel: ${item.nome}`)}
+                  />
+                ))}
+            {opcaoSelecionada === "agendado" &&
+              voos
+                .filter((item) => item.status === "agendado")
+                .map((item) => (
+                  <BannerMinhasViagensVoo
+                    key={item.idReserva}
+                    vooData={item}
+                    onPress={() => console.log(`Detalhes do voo: ${item.idReserva}`)}
+                  />
+                ))}
+            {opcaoSelecionada === "finalizado" &&
+              hospedagens
+                .filter((item) => item.status === "finalizado")
+                .map((item) => (
+                  <BannerMinhasViagens
+                    key={item.idHospedagem}
+                    hotelData={item}
+                    onPress={() => console.log(`Detalhes do hotel: ${item.nome}`)}
+                  />
+                ))}
+            {opcaoSelecionada === "finalizado" &&
+              voos
+                .filter((item) => item.status === "finalizado")
+                .map((item) => (
+                  <BannerMinhasViagensVoo
+                    key={item.idReserva}
+                    vooData={item}
+                    onPress={() => console.log(`Detalhes do voo: ${item.idReserva}`)}
+                  />
+                ))}
+          </>
+        )}
+      </View>
+    </ScrollView>
   );
 }
 
@@ -89,11 +236,11 @@ const styles = StyleSheet.create({
     height: 80,
     marginVertical: 15,
   },
-  texto: {
-    fontSize: 14,
-  },
   containerMinhasViagens: {
     marginVertical: 20,
+  },
+  containerItens: {
+    marginBottom: 40,
   },
   titulo: {
     fontSize: 22,
@@ -113,7 +260,6 @@ const styles = StyleSheet.create({
   },
   filtroBusca: {
     flexDirection: "row",
-    marginBottom: 20,
   },
   opcoesFiltro: {
     paddingVertical: 8,
