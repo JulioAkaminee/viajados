@@ -31,6 +31,7 @@ export default function Explorar() {
   const [idUsuario, setIdUsuario] = useState(null);
   const [favoritos, setFavoritos] = useState({});
   const [isLoading, setIsLoading] = useState(true);
+  const [favoritandoIds, setFavoritandoIds] = useState({}); // Alterado para rastrear múltiplos itens
   const [notificacao, setNotificacao] = useState(null);
 
   const navigation = useNavigation();
@@ -41,6 +42,11 @@ export default function Explorar() {
 
   const carregarFavoritos = async (token, usuarioId) => {
     try {
+      const favoritosCache = await AsyncStorage.getItem(`favoritos_${usuarioId}`);
+      if (favoritosCache) {
+        setFavoritos(JSON.parse(favoritosCache));
+      }
+
       const novosFavoritos = {};
 
       const respostaHoteis = await fetch(
@@ -59,10 +65,6 @@ export default function Explorar() {
             novosFavoritos[`hotel_${hotel.idHoteis}`] = true;
           });
         }
-      } else {
-        throw new Error(
-          `Erro na requisição de hotéis: ${respostaHoteis.status}`
-        );
       }
 
       const respostaVoos = await fetch(
@@ -81,10 +83,9 @@ export default function Explorar() {
             novosFavoritos[`voo_${voo.idVoos}`] = true;
           });
         }
-      } else {
-        throw new Error(`Erro na requisição de voos: ${respostaVoos.status}`);
       }
 
+      await AsyncStorage.setItem(`favoritos_${usuarioId}`, JSON.stringify(novosFavoritos));
       setFavoritos(novosFavoritos);
     } catch (error) {
       console.error("Erro ao carregar favoritos:", error.message || error);
@@ -92,13 +93,25 @@ export default function Explorar() {
   };
 
   const toggleFavorito = async (id, tipo) => {
+    const chave = `${tipo}_${id}`;
     try {
+      setFavoritandoIds(prev => ({ ...prev, [chave]: true }));
       const token = await AsyncStorage.getItem("token");
-      const chaveFavorito = `${tipo}_${id}`;
-      const estaFavoritado = favoritos[chaveFavorito];
+      const usuarioId = await AsyncStorage.getItem("idUsuario");
+
+      if (!token || !usuarioId) {
+        console.error("Token ou ID do usuário não encontrado");
+        setNotificacao("Erro: Faça login novamente");
+        setTimeout(() => setNotificacao(null), 3000);
+        return;
+      }
+
+      const estaFavoritado = favoritos[chave];
       const url = `https://backend-viajados.vercel.app/api/favoritos/${
         tipo === "hotel" ? "hoteis" : "voos"
       }`;
+
+      console.log("Antes de favoritar:", { id, tipo, estaFavoritado });
 
       const response = await fetch(url, {
         method: estaFavoritado ? "DELETE" : "POST",
@@ -113,18 +126,8 @@ export default function Explorar() {
       });
 
       if (response.ok) {
-        setFavoritos((prev) => {
-          const novosFavoritos = { ...prev };
-          if (estaFavoritado) {
-            delete novosFavoritos[chaveFavorito];
-          } else {
-            novosFavoritos[chaveFavorito] = true;
-          }
-          return novosFavoritos;
-        });
-
-        await carregarFavoritos(token, idUsuario);
-
+        await carregarFavoritos(token, usuarioId);
+        
         const mensagem = estaFavoritado
           ? tipo === "hotel"
             ? "Hotel foi removido dos favoritos!"
@@ -134,18 +137,30 @@ export default function Explorar() {
           : "Voo foi adicionado aos favoritos!";
         setNotificacao(mensagem);
         setTimeout(() => setNotificacao(null), 3000);
+        console.log("Depois de favoritar:", favoritos);
       } else {
-        const errorText = await response.text();
-        console.error("Erro ao atualizar favorito:", errorText);
+        let errorMessage = "Erro desconhecido";
+        try {
+          const errorText = await response.text();
+          errorMessage = errorText || `Erro ${response.status}`;
+        } catch (e) {
+          errorMessage = `Erro ${response.status}`;
+        }
+        console.error("Erro ao atualizar favorito:", errorMessage);
+        setNotificacao("Erro ao atualizar favorito");
+        setTimeout(() => setNotificacao(null), 3000);
       }
     } catch (error) {
       console.error("Erro ao favoritar:", error);
+      setNotificacao("Erro ao atualizar favorito");
+      setTimeout(() => setNotificacao(null), 3000);
+    } finally {
+      setFavoritandoIds(prev => ({ ...prev, [chave]: false }));
     }
   };
 
   const carregarDados = async () => {
     setIsLoading(true);
-
     try {
       const nome = await AsyncStorage.getItem("nome");
       const usuarioId = await AsyncStorage.getItem("idUsuario");
@@ -181,11 +196,6 @@ export default function Explorar() {
               : null
           );
         }
-      } else {
-        console.error(
-          "Erro ao carregar dados do usuário:",
-          respostaUsuario.status
-        );
       }
 
       await carregarFavoritos(token, usuarioId);
@@ -201,14 +211,12 @@ export default function Explorar() {
         }
       );
 
-      if (!respostaHoteis.ok) {
-        throw new Error(`Erro ao buscar hotéis: ${respostaHoteis.status}`);
+      if (respostaHoteis.ok) {
+        const dadosHoteis = await respostaHoteis.json();
+        setHoteis(
+          Array.isArray(dadosHoteis) ? dadosHoteis : dadosHoteis.data || []
+        );
       }
-
-      const dadosHoteis = await respostaHoteis.json();
-      setHoteis(
-        Array.isArray(dadosHoteis) ? dadosHoteis : dadosHoteis.data || []
-      );
 
       const respostaVoos = await fetch(
         "https://backend-viajados.vercel.app/api/voos",
@@ -221,12 +229,10 @@ export default function Explorar() {
         }
       );
 
-      if (!respostaVoos.ok) {
-        throw new Error(`Erro ao buscar voos: ${respostaVoos.status}`);
+      if (respostaVoos.ok) {
+        const dadosVoos = await respostaVoos.json();
+        setVoos(Array.isArray(dadosVoos) ? dadosVoos : dadosVoos.data || []);
       }
-
-      const dadosVoos = await respostaVoos.json();
-      setVoos(Array.isArray(dadosVoos) ? dadosVoos : dadosVoos.data || []);
     } catch (error) {
       console.error("Erro ao carregar dados:", error);
     } finally {
@@ -289,8 +295,6 @@ export default function Explorar() {
         translucent={false}
       />
       <ScrollView style={styles.container}>
-      
-
         <View style={styles.containerInfoUsuario}>
           <Image
             source={
@@ -371,9 +375,8 @@ export default function Explorar() {
                       preco={hotel.preco_diaria || "Preço não disponível"}
                       onPress={() => bannerHotelPressionado(hotel)}
                       favorito={favoritos[`hotel_${hotel.idHoteis}`] || false}
-                      onFavoritar={() =>
-                        toggleFavorito(hotel.idHoteis, "hotel")
-                      }
+                      onFavoritar={() => toggleFavorito(hotel.idHoteis, "hotel")}
+                      isLoading={favoritandoIds[`hotel_${hotel.idHoteis}`]}
                     />
                   ))
                 ) : (
@@ -407,6 +410,7 @@ export default function Explorar() {
                       onPress={() => bannerVooPressionado(voo)}
                       favorito={favoritos[`voo_${voo.idVoos}`] || false}
                       onFavoritar={() => toggleFavorito(voo.idVoos, "voo")}
+                      isLoading={favoritandoIds[`voo_${voo.idVoos}`]}
                     />
                   ))
                 ) : (
@@ -442,14 +446,6 @@ const styles = StyleSheet.create({
   container: {
     backgroundColor: "#FDD5E9",
     padding: 20,
-  },
-  containerLogo: {
-    alignItems: "center",
-  },
-  logo: {
-    width: 80,
-    height: 80,
-    marginTop: 15,
   },
   containerInfoUsuario: {
     flexDirection: "row",

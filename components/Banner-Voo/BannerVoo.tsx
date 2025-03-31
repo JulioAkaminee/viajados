@@ -1,5 +1,5 @@
-import React from "react";
 import {
+  ActivityIndicator,
   Image,
   ImageSourcePropType,
   Pressable,
@@ -7,7 +7,9 @@ import {
   Text,
   View,
 } from "react-native";
+
 import { MaterialIcons } from "@expo/vector-icons";
+import React from "react";
 
 type Props = {
   imagem: ImageSourcePropType;
@@ -18,6 +20,7 @@ type Props = {
   favorito: boolean;
   onFavoritar: () => void;
   onPress: () => void;
+  isLoading?: boolean; // Adicionado para controle do loading
 };
 
 export default function BannerVoo({
@@ -29,16 +32,25 @@ export default function BannerVoo({
   favorito,
   onFavoritar,
   onPress,
+  isLoading = false,
 }: Props) {
   return (
     <Pressable onPress={onPress} style={styles.container}>
       <View style={{ position: "relative" }}>
-        <Pressable onPress={onFavoritar} style={styles.iconeFavorito}>
-          <MaterialIcons
-            name={favorito ? "favorite" : "favorite-border"}
-            size={24}
-            color={favorito ? "#D6005D" : "#000"}
-          />
+        <Pressable 
+          onPress={onFavoritar} 
+          style={styles.iconeFavorito}
+          disabled={isLoading}
+        >
+          {isLoading ? (
+            <ActivityIndicator size="small" color="#D6005D" />
+          ) : (
+            <MaterialIcons
+              name={favorito ? "favorite" : "favorite-border"}
+              size={24}
+              color={favorito ? "#D6005D" : "#000"}
+            />
+          )}
         </Pressable>
         <Image source={imagem} style={styles.imagem} />
       </View>
@@ -77,6 +89,10 @@ const styles = StyleSheet.create({
     padding: 4,
     elevation: 5,
     zIndex: 1,
+    minWidth: 32, // Adicionado para manter consistência no tamanho durante loading
+    minHeight: 32,
+    justifyContent: "center",
+    alignItems: "center",
   },
   destino: {
     fontWeight: "bold",
