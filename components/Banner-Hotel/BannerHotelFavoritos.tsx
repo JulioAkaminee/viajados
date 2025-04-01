@@ -120,7 +120,7 @@ const styles = StyleSheet.create({
   },
   nome: {
     fontWeight: "bold",
-    fontSize: 12,
+    fontSize: 14,
     top: 4,
     marginBottom: 5,
   },
@@ -128,16 +128,16 @@ const styles = StyleSheet.create({
     flexDirection: "row",
   },
   descricao: {
-    fontSize: 12,
+    fontSize: 14,
     maxWidth: "95%",
     marginBottom: 2,
   },
   texto: {
-    fontSize: 12,
+    fontSize: 14,
     marginBottom: 5,
   },
   preco: {
-    fontSize: 12,
+    fontSize: 14,
     fontWeight: "bold",
     color: "#000",
     marginBottom: 2,

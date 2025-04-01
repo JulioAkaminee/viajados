@@ -5,9 +5,9 @@ import {
   ScrollView,
   StyleSheet,
   Text,
-  View
+  View,
 } from "react-native";
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
 
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -18,18 +18,18 @@ import verificarToken from "../verificarToken";
 export default function MinhasViagens() {
   const navigation = useNavigation();
   const [opcaoSelecionada, setOpcaoSelecionada] = useState("agendado");
-  const [hospedagens, setHospedagens] = useState([]);  // Inicializa como array vazio
-  const [voos, setVoos] = useState([]);  // Novo estado para os voos
+  const [hospedagens, setHospedagens] = useState([]);
+  const [voos, setVoos] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [idUsuario, setIdUsuario] = useState(null);
 
-  const opcaoPressionada = (opcao: string) => {
+  const opcaoPressionada = (opcao) => {
     setOpcaoSelecionada(opcao);
   };
 
-    useEffect(() => {
-      verificarToken(navigation);
-    }, [navigation]);
+  useEffect(() => {
+    verificarToken(navigation);
+  }, [navigation]);
 
   const fetchHospedagens = async () => {
     setIsLoading(true);
@@ -112,12 +112,27 @@ export default function MinhasViagens() {
     }
   };
 
-  useEffect(() => {
+  // Função para carregar os dados
+  const loadData = useCallback(() => {
     getIdUsuario();
     fetchHospedagens();
     fetchVoos();
-  }, [ opcaoSelecionada]);
+  }, [idUsuario]); // Dependência de idUsuario para garantir que os fetches usem o ID correto
 
+  // Carrega os dados quando a tela ganha foco
+  useFocusEffect(
+    useCallback(() => {
+      loadData();
+    }, [loadData])
+  );
+
+  // Recarrega os dados quando a opção selecionada muda
+  useEffect(() => {
+    if (idUsuario) {
+      fetchHospedagens();
+      fetchVoos();
+    }
+  }, [opcaoSelecionada, idUsuario]);
 
   return (
     <ScrollView style={styles.container}>
@@ -136,16 +151,16 @@ export default function MinhasViagens() {
 
         <View style={styles.filtroBusca}>
           <Pressable
-            style={[ 
-              styles.opcoesFiltro, 
+            style={[
+              styles.opcoesFiltro,
               opcaoSelecionada === "agendado" && styles.opcaoSelecionada,
             ]}
             onPress={() => opcaoPressionada("agendado")}
           >
             <Text
-              style={[ 
-                styles.textoFiltro, 
-                opcaoSelecionada === "agendado" && styles.textoFiltroSelecionado 
+              style={[
+                styles.textoFiltro,
+                opcaoSelecionada === "agendado" && styles.textoFiltroSelecionado,
               ]}
             >
               Agendado
@@ -153,16 +168,16 @@ export default function MinhasViagens() {
           </Pressable>
 
           <Pressable
-            style={[ 
-              styles.opcoesFiltro, 
+            style={[
+              styles.opcoesFiltro,
               opcaoSelecionada === "finalizado" && styles.opcaoSelecionada,
             ]}
             onPress={() => opcaoPressionada("finalizado")}
           >
             <Text
-              style={[ 
-                styles.textoFiltro, 
-                opcaoSelecionada === "finalizado" && styles.textoFiltroSelecionado 
+              style={[
+                styles.textoFiltro,
+                opcaoSelecionada === "finalizado" && styles.textoFiltroSelecionado,
               ]}
             >
               Finalizado
@@ -174,8 +189,8 @@ export default function MinhasViagens() {
       <View style={styles.containerItens}>
         {isLoading ? (
           <>
-          <ActivityIndicator size="large" color="#D6005D" />
-          <Text style={{textAlign:"center"}}>Carregando...</Text>
+            <ActivityIndicator size="large" color="#D6005D" />
+            <Text style={{ textAlign: "center" }}>Carregando...</Text>
           </>
         ) : (
           <>

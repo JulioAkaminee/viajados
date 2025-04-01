@@ -31,17 +31,14 @@ const ModalVoo = ({ visible, voo, onClose, formatarData }) => {
         return;
       }
 
-      // Validação do formato da data (DD/MM/YYYY)
       const dateRegex = /^\d{2}\/\d{2}\/\d{4}$/;
       if (!dateRegex.test(dataReserva)) {
         Alert.alert("Erro", "Por favor, insira a data no formato DD/MM/YYYY (ex.: 10/04/2025).");
         return;
       }
 
-      // Converte DD/MM/YYYY para YYYY-MM-DD
       const [dia, mes, ano] = dataReserva.split("/");
       const formattedDataReserva = `${ano}-${mes}-${dia}`;
-
       const reservaDate = new Date(formattedDataReserva);
 
       if (isNaN(reservaDate)) {
@@ -50,9 +47,9 @@ const ModalVoo = ({ visible, voo, onClose, formatarData }) => {
       }
 
       const requestBody = {
-        idVoos: voo.idVoos, // Usando o idVoos da opção clicada
+        idVoos: voo.idVoos,
         idUsuario,
-        data_reserva: formattedDataReserva, // Usando data_reserva única
+        data_reserva: formattedDataReserva,
       };
 
       console.log("Enviando requisição com body:", JSON.stringify(requestBody));
@@ -60,7 +57,7 @@ const ModalVoo = ({ visible, voo, onClose, formatarData }) => {
       console.log("URL:", "https://backend-viajados.vercel.app/api/reservas/voos");
 
       const response = await fetch(
-        "https://backend-viajados.vercel.app/api/reservas/voos", // Corrigido para a rota correta
+        "https://backend-viajados.vercel.app/api/reservas/voos",
         {
           method: "POST",
           headers: {
@@ -71,7 +68,6 @@ const ModalVoo = ({ visible, voo, onClose, formatarData }) => {
         }
       );
 
-      // Log do status e resposta bruta
       console.log("Status da resposta:", response.status);
       const responseText = await response.text();
       console.log("Resposta do servidor (bruta):", responseText);
@@ -101,13 +97,9 @@ const ModalVoo = ({ visible, voo, onClose, formatarData }) => {
   };
 
   const formatarDataInput = (text, setter) => {
-    // Remove tudo exceto números
     let cleaned = text.replace(/\D/g, "");
-
-    // Limita a 8 dígitos (DDMMYYYY)
     if (cleaned.length > 8) cleaned = cleaned.slice(0, 8);
 
-    // Adiciona barras automaticamente
     let formatted = "";
     if (cleaned.length > 4) {
       formatted = `${cleaned.slice(0, 2)}/${cleaned.slice(2, 4)}/${cleaned.slice(4)}`;
@@ -122,63 +114,61 @@ const ModalVoo = ({ visible, voo, onClose, formatarData }) => {
 
   return (
     <View style={styles.containerModal}>
-      <ScrollView style={styles.conteudoModal}>
-        <Text style={styles.tituloModal}>
-          {voo.destino || "Destino não informado"}
-        </Text>
-        <View style={styles.containerCarrossel}>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-            {voo.imagens && Array.isArray(voo.imagens) ? (
-              voo.imagens.map((image, index) => (
-                <Image
-                  key={index}
-                  source={{ uri: image }}
-                  style={styles.imagemModal}
-                />
-              ))
-            ) : (
-              <Text>Imagens não disponíveis</Text>
-            )}
-          </ScrollView>
-        </View>
-        <Text style={styles.textoInformacoes}>
-          <Text style={{ fontWeight: "bold" }}>Origem:</Text> {voo.origem}
-        </Text>
-        <Text style={styles.textoInformacoes}>
-          <Text style={{ fontWeight: "bold" }}>Preço:</Text> R$ {voo.preco}
-        </Text>
-        <Text style={styles.textoInformacoes}>
-          <Text style={{ fontWeight: "bold" }}>Data:</Text>{" "}
-          {formatarData(voo.data)}
-        </Text>
-        <View style={styles.containerOferecimentos}>
-          <Text style={styles.tituloOferecimentos}>O que o voo oferece:</Text>
-          <View style={styles.containerConteudoOferecimentos}>
-            <MaterialIcons name="local-airport" size={30} color="#D6005D" />
-            <Text style={styles.textoOferecimentos}>Assento confortável</Text>
+      <View style={styles.modalWrapper}>
+        <ScrollView style={styles.conteudoModal}>
+          <View style={styles.containerCarrossel}>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+              {voo.imagens && Array.isArray(voo.imagens) ? (
+                voo.imagens.map((image, index) => (
+                  <Image
+                    key={index}
+                    source={{ uri: image }}
+                    style={styles.imagemModal}
+                  />
+                ))
+              ) : (
+                <Text>Imagens não disponíveis</Text>
+              )}
+            </ScrollView>
           </View>
-          <View style={styles.containerConteudoOferecimentos}>
-            <MaterialIcons name="wifi" size={30} color="#D6005D" />
-            <Text style={styles.textoOferecimentos}>Wi-Fi</Text>
+          <Text style={styles.tituloModal}>
+            {voo.origem && voo.destino ? `${voo.origem} -> ${voo.destino}` : voo.destino || "Destino não informado"}
+          </Text>
+          <Text style={styles.textoInformacoes}>
+            <Text style={{ fontWeight: "bold" }}>Preço:</Text> R$ {voo.preco}
+          </Text>
+          <Text style={styles.textoInformacoes}>
+            <Text style={{ fontWeight: "bold" }}>Data:</Text>{" "}
+            Consultar Disponibilidade
+          </Text>
+          <View style={styles.containerOferecimentos}>
+            <Text style={styles.tituloOferecimentos}>O que o voo oferece:</Text>
+            <View style={styles.containerConteudoOferecimentos}>
+              <MaterialIcons name="local-airport" size={30} color="#D6005D" />
+              <Text style={styles.textoOferecimentos}>Assento confortável</Text>
+            </View>
+            <View style={styles.containerConteudoOferecimentos}>
+              <MaterialIcons name="wifi" size={30} color="#D6005D" />
+              <Text style={styles.textoOferecimentos}>Wi-Fi</Text>
+            </View>
           </View>
-        </View>
-        <Pressable
-          onPress={() => setModalReservaVisible(true)}
-          style={styles.botaoEscolher}
-        >
-          <Text style={styles.textoBotaoEscolher}>Escolher</Text>
+          <Pressable
+            onPress={() => setModalReservaVisible(true)}
+            style={styles.botaoEscolher}
+          >
+            <Text style={styles.textoBotaoEscolher}>Escolher</Text>
+          </Pressable>
+        </ScrollView>
+        <Pressable style={styles.closeIcon} onPress={onClose}>
+          <MaterialIcons name="close" size={24} color="#000" />
         </Pressable>
-        <Pressable onPress={onClose} style={styles.botaoFechar}>
-          <Text style={styles.textoBotaoFechar}>Fechar</Text>
-        </Pressable>
-      </ScrollView>
+      </View>
 
       {/* Modal de Reserva */}
       <Modal visible={modalReservaVisible} animationType="fade" transparent>
         <View style={styles.modalReservaContainer}>
           <View style={styles.modalReservaContent}>
             <Text style={styles.modalReservaTitle}>Escolha a Data de Reserva</Text>
-
             <Text style={styles.label}>Data da Reserva (DD/MM/YYYY):</Text>
             <TextInput
               style={styles.input}
@@ -188,7 +178,6 @@ const ModalVoo = ({ visible, voo, onClose, formatarData }) => {
               keyboardType="numeric"
               maxLength={10}
             />
-
             <View style={styles.buttonContainer}>
               <Button title="Reservar" onPress={reservarVoo} />
               <Button
@@ -216,18 +205,28 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(0,0,0,0.5)",
     zIndex: 5,
   },
-  conteudoModal: {
+  modalWrapper: {
+    position: "relative",
     maxWidth: "90%",
-    maxHeight: "85%",
+    maxHeight: "80%",
+  },
+  conteudoModal: {
     backgroundColor: "#fff",
     padding: 20,
     borderRadius: 10,
   },
+  closeIcon: {
+    position: "absolute",
+    top: 5,
+    right: 10,
+    padding: 5,
+  },
   tituloModal: {
     fontSize: 20,
-    marginBottom: 2,
+    marginTop: 10, // Ajustado para dar espaço após os oferecimentos
+    marginBottom: 10,
     fontWeight: "bold",
-    color: "#D6005D",
+    color: "black",
   },
   containerCarrossel: {
     flexDirection: "row",
@@ -238,8 +237,7 @@ const styles = StyleSheet.create({
     height: 150,
     marginRight: 10,
     borderRadius: 10,
-    borderWidth: 2,
-    borderColor: "#D6005D",
+    marginTop:20
   },
   textoInformacoes: {
     fontSize: 16,
@@ -268,21 +266,12 @@ const styles = StyleSheet.create({
     padding: 10,
     backgroundColor: "#D6005D",
     borderRadius: 5,
+    marginTop: 40, // Ajustado para dar espaço no final
   },
   textoBotaoEscolher: {
     color: "#fff",
     fontWeight: "bold",
-  },
-  botaoFechar: {
-    marginTop: 20,
-    padding: 10,
-    backgroundColor: "#EEE",
-    borderRadius: 5,
-    marginBottom: 30,
-  },
-  textoBotaoFechar: {
-    color: "#000",
-    fontWeight: "bold",
+    textAlign: "center",
   },
   modalReservaContainer: {
     flex: 1,

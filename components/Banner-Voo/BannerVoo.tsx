@@ -20,7 +20,7 @@ type Props = {
   favorito: boolean;
   onFavoritar: () => void;
   onPress: () => void;
-  isLoading?: boolean; // Adicionado para controle do loading
+  isLoading?: boolean;
 };
 
 export default function BannerVoo({
@@ -37,8 +37,8 @@ export default function BannerVoo({
   return (
     <Pressable onPress={onPress} style={styles.container}>
       <View style={{ position: "relative" }}>
-        <Pressable 
-          onPress={onFavoritar} 
+        <Pressable
+          onPress={onFavoritar}
           style={styles.iconeFavorito}
           disabled={isLoading}
         >
@@ -54,8 +54,7 @@ export default function BannerVoo({
         </Pressable>
         <Image source={imagem} style={styles.imagem} />
       </View>
-      <Text style={styles.destino}>{destino}</Text>
-      <Text style={styles.origem}>Origem: {origem}</Text>
+      <Text style={styles.destino}>{`${origem} -> ${destino}`}</Text>
       <Text style={styles.data}>Data: {data}</Text>
       <Text style={styles.texto}>Preço por pessoa</Text>
       <Text style={styles.preco}>R$ {preco}</Text>
@@ -89,7 +88,7 @@ const styles = StyleSheet.create({
     padding: 4,
     elevation: 5,
     zIndex: 1,
-    minWidth: 32, // Adicionado para manter consistência no tamanho durante loading
+    minWidth: 32,
     minHeight: 32,
     justifyContent: "center",
     alignItems: "center",
@@ -98,27 +97,13 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     textAlign: "left",
     marginLeft: 10,
-    marginTop: 10,
-    marginBottom: 2,
-  },
-  descricao: {
-    textAlign: "left",
-    marginHorizontal: 10,
-    marginBottom: 5,
-  },
-  origem: {
-    textAlign: "left",
-    marginHorizontal: 10,
-    marginBottom: 5,
-  },
-  saida: {
-    textAlign: "left",
-    marginHorizontal: 10,
+    marginTop: 5, // Ajustado para dar espaço após a data
     marginBottom: 5,
   },
   data: {
     textAlign: "left",
     marginHorizontal: 10,
+   
   },
   texto: {
     textAlign: "left",

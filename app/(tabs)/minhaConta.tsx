@@ -448,7 +448,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   modalContent: {
-    backgroundColor: "#2A2A2A",
+    backgroundColor: "white",
     width: "85%",
     padding: 25,
     borderRadius: 12,
@@ -458,7 +458,7 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontSize: 20,
     fontWeight: "500",
-    color: "#FFFFFF",
+    color: "black",
     marginBottom: 20,
     textAlign: "center",
     letterSpacing: 0.5,
@@ -467,12 +467,12 @@ const styles = StyleSheet.create({
     width: "100%",
     padding: 12,
     borderRadius: 6,
-    backgroundColor: "#3A3A3A",
     marginBottom: 20,
     fontSize: 16,
-    color: "#FFFFFF",
-    borderWidth: 1,
-    borderColor: "#d6005d",
+    color: "Black",
+    borderWidth:2,
+    borderColor: "#d6005d"
+   
   },
   modalActions: {
     flexDirection: "row",
@@ -488,8 +488,7 @@ const styles = StyleSheet.create({
   },
   cancelButton: {
     flex: 1,
-    borderWidth: 1,
-    borderColor: "#d6005d",
+   backgroundColor:"#85003a",
     paddingVertical: 12,
     borderRadius: 6,
     alignItems: "center",

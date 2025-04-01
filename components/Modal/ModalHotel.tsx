@@ -32,14 +32,12 @@ const ModalHotel = ({ visible, hotel, onClose }) => {
         return;
       }
 
-      // Validação do formato da data (DD/MM/YYYY)
       const dateRegex = /^\d{2}\/\d{2}\/\d{4}$/;
       if (!dateRegex.test(dataEntrada) || !dateRegex.test(dataSaida)) {
         Alert.alert("Erro", "Por favor, insira as datas no formato DD/MM/YYYY (ex.: 10/04/2025).");
         return;
       }
 
-      // Converte DD/MM/YYYY para YYYY-MM-DD
       const [diaE, mesE, anoE] = dataEntrada.split("/");
       const [diaS, mesS, anoS] = dataSaida.split("/");
       const formattedDataEntrada = `${anoE}-${mesE}-${diaE}`;
@@ -70,7 +68,7 @@ const ModalHotel = ({ visible, hotel, onClose }) => {
       console.log("URL:", "https://backend-viajados.vercel.app/api/reservas/hospedagens");
 
       const response = await fetch(
-        "https://backend-viajados.vercel.app/api/reservas/hospedagens", // Corrigido para a rota correta
+        "https://backend-viajados.vercel.app/api/reservas/hospedagens",
         {
           method: "POST",
           headers: {
@@ -81,7 +79,6 @@ const ModalHotel = ({ visible, hotel, onClose }) => {
         }
       );
 
-      // Log do status e resposta bruta
       console.log("Status da resposta:", response.status);
       const responseText = await response.text();
       console.log("Resposta do servidor (bruta):", responseText);
@@ -111,13 +108,9 @@ const ModalHotel = ({ visible, hotel, onClose }) => {
   };
 
   const formatarDataInput = (text, setter) => {
-    // Remove tudo exceto números
     let cleaned = text.replace(/\D/g, "");
-
-    // Limita a 8 dígitos (DDMMYYYY)
     if (cleaned.length > 8) cleaned = cleaned.slice(0, 8);
 
-    // Adiciona barras automaticamente
     let formatted = "";
     if (cleaned.length > 4) {
       formatted = `${cleaned.slice(0, 2)}/${cleaned.slice(2, 4)}/${cleaned.slice(4)}`;
@@ -132,82 +125,86 @@ const ModalHotel = ({ visible, hotel, onClose }) => {
 
   return (
     <View style={styles.containerModal}>
-      <ScrollView style={styles.conteudoModal}>
-        <Text style={styles.tituloModal}>{hotel.nome}</Text>
-        <View style={styles.containerCarrossel}>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-            {hotel.imagens && Array.isArray(hotel.imagens) ? (
-              hotel.imagens.map((image, index) => (
-                <Image
-                  key={index}
-                  source={{ uri: image }}
-                  style={styles.imagemModal}
-                />
-              ))
-            ) : (
-              <Text>Imagens não disponíveis</Text>
-            )}
-          </ScrollView>
-        </View>
-        <View style={styles.containerInformacoes}>
-          <Text style={styles.textoInformacoes}>
-            <Text style={{ fontWeight: "bold" }}>Preço:</Text> R${" "}
-            {hotel.preco_diaria}
+      <View style={styles.modalWrapper}>
+        <ScrollView style={styles.conteudoModal}>
+          {/* Movido o título para baixo com Origem -> Nome */}
+          <View style={styles.containerCarrossel}>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+              {hotel.imagens && Array.isArray(hotel.imagens) ? (
+                hotel.imagens.map((image, index) => (
+                  <Image
+                    key={index}
+                    source={{ uri: image }}
+                    style={styles.imagemModal}
+                  />
+                ))
+              ) : (
+                <Text>Imagens não disponíveis</Text>
+              )}
+            </ScrollView>
+          </View>
+          <View style={styles.containerInformacoes}>
+          <Text style={styles.tituloModal}>
+           {hotel.nome}
           </Text>
-          <Text style={styles.textoInformacoes}>
-            <Text style={{ fontWeight: "bold" }}>Descrição:</Text>{" "}
-            {hotel.descricao}
-          </Text>
-        </View>
-        <View style={styles.containerAvaliacao}>
-          {Array.from({ length: 5 }).map((_, i) => (
-            <MaterialIcons
-              key={i}
-              name={i < hotel.avaliacao ? "star" : "star-border"}
-              size={24}
-              color="#000"
-              style={styles.estrela}
-            />
-          ))}
-        </View>
-        <View style={styles.containerOferecimentos}>
-          <Text style={styles.tituloOferecimentos}>
-            O que a hospedagem oferece:
-          </Text>
-          <View style={styles.containerConteudoOferecimentos}>
-            <MaterialIcons name="ac-unit" size={30} color="#D6005D" />
-            <Text style={styles.textoOferecimentos}>Ar-condicionado</Text>
+            <Text style={styles.textoInformacoes}>
+              <Text style={{ fontWeight: "bold" }}>Preço:</Text> R${" "}
+              {hotel.preco_diaria}
+            </Text>
+            <Text style={styles.textoInformacoes}>
+              <Text style={{ fontWeight: "bold" }}>Descrição:</Text>{" "}
+              {hotel.descricao}
+            </Text>
           </View>
-          <View style={styles.containerConteudoOferecimentos}>
-            <MaterialIcons name="pool" size={30} color="#D6005D" />
-            <Text style={styles.textoOferecimentos}>Piscina</Text>
+          <View style={styles.containerAvaliacao}>
+            {Array.from({ length: 5 }).map((_, i) => (
+              <MaterialIcons
+                key={i}
+                name={i < hotel.avaliacao ? "star" : "star-border"}
+                size={24}
+                color="#000"
+                style={styles.estrela}
+              />
+            ))}
           </View>
-          <View style={styles.containerConteudoOferecimentos}>
-            <MaterialIcons name="tv" size={30} color="#D6005D" />
-            <Text style={styles.textoOferecimentos}>TV a cabo</Text>
+          <View style={styles.containerOferecimentos}>
+            <Text style={styles.tituloOferecimentos}>
+              O que a hospedagem oferece:
+            </Text>
+            <View style={styles.containerConteudoOferecimentos}>
+              <MaterialIcons name="ac-unit" size={30} color="#D6005D" />
+              <Text style={styles.textoOferecimentos}>Ar-condicionado</Text>
+            </View>
+            <View style={styles.containerConteudoOferecimentos}>
+              <MaterialIcons name="pool" size={30} color="#D6005D" />
+              <Text style={styles.textoOferecimentos}>Piscina</Text>
+            </View>
+            <View style={styles.containerConteudoOferecimentos}>
+              <MaterialIcons name="tv" size={30} color="#D6005D" />
+              <Text style={styles.textoOferecimentos}>TV a cabo</Text>
+            </View>
+            <View style={styles.containerConteudoOferecimentos}>
+              <MaterialIcons name="wifi" size={30} color="#D6005D" />
+              <Text style={styles.textoOferecimentos}>Wifi</Text>
+            </View>
           </View>
-          <View style={styles.containerConteudoOferecimentos}>
-            <MaterialIcons name="wifi" size={30} color="#D6005D" />
-            <Text style={styles.textoOferecimentos}>Wifi</Text>
-          </View>
-        </View>
-        <Pressable
-          onPress={() => setModalReservaVisible(true)}
-          style={styles.botaoEscolher}
-        >
-          <Text style={styles.textoBotaoEscolher}>Escolher</Text>
+          <Pressable
+            onPress={() => setModalReservaVisible(true)}
+            style={styles.botaoEscolher}
+          >
+            <Text style={styles.textoBotaoEscolher}>Escolher</Text>
+          </Pressable>
+        </ScrollView>
+        <Pressable style={styles.closeIcon} onPress={onClose}>
+          <MaterialIcons name="close" size={24} color="#000" />
         </Pressable>
-        <Pressable onPress={onClose} style={styles.botaoFechar}>
-          <Text style={styles.textoBotaoFechar}>Fechar</Text>
-        </Pressable>
-      </ScrollView>
+      </View>
 
       {/* Modal de Reserva */}
       <Modal visible={modalReservaVisible} animationType="slide" transparent>
         <View style={styles.modalReservaContainer}>
           <View style={styles.modalReservaContent}>
             <Text style={styles.modalReservaTitle}>Escolha as Datas</Text>
-
             <Text style={styles.label}>Data de Entrada (DD/MM/YYYY):</Text>
             <TextInput
               style={styles.input}
@@ -217,7 +214,6 @@ const ModalHotel = ({ visible, hotel, onClose }) => {
               keyboardType="numeric"
               maxLength={10}
             />
-
             <Text style={styles.label}>Data de Saída (DD/MM/YYYY):</Text>
             <TextInput
               style={styles.input}
@@ -227,14 +223,13 @@ const ModalHotel = ({ visible, hotel, onClose }) => {
               keyboardType="numeric"
               maxLength={10}
             />
-
             <View style={styles.buttonContainer}>
-              <Button title="Reservar" onPress={reservarHotel} />
               <Button
                 title="Cancelar"
                 onPress={() => setModalReservaVisible(false)}
                 color="red"
               />
+              <Button title="Reservar" onPress={reservarHotel} />
             </View>
           </View>
         </View>
@@ -255,21 +250,30 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(0,0,0,0.5)",
     zIndex: 5,
   },
-  conteudoModal: {
+  modalWrapper: {
+    position: "relative",
     maxWidth: "90%",
-    maxHeight: "85%",
+    maxHeight: "90%",
+  },
+  conteudoModal: {
     backgroundColor: "#fff",
     padding: 20,
     borderRadius: 10,
   },
+  closeIcon: {
+    position: "absolute",
+    top: 5,
+    right: 10,
+    padding: 5,
+  },
   tituloModal: {
     fontSize: 20,
-    marginBottom: 2,
+    marginBottom:5,
     fontWeight: "bold",
   },
   containerAvaliacao: {
     flexDirection: "row",
-    marginBottom: 10,
+    marginBottom:5,
   },
   estrela: {
     fontSize: 20,
@@ -284,6 +288,7 @@ const styles = StyleSheet.create({
     height: 150,
     marginRight: 10,
     borderRadius: 5,
+    marginTop:20
   },
   containerInformacoes: {
     alignItems: "flex-start",
@@ -314,21 +319,12 @@ const styles = StyleSheet.create({
     padding: 10,
     backgroundColor: "#D6005D",
     borderRadius: 5,
+    marginTop: 10,
   },
   textoBotaoEscolher: {
     color: "#fff",
     fontWeight: "bold",
-  },
-  botaoFechar: {
-    marginTop: 20,
-    padding: 10,
-    backgroundColor: "#EEE",
-    borderRadius: 5,
-    marginBottom: 30,
-  },
-  textoBotaoFechar: {
-    color: "#000",
-    fontWeight: "bold",
+    textAlign: "center",
   },
   modalReservaContainer: {
     flex: 1,
@@ -364,7 +360,7 @@ const styles = StyleSheet.create({
     color: "#333",
   },
   buttonContainer: {
-    marginTop: 20,
+    marginVertical: 20,
     width: "100%",
     flexDirection: "row",
     justifyContent: "space-around",

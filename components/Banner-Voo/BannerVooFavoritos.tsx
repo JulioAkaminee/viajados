@@ -30,14 +30,12 @@ export default function BannerVooFavoritos({
     }
   };
 
- 
-
   return (
     <Pressable onPress={onPress} style={styles.container}>
       <Image source={imagem} style={styles.imagem} />
       <View style={styles.conteudo}>
-        <Pressable 
-          onPress={handleDesfavoritar} 
+        <Pressable
+          onPress={handleDesfavoritar}
           style={styles.iconeFavorito}
           disabled={isLoading}
         >
@@ -51,9 +49,8 @@ export default function BannerVooFavoritos({
             />
           )}
         </Pressable>
-        <Text style={styles.destino}>{destino}</Text>
-        <Text style={styles.origem}>Origem: {origem}</Text>
-        <Text style={styles.data}>Data: {data}</Text>
+        <Text style={styles.destino}>{`${origem} -> ${destino}`}</Text>
+        <Text style={styles.data}>Data: Consultar Disponibilidade</Text>
         <Text style={styles.texto}>Preço por pessoa</Text>
         <Text style={styles.preco}>R$ {preco}</Text>
         <Text style={styles.texto}>Taxas e impostos não inclusos.</Text>
@@ -81,6 +78,7 @@ const styles = StyleSheet.create({
   conteudo: {
     flex: 1,
     paddingHorizontal: 10,
+    paddingVertical: 5, // Adicionado para dar um espaçamento vertical consistente
   },
   iconeFavorito: {
     position: "absolute",
@@ -96,24 +94,20 @@ const styles = StyleSheet.create({
   },
   destino: {
     fontWeight: "bold",
-    fontSize: 12,
-    top: 4,
-    marginBottom: 6,
-  },
-  origem: {
-    fontSize: 12,
+    fontSize: 14,
+    marginTop: 4, // Ajustado para dar espaço após o preço
     marginBottom: 4,
   },
   data: {
-    fontSize: 12,
+    fontSize: 14,
     marginBottom: 4,
   },
   texto: {
-    fontSize: 12,
+    fontSize: 14,
     marginBottom: 4,
   },
   preco: {
-    fontSize: 12,
+    fontSize: 14,
     fontWeight: "bold",
     color: "#000",
     marginBottom: 2,
