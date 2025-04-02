@@ -160,21 +160,24 @@ export default function Explorar() {
     }
   };
 
-  const carregarDados = async () => {
-    setIsLoading(true);
+  const carregarDadosUsuario = async () => {
     try {
-      const nome = await AsyncStorage.getItem("nome");
-      const usuarioId = await AsyncStorage.getItem("idUsuario");
       const token = await AsyncStorage.getItem("token");
-
-      if (nome) setNomeUsuario(nome);
-      if (usuarioId) setIdUsuario(usuarioId);
-
+      const usuarioId = await AsyncStorage.getItem("idUsuario");
+      
       if (!token || !usuarioId) {
         console.error("Token ou ID do usuário não encontrado");
         return;
       }
 
+      // Atualiza o ID do usuário no estado
+      setIdUsuario(usuarioId);
+      
+      // Busca nome atualizado do AsyncStorage
+      const nome = await AsyncStorage.getItem("nome");
+      if (nome) setNomeUsuario(nome);
+      
+      // Busca dados atualizados do usuário da API
       const respostaUsuario = await fetch(
         `https://backend-viajados.vercel.app/api/alterardados/dadosusuario?idUsuario=${usuarioId}`,
         {
@@ -188,6 +191,14 @@ export default function Explorar() {
       if (respostaUsuario.ok) {
         const dadosUsuario = await respostaUsuario.json();
         if (dadosUsuario.length > 0) {
+          // Atualiza nome do AsyncStorage se diferente
+          const nomeAtualizado = dadosUsuario[0].nome || "";
+          if (nomeAtualizado && nomeAtualizado !== nomeUsuario) {
+            await AsyncStorage.setItem("nome", nomeAtualizado);
+            setNomeUsuario(nomeAtualizado);
+          }
+          
+          // Atualiza foto
           const foto = dadosUsuario[0].foto_usuario;
           setFotoUsuario(
             foto
@@ -198,9 +209,29 @@ export default function Explorar() {
           );
         }
       }
+    } catch (error) {
+      console.error("Erro ao carregar dados do usuário:", error);
+    }
+  };
 
+  const carregarDados = async () => {
+    setIsLoading(true);
+    try {
+      const token = await AsyncStorage.getItem("token");
+      const usuarioId = await AsyncStorage.getItem("idUsuario");
+
+      if (!token || !usuarioId) {
+        console.error("Token ou ID do usuário não encontrado");
+        return;
+      }
+
+      // Carrega dados do usuário
+      await carregarDadosUsuario();
+      
+      // Carrega favoritos
       await carregarFavoritos(token, usuarioId);
 
+      // Carrega hotéis
       const respostaHoteis = await fetch(
         "https://backend-viajados.vercel.app/api/hoteis",
         {
@@ -219,6 +250,7 @@ export default function Explorar() {
         );
       }
 
+      // Carrega voos
       const respostaVoos = await fetch(
         "https://backend-viajados.vercel.app/api/voos",
         {
@@ -241,10 +273,17 @@ export default function Explorar() {
     }
   };
 
+  // Usa useFocusEffect para recarregar os dados sempre que a tela for focada
   useFocusEffect(
     useCallback(() => {
+      // Recarrega os dados do usuário e demais informações quando a tab recebe foco
       carregarDados();
-    }, [opcaoSelecionada])
+      
+      // Retorna uma função de limpeza caso necessário
+      return () => {
+        // Código de limpeza se necessário
+      };
+    }, [])
   );
 
   const opcaoPressionada = (opcao) => {
@@ -296,22 +335,22 @@ export default function Explorar() {
         translucent={false}
       />
       <ScrollView style={styles.container}>
-            <TouchableOpacity onPress={() => navigation.navigate("minhaConta")}>
-        <View style={styles.containerInfoUsuario}>
-          <Image
-            source={
-              fotoUsuario
-                ? { uri: fotoUsuario }
-                : require("../../assets/images/user-icon.png")
-            }
-            style={styles.avatar}
-          />
-      <View>
-        <Text style={styles.saudacao}>Olá, {nomeUsuario || "Usuário"}</Text>
-        <Text style={styles.texto}>Bem-vindo de volta!</Text>
-      </View>
-        </View>
-    </TouchableOpacity>
+        <TouchableOpacity onPress={() => navigation.navigate("minhaConta")}>
+          <View style={styles.containerInfoUsuario}>
+            <Image
+              source={
+                fotoUsuario
+                  ? { uri: fotoUsuario }
+                  : require("../../assets/images/user-icon.png")
+              }
+              style={styles.avatar}
+            />
+            <View>
+              <Text style={styles.saudacao}>Olá, {nomeUsuario || "Usuário"}</Text>
+              <Text style={styles.texto}>Bem-vindo de volta!</Text>
+            </View>
+          </View>
+        </TouchableOpacity>
 
         <View style={styles.containerExplorar}>
           <Text style={styles.titulo}>Explorar</Text>

@@ -20,7 +20,7 @@ type Props = {
   favorito: boolean;
   onFavoritar: () => void;
   onPress: () => void;
-  isLoading?: boolean; // Alterado de isFavoritando para isLoading para consistência
+  isLoading?: boolean;
 };
 
 export default function BannerHotel({
@@ -41,8 +41,8 @@ export default function BannerHotel({
         <MaterialIcons
           key={i}
           name={i <= avaliacao ? "star" : "star-border"}
-          size={24}
-          color="#000"
+          size={18}
+          color={i <= avaliacao ? "#FFB800" : "#CCCCCC"}
         />
       );
     }
@@ -53,7 +53,8 @@ export default function BannerHotel({
 
   return (
     <Pressable onPress={onPress} style={styles.container}>
-      <View style={{ position: "relative" }}>
+      <View style={styles.imagemContainer}>
+        <Image source={imagem} style={styles.imagem} resizeMode="cover" />
         <Pressable
           onPress={onFavoritar}
           style={styles.iconeFavorito}
@@ -64,79 +65,127 @@ export default function BannerHotel({
           ) : (
             <MaterialIcons
               name={isFavorito ? "favorite" : "favorite-border"}
-              size={24}
-              color={isFavorito ? "#D6005D" : "#000"}
+              size={22}
+              color={isFavorito ? "#D6005D" : "#FFFFFF"}
             />
           )}
         </Pressable>
-        <Image source={imagem} style={styles.imagem} />
+        <View style={styles.precoTag}>
+          <Text style={styles.precoTexto}>R$ {preco}</Text>
+          <Text style={styles.precoSubtexto}>por pessoa</Text>
+        </View>
       </View>
-      <Text style={styles.nome}>{nome}</Text>
-      <View style={styles.avaliacao}>{numeroEstrelas(avaliacao)}</View>
-      <Text style={styles.descricao}>{descricao}</Text>
-      <Text style={styles.texto}>Preço por pessoa</Text>
-      <Text style={styles.preco}>R$ {preco}</Text>
-      <Text style={[styles.texto, { marginBottom: 10 }]}>
-        Taxas e impostos não inclusos.
-      </Text>
+      
+      <View style={styles.conteudo}>
+        <View style={styles.cabecalho}>
+          <Text style={styles.nome} numberOfLines={1}>{nome}</Text>
+          <View style={styles.avaliacaoContainer}>
+            <View style={styles.avaliacao}>{numeroEstrelas(avaliacao)}</View>
+            <Text style={styles.avaliacaoTexto}>{avaliacao.toFixed(1)}</Text>
+          </View>
+        </View>
+        
+        <Text style={styles.descricao} numberOfLines={2}>{descricao}</Text>
+        
+        <View style={styles.rodape}>
+          <Text style={styles.textoInfo}>Taxas e impostos não inclusos</Text>
+        </View>
+      </View>
     </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    width: 200,
-    borderWidth: 1,
-    borderColor: "#000",
-    borderRadius: 10,
+    width: 280,
+    borderRadius: 12,
     overflow: "hidden",
     backgroundColor: "#fff",
     margin: 10,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  imagemContainer: {
+    position: "relative",
+    height: 180,
   },
   imagem: {
     width: "100%",
-    height: 150,
+    height: "100%",
   },
   iconeFavorito: {
     position: "absolute",
-    top: 0,
-    right: 0,
-    backgroundColor: "#fff",
-    borderStartEndRadius: 10,
-    padding: 4,
-    elevation: 5,
+    top: 12,
+    right: 12,
+    backgroundColor: "rgba(0,0,0,0.3)",
+    borderRadius: 20,
+    padding: 8,
     zIndex: 1,
-    minWidth: 32, // Adicionado para manter consistência no tamanho durante loading
-    minHeight: 32,
+    minWidth: 38,
+    minHeight: 38,
     justifyContent: "center",
     alignItems: "center",
   },
+  precoTag: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    backgroundColor: "rgba(0,0,0,0.7)",
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+    borderTopRightRadius: 12,
+  },
+  precoTexto: {
+    color: "#FFFFFF",
+    fontWeight: "bold",
+    fontSize: 16,
+  },
+  precoSubtexto: {
+    color: "#DDDDDD",
+    fontSize: 12,
+  },
+  conteudo: {
+    padding: 14,
+  },
+  cabecalho: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 8,
+  },
   nome: {
     fontWeight: "bold",
-    textAlign: "left",
-    marginLeft: 10,
-    marginTop: 10,
-    marginBottom: 2,
+    fontSize: 18,
+    flex: 1,
+    marginRight: 8,
+  },
+  avaliacaoContainer: {
+    flexDirection: "row",
+    alignItems: "center",
   },
   avaliacao: {
     flexDirection: "row",
-    marginHorizontal: 7,
-    marginBottom: 5,
+    marginRight: 4,
+  },
+  avaliacaoTexto: {
+    fontWeight: "bold",
+    fontSize: 14,
+    color: "#666666",
   },
   descricao: {
-    textAlign: "left",
-    marginHorizontal: 10,
-    marginBottom: 5,
+    color: "#666666",
+    marginBottom: 10,
+    lineHeight: 20,
   },
-  texto: {
-    textAlign: "left",
-    marginHorizontal: 10,
-    marginTop: 5,
+  rodape: {
+    marginTop: 6,
   },
-  preco: {
-    fontSize: 17,
-    fontWeight: "bold",
-    textAlign: "left",
-    marginHorizontal: 10,
+  textoInfo: {
+    fontSize: 12,
+    color: "#999999",
+    fontStyle: "italic",
   },
 });

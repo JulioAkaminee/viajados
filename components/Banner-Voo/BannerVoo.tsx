@@ -36,7 +36,8 @@ export default function BannerVoo({
 }: Props) {
   return (
     <Pressable onPress={onPress} style={styles.container}>
-      <View style={{ position: "relative" }}>
+      <View style={styles.imagemContainer}>
+        <Image source={imagem} style={styles.imagem} resizeMode="cover" />
         <Pressable
           onPress={onFavoritar}
           style={styles.iconeFavorito}
@@ -47,73 +48,120 @@ export default function BannerVoo({
           ) : (
             <MaterialIcons
               name={favorito ? "favorite" : "favorite-border"}
-              size={24}
-              color={favorito ? "#D6005D" : "#000"}
+              size={22}
+              color={favorito ? "#D6005D" : "#FFFFFF"}
             />
           )}
         </Pressable>
-        <Image source={imagem} style={styles.imagem} />
+        <View style={styles.precoTag}>
+          <Text style={styles.precoTexto}>R$ {preco}</Text>
+          <Text style={styles.precoSubtexto}>por pessoa</Text>
+        </View>
       </View>
-      <Text style={styles.destino}>{`${origem} -> ${destino}`}</Text>
-      <Text style={styles.data}>Data: {data}</Text>
-      <Text style={styles.texto}>Preço por pessoa</Text>
-      <Text style={styles.preco}>R$ {preco}</Text>
-      <Text style={[styles.texto, { marginBottom: 10 }]}>
-        Taxas e impostos não inclusos.
-      </Text>
+      
+      <View style={styles.conteudo}>
+        <View style={styles.destinoContainer}>
+          <View style={styles.rotaContainer}>
+            <Text style={styles.origem}>{origem}</Text>
+            <MaterialIcons name="flight" size={16} color="#666666" style={styles.iconeVoo} />
+            <Text style={styles.destino}>{destino}</Text>
+          </View>
+          <Text style={styles.data}>{data}</Text>
+        </View>
+        
+        <View style={styles.rodape}>
+          <Text style={styles.textoInfo}>Taxas e impostos não inclusos</Text>
+        </View>
+      </View>
     </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    width: 200,
-    borderWidth: 1,
-    borderColor: "#000",
-    borderRadius: 10,
+    width: 280,
+    borderRadius: 12,
     overflow: "hidden",
     backgroundColor: "#fff",
     margin: 10,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  imagemContainer: {
+    position: "relative",
+    height: 180,
   },
   imagem: {
     width: "100%",
-    height: 150,
+    height: "100%",
   },
   iconeFavorito: {
     position: "absolute",
-    top: 0,
-    right: 0,
-    backgroundColor: "#fff",
-    borderStartEndRadius: 10,
-    padding: 4,
-    elevation: 5,
+    top: 12,
+    right: 12,
+    backgroundColor: "rgba(0,0,0,0.3)",
+    borderRadius: 20,
+    padding: 8,
     zIndex: 1,
-    minWidth: 32,
-    minHeight: 32,
+    minWidth: 38,
+    minHeight: 38,
     justifyContent: "center",
     alignItems: "center",
   },
+  precoTag: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    backgroundColor: "rgba(0,0,0,0.7)",
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+    borderTopRightRadius: 12,
+  },
+  precoTexto: {
+    color: "#FFFFFF",
+    fontWeight: "bold",
+    fontSize: 16,
+  },
+  precoSubtexto: {
+    color: "#DDDDDD",
+    fontSize: 12,
+  },
+  conteudo: {
+    padding: 14,
+  },
+  destinoContainer: {
+    marginBottom: 10,
+  },
+  rotaContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 8,
+  },
+  origem: {
+    fontWeight: "bold",
+    fontSize: 16,
+  },
+  iconeVoo: {
+    marginHorizontal: 8,
+    transform: [{ rotate: "90deg" }],
+  },
   destino: {
     fontWeight: "bold",
-    textAlign: "left",
-    marginLeft: 10,
-    marginTop: 5, // Ajustado para dar espaço após a data
-    marginBottom: 5,
+    fontSize: 16,
   },
   data: {
-    textAlign: "left",
-    marginHorizontal: 10,
-   
+    color: "#666666",
+    fontSize: 14,
   },
-  texto: {
-    textAlign: "left",
-    marginHorizontal: 10,
-    marginTop: 5,
+  rodape: {
+    marginTop: 6,
   },
-  preco: {
-    fontSize: 17,
-    fontWeight: "bold",
-    textAlign: "left",
-    marginHorizontal: 10,
+  textoInfo: {
+    fontSize: 12,
+    color: "#999999",
+    fontStyle: "italic",
   },
 });
