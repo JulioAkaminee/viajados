@@ -9,7 +9,7 @@ import {
 import { MaterialIcons } from "@expo/vector-icons";
 import React from "react";
 
-// Tipo dos dados que serão passados para o componente
+
   type HotelData = {
     idHospedagem: number;
     idHoteis: number;
@@ -44,7 +44,7 @@ import React from "react";
             key={i}
             name={i <= avaliacao ? "star" : "star-border"}
             size={24}
-            color="#D6005D" // Ouro para as estrelas
+            color="#D6005D"
           />
         );
       }

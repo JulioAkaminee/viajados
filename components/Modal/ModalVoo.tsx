@@ -466,7 +466,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   
-  // Estilos para o Modal de Reserva
+
   reserveModalContainer: {
     flex: 1,
     justifyContent: 'center',

@@ -15,7 +15,7 @@ export default function Cadastro() {
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
   const [confSenha, setConfSenha] = useState("");
-  const [isLoading, setIsLoading] = useState(false); // Estado para o loading
+  const [isLoading, setIsLoading] = useState(false);
 
   const validaEmail = (email: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
@@ -32,7 +32,7 @@ export default function Cadastro() {
       cpfFormatado = cpfFormatado.replace(/(\d{3})(\d{1,2})$/, "$1-$2");
     }
   
-    setCpf(cpfFormatado); // Atualiza o estado com o CPF formatado
+    setCpf(cpfFormatado); 
   };
 
   const formatarDataInput = (text: string) => {
@@ -57,14 +57,14 @@ export default function Cadastro() {
   };
   
   const continuarPressionado = async () => {
-    setIsLoading(true); // Ativa o loading
+    setIsLoading(true);
     const nomeFormatado = nome.trim().replace(/\s+/g, "");
     const nacionalidadeFormatado = nacionalidade.trim().replace(/\s+/g, "");
     const cpfNumerico = cpf.replace(/\D/g, "");
     const sexoFormatado = sexo === "Masculino" ? "M" : "F";
     const dataFormatada = converterDataParaEnvio(dtNasc);
   
-    // Validação de campos com mensagens específicas
+    
     if (!nomeFormatado) {
       Alert.alert("Erro", "O campo Nome não pode estar vazio.");
       setIsLoading(false);
@@ -132,7 +132,7 @@ export default function Cadastro() {
       );
   
       const dados = await resposta.json();
-      console.log(dados);  // Para depuração
+      console.log(dados); 
   
       if (resposta.status === 201) {
         Alert.alert("Sucesso", "Cadastro realizado com sucesso!", [
@@ -233,7 +233,7 @@ export default function Cadastro() {
       <Button 
         label={isLoading ? "Carregando..." : "Cadastrar"} 
         onPress={continuarPressionado}
-        disabled={isLoading} // Desativa o botão enquanto carrega
+        disabled={isLoading} 
       />
 
       <Text style={styles.textoTermos}>

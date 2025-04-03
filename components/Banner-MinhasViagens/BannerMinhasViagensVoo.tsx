@@ -9,8 +9,7 @@ import {
 import { MaterialIcons } from "@expo/vector-icons";
 import React from "react";
 
-// Tipo dos dados que serão passados para o componente
-  type VooData = {
+type VooData = {
     idReserva: number;
     idVoos: number;
     data_reserva: string;
@@ -37,7 +36,7 @@ import React from "react";
     // Função para formatar a data
     const formatDate = (date: string) => {
       const formattedDate = new Date(date);
-      if (isNaN(formattedDate.getTime())) return "Data inválida"; // Se a data for inválida
+      if (isNaN(formattedDate.getTime())) return "Data inválida"; 
       return formattedDate.toLocaleDateString("pt-BR", {
         weekday: "short",
         year: "numeric",
@@ -49,8 +48,8 @@ import React from "react";
     // Função para formatar o preço (caso seja um número)
     const formatPrice = (price: string) => {
       const formattedPrice = parseFloat(price);
-      if (isNaN(formattedPrice)) return "Preço Indefinido"; // Se o preço for inválido
-      return `R$ ${formattedPrice.toFixed(2)}`; // Formata o preço para o padrão monetário
+      if (isNaN(formattedPrice)) return "Preço Indefinido"; 
+      return `R$ ${formattedPrice.toFixed(2)}`; 
     };
   
     return (
@@ -97,10 +96,10 @@ import React from "react";
     },
     content: {
       padding: 15,
-      alignItems: "flex-start", // Alinha as informações à esquerda
+      alignItems: "flex-start",
     },
     iconeVoo: {
-      marginBottom: 10, // Espaço entre o ícone e as informações
+      marginBottom: 10, 
     },
     origemDestino: {
       fontSize: 18,

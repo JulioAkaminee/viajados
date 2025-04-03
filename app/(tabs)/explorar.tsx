@@ -32,7 +32,7 @@ export default function Explorar() {
   const [idUsuario, setIdUsuario] = useState(null);
   const [favoritos, setFavoritos] = useState({});
   const [isLoading, setIsLoading] = useState(true);
-  const [favoritandoIds, setFavoritandoIds] = useState({}); // Alterado para rastrear múltiplos itens
+  const [favoritandoIds, setFavoritandoIds] = useState({});
   const [notificacao, setNotificacao] = useState(null);
 
   const navigation = useNavigation();
@@ -43,7 +43,9 @@ export default function Explorar() {
 
   const carregarFavoritos = async (token, usuarioId) => {
     try {
-      const favoritosCache = await AsyncStorage.getItem(`favoritos_${usuarioId}`);
+      const favoritosCache = await AsyncStorage.getItem(
+        `favoritos_${usuarioId}`
+      );
       if (favoritosCache) {
         setFavoritos(JSON.parse(favoritosCache));
       }
@@ -86,7 +88,10 @@ export default function Explorar() {
         }
       }
 
-      await AsyncStorage.setItem(`favoritos_${usuarioId}`, JSON.stringify(novosFavoritos));
+      await AsyncStorage.setItem(
+        `favoritos_${usuarioId}`,
+        JSON.stringify(novosFavoritos)
+      );
       setFavoritos(novosFavoritos);
     } catch (error) {
       console.error("Erro ao carregar favoritos:", error.message || error);
@@ -96,7 +101,7 @@ export default function Explorar() {
   const toggleFavorito = async (id, tipo) => {
     const chave = `${tipo}_${id}`;
     try {
-      setFavoritandoIds(prev => ({ ...prev, [chave]: true }));
+      setFavoritandoIds((prev) => ({ ...prev, [chave]: true }));
       const token = await AsyncStorage.getItem("token");
       const usuarioId = await AsyncStorage.getItem("idUsuario");
 
@@ -128,7 +133,7 @@ export default function Explorar() {
 
       if (response.ok) {
         await carregarFavoritos(token, usuarioId);
-        
+
         const mensagem = estaFavoritado
           ? tipo === "hotel"
             ? "Hotel foi removido dos favoritos!"
@@ -156,7 +161,7 @@ export default function Explorar() {
       setNotificacao("Erro ao atualizar favorito");
       setTimeout(() => setNotificacao(null), 3000);
     } finally {
-      setFavoritandoIds(prev => ({ ...prev, [chave]: false }));
+      setFavoritandoIds((prev) => ({ ...prev, [chave]: false }));
     }
   };
 
@@ -164,20 +169,20 @@ export default function Explorar() {
     try {
       const token = await AsyncStorage.getItem("token");
       const usuarioId = await AsyncStorage.getItem("idUsuario");
-      
+
       if (!token || !usuarioId) {
         console.error("Token ou ID do usuário não encontrado");
         return;
       }
 
-      // Atualiza o ID do usuário no estado
+    
       setIdUsuario(usuarioId);
-      
-      // Busca nome atualizado do AsyncStorage
+
+     
       const nome = await AsyncStorage.getItem("nome");
       if (nome) setNomeUsuario(nome);
-      
-      // Busca dados atualizados do usuário da API
+
+ 
       const respostaUsuario = await fetch(
         `https://backend-viajados.vercel.app/api/alterardados/dadosusuario?idUsuario=${usuarioId}`,
         {
@@ -191,14 +196,14 @@ export default function Explorar() {
       if (respostaUsuario.ok) {
         const dadosUsuario = await respostaUsuario.json();
         if (dadosUsuario.length > 0) {
-          // Atualiza nome do AsyncStorage se diferente
+          
           const nomeAtualizado = dadosUsuario[0].nome || "";
           if (nomeAtualizado && nomeAtualizado !== nomeUsuario) {
             await AsyncStorage.setItem("nome", nomeAtualizado);
             setNomeUsuario(nomeAtualizado);
           }
-          
-          // Atualiza foto
+
+    
           const foto = dadosUsuario[0].foto_usuario;
           setFotoUsuario(
             foto
@@ -227,7 +232,7 @@ export default function Explorar() {
 
       // Carrega dados do usuário
       await carregarDadosUsuario();
-      
+
       // Carrega favoritos
       await carregarFavoritos(token, usuarioId);
 
@@ -276,13 +281,7 @@ export default function Explorar() {
   // Usa useFocusEffect para recarregar os dados sempre que a tela for focada
   useFocusEffect(
     useCallback(() => {
-      // Recarrega os dados do usuário e demais informações quando a tab recebe foco
       carregarDados();
-      
-      // Retorna uma função de limpeza caso necessário
-      return () => {
-        // Código de limpeza se necessário
-      };
     }, [])
   );
 
@@ -346,7 +345,9 @@ export default function Explorar() {
               style={styles.avatar}
             />
             <View>
-              <Text style={styles.saudacao}>Olá, {nomeUsuario || "Usuário"}</Text>
+              <Text style={styles.saudacao}>
+                Olá, {nomeUsuario || "Usuário"}
+              </Text>
               <Text style={styles.texto}>Bem-vindo de volta!</Text>
             </View>
           </View>
@@ -417,7 +418,9 @@ export default function Explorar() {
                       preco={hotel.preco_diaria || "Preço não disponível"}
                       onPress={() => bannerHotelPressionado(hotel)}
                       favorito={favoritos[`hotel_${hotel.idHoteis}`] || false}
-                      onFavoritar={() => toggleFavorito(hotel.idHoteis, "hotel")}
+                      onFavoritar={() =>
+                        toggleFavorito(hotel.idHoteis, "hotel")
+                      }
                       isLoading={favoritandoIds[`hotel_${hotel.idHoteis}`]}
                     />
                   ))

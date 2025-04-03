@@ -9,7 +9,7 @@ import React from "react";
 
 type Props = TouchableOpacityProps & {
   label: String;
-  corDoTexto?: string; // Nova prop para mudar a cor do texto
+  corDoTexto?: string;
 };
 
 function Button({ label, corDoTexto = "#FFF", ...rest }: Props) { 
