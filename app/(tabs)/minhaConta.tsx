@@ -433,7 +433,7 @@ export default function MinhaConta() {
   );
 }
 
-=
+
 const InfoItem = ({ icon, label, value, lastItem = false }) => {
   return (
     <View style={[styles.infoItem, !lastItem && styles.infoItemBorder]}>
