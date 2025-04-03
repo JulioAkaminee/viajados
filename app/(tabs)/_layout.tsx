@@ -17,7 +17,7 @@ function TabBarIcon({
       {focused && (
         <View
           style={{
-            width: 30,
+            width: 50,
             height: 3,
             backgroundColor: '#d81b60', 
             borderRadius: 2,
@@ -42,17 +42,16 @@ export default function TabLayout() {
         },
         tabBarIconStyle: { marginBottom: 5 },
         tabBarLabelStyle: {
-          fontSize: 12,
+          fontSize: 10,
           fontWeight: 'bold',
           textTransform: 'none',
         },
         tabBarActiveTintColor: '#d81b60',
         tabBarInactiveTintColor: '#d81b60',
-        tabBarItemStyle: { paddingVertical: 5 },
       }}
     >
       <Tabs.Screen
-        name="index"
+        name="explorar"
         options={{
           title: 'Explorar',
           tabBarIcon: ({ color, focused }) => (
