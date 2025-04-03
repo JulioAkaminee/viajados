@@ -8,8 +8,12 @@ Bem-vindo ao **Viajados**, um aplicativo de viagens desenvolvido com **React Nat
 
 
 ## Funcionalidades
-- Pesquisa de destinos turísticos  
-- Criação de roteiros de viagem  
+- Reserva de hoteis
+- Reserva de Voos
+- Favoritar voos
+- Favoritar Hoteis
+- Adicionar foto ao perfil
+- Mudar nome do usuario
 
 
 ## Como Instalar
