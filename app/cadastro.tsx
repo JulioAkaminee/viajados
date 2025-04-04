@@ -143,14 +143,14 @@ export default function Cadastro() {
           "Erro",
           dados.message || "Falha ao cadastrar. Tente novamente."
         );
+        Alert.alert("Erro", dados.error || dados.message || "Erro ao cadastrar.")
       }
     } catch (error) {
-      Alert.alert("Erro", "Ocorreu um erro ao se conectar com o servidor.");
-      console.error("Erro na requisição:", error);
+      Alert.alert("Erro", dados.error || dados.message || "Erro ao cadastrar.");
+
     } finally {
       setIsLoading(false);
-    }
-  };
+    }}
 
   return (
     <ScrollView style={styles.container}>
