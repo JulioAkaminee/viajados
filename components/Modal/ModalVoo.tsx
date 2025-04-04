@@ -27,81 +27,82 @@ const ModalVoo = ({ visible, voo, onClose }) => {
   const imageScrollViewRef = useRef(null);
 
   if (!visible || !voo) return null;
+  console.log("Data digitada pelo usuário:", dataReserva);
 
   const reservarVoo = async () => {
     try {
-      const idUsuario = await AsyncStorage.getItem("idUsuario");
-      const token = await AsyncStorage.getItem("token");
+        const idUsuario = await AsyncStorage.getItem("idUsuario");
+        const token = await AsyncStorage.getItem("token");
 
-      if (!idUsuario || !token) {
-        Alert.alert("Erro", "Usuário não autenticado");
-        return;
-      }
-
-      const dateRegex = /^\d{2}\/\d{2}\/\d{4}$/;
-      if (!dateRegex.test(dataReserva)) {
-        Alert.alert("Erro", "Por favor, insira a data no formato DD/MM/YYYY (ex.: 10/04/2025).");
-        return;
-      }
-
-      const [dia, mes, ano] = dataReserva.split("/");
-      const formattedDataReserva = `${ano}-${mes}-${dia}`;
-      const reservaDate = new Date(formattedDataReserva);
-
-      if (isNaN(reservaDate)) {
-        Alert.alert("Erro", "Data inválida. Verifique os valores inseridos.");
-        return;
-      }
-
-      const requestBody = {
-        idVoos: voo.idVoos,
-        idUsuario,
-        data_reserva: formattedDataReserva,
-      };
-
-      console.log("Enviando requisição com body:", JSON.stringify(requestBody));
-      console.log("Token:", token);
-      console.log("URL:", "https://backend-viajados.vercel.app/api/reservas/voos");
-
-      const response = await fetch(
-        "https://backend-viajados.vercel.app/api/reservas/voos",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify(requestBody),
+        if (!idUsuario || !token) {
+            Alert.alert("Erro", "Usuário não autenticado");
+            return;
         }
-      );
 
-      console.log("Status da resposta:", response.status);
-      const responseText = await response.text();
-      console.log("Resposta do servidor (bruta):", responseText);
+        const dateRegex = /^\d{2}\/\d{2}\/\d{4}$/;
+        if (!dateRegex.test(dataReserva)) {
+            Alert.alert("Erro", "Por favor, insira a data no formato DD/MM/YYYY (ex.: 10/04/2025).");
+            return;
+        }
 
-      let result;
-      try {
-        result = JSON.parse(responseText);
-      } catch (parseError) {
-        Alert.alert(
-          "Erro no servidor",
-          `Não foi possível processar a resposta. Status: ${response.status}. Veja o console para detalhes.`
+        const [dia, mes, ano] = dataReserva.split("/");
+        const formattedDataReserva = `${ano}-${mes.padStart(2, '0')}-${dia.padStart(2, '0')} 08:00:00`;
+        
+        const reservaDate = new Date(`${ano}-${mes}-${dia}T08:00:00.000Z`);
+        if (isNaN(reservaDate)) {
+            Alert.alert("Erro", "Data inválida. Verifique os valores inseridos.");
+            return;
+        }
+
+        const requestBody = {
+            idVoos: voo.idVoos,
+            idUsuario,
+            data_reserva: formattedDataReserva,
+        };
+
+        console.log("Enviando requisição com body:", JSON.stringify(requestBody));
+        console.log("Token:", token);
+        console.log("URL:", "https://backend-viajados.vercel.app/api/reservas/voos");
+
+        const response = await fetch(
+            "https://backend-viajados.vercel.app/api/reservas/voos",
+            {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`,
+                },
+                body: JSON.stringify(requestBody),
+            }
         );
-        console.error("Erro ao parsear JSON:", parseError);
-        return;
-      }
 
-      if (response.ok) {
-        Alert.alert("Sucesso", "Reserva realizada com sucesso!");
-        setModalReservaVisible(false);
-        onClose();
-      } else {
-        Alert.alert("Erro", result.message || `Erro ao reservar voo (Status: ${response.status})`);
-      }
+        console.log("Status da resposta:", response.status);
+        const responseText = await response.text();
+        console.log("Resposta do servidor (bruta):", responseText);
+
+        let result;
+        try {
+            result = JSON.parse(responseText);
+        } catch (parseError) {
+            Alert.alert(
+                "Erro no servidor",
+                `Não foi possível processar a resposta. Status: ${response.status}. Veja o console para detalhes.`
+            );
+            console.error("Erro ao parsear JSON:", parseError);
+            return;
+        }
+
+        if (response.ok) {
+            Alert.alert("Sucesso", "Reserva realizada com sucesso!");
+            setModalReservaVisible(false);
+            onClose();
+        } else {
+            Alert.alert("Erro", result.message || "Erro ao reservar voo");
+        }
     } catch (error) {
-      Alert.alert("Erro", "Falha na requisição: " + error.message);
+        Alert.alert("Erro", "Falha na requisição: " + error.message);
     }
-  };
+};
 
   const formatarDataInput = (text, setter) => {
     let cleaned = text.replace(/\D/g, "");
@@ -118,7 +119,7 @@ const ModalVoo = ({ visible, voo, onClose }) => {
 
     setter(formatted);
   };
-  
+
   const renderImageDot = (index) => (
     <View
       key={index}
@@ -465,8 +466,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
   },
-  
-
   reserveModalContainer: {
     flex: 1,
     justifyContent: 'center',

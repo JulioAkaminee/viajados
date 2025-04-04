@@ -66,7 +66,7 @@ export default function BannerVoo({
             <MaterialIcons name="flight" size={16} color="#666666" style={styles.iconeVoo} />
             <Text style={styles.destino}>{destino}</Text>
           </View>
-          <Text style={styles.data}>{data}</Text>
+       
         </View>
         
         <View style={styles.rodape}>

@@ -31,7 +31,8 @@ type VooData = {
     onPress,
     isLoading = false,
   }: Props) {
-    const { origem, destino, preco, status, data_voo } = vooData;
+    const { origem, destino, preco, status, data_voo, data_reserva } = vooData;
+
   
     // Função para formatar a data
     const formatDate = (date: string) => {
@@ -67,8 +68,10 @@ type VooData = {
             {origem || "Origem Indefinida"} → {destino || "Destino Indefinido"}
           </Text>
   
-          {/* Data do voo */}
-          <Text style={styles.dataVoo}>{formatDate(data_voo)}</Text>
+          <Text style={styles.texto}>
+  Reservado para: {formatDate(data_reserva)}
+</Text>
+
   
           {/* Preço */}
           <Text style={styles.preco}>{formatPrice(preco)}</Text>
