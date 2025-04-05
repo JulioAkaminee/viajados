@@ -1,4 +1,13 @@
-import { Alert, Image, ScrollView, StyleSheet, Text, View } from "react-native";
+import {
+  Alert,
+  Image,
+  Keyboard,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableWithoutFeedback,
+  View
+} from "react-native";
 import React, { useState } from "react";
 
 import Button from "../components/Button";
@@ -64,7 +73,6 @@ export default function Cadastro() {
     const sexoFormatado = sexo === "Masculino" ? "M" : "F";
     const dataFormatada = converterDataParaEnvio(dtNasc);
   
-    
     if (!nomeFormatado) {
       Alert.alert("Erro", "O campo Nome não pode estar vazio.");
       setIsLoading(false);
@@ -143,105 +151,102 @@ export default function Cadastro() {
           "Erro",
           dados.message || "Falha ao cadastrar. Tente novamente."
         );
-        Alert.alert("Erro", dados.error || dados.message || "Erro ao cadastrar.")
       }
     } catch (error) {
-      Alert.alert("Erro", dados.error || dados.message || "Erro ao cadastrar.");
-
+      Alert.alert("Erro", "Erro ao cadastrar: " + error.message);
     } finally {
       setIsLoading(false);
-    }}
+    }
+  };
 
   return (
-    <ScrollView style={styles.container}>
-      <View style={styles.containerLogo}>
-        <Image
-          source={require("../assets/images/logo.png")}
-          style={styles.logo}
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+      <ScrollView style={styles.container}>
+        <View style={styles.containerLogo}>
+          <Image
+            source={require("../assets/images/logo.png")}
+            style={styles.logo}
+          />
+        </View>
+
+        <Input
+          label="Digite seu nome:"
+          placeholder="Digite seu nome"
+          value={nome}
+          onChange={setNome}
         />
-      </View>
 
-      <Input
-        label="Digite seu nome:"
-        placeholder="Digite seu nome"
-        value={nome}
-        onChange={setNome}
-      />
-
-      <Input
-        label="CPF:"
-        placeholder="000.000.000-00"
-        value={cpf}
-        onChange={formatarCpf}
-      />
-
-      <Input
-        label="Data de Nascimento:"
-        placeholder="DD/MM/AAAA"
-        value={dtNasc}
-        onChange={formatarDataInput}
-      />
-
-      <Input
-        label="Nacionalidade:"
-        placeholder="Brasileiro"
-        value={nacionalidade}
-        onChange={setNacionalidade}
-      />
-
-      <Text style={styles.legenda}>Sexo:</Text>
-      <View style={styles.opcoesSexo}>
-        <Button
-          label="Masculino"
-          onPress={() => setSexo("Masculino")}
-          style={sexo === "Masculino" ? styles.selecionado : {backgroundColor: "#D6005D" , borderRadius: 10,
-            paddingVertical: 5,
-            paddingHorizontal: 10}}
+        <Input
+          label="CPF:"
+          placeholder="000.000.000-00"
+          value={cpf}
+          onChange={formatarCpf}
         />
-        <Button
-          label="Feminino"
-          onPress={() => setSexo("Feminino")}
-          style={sexo === "Feminino" ? styles.selecionado : {backgroundColor:"#D6005D" , borderRadius: 10,
-            paddingVertical: 5,
-            paddingHorizontal: 10,}}
+
+        <Input
+          label="Data de Nascimento:"
+          placeholder="DD/MM/AAAA"
+          value={dtNasc}
+          onChange={formatarDataInput}
         />
-      </View>
 
-      <Input
-        label="Digite seu Email:"
-        placeholder="email@exemplo.com"
-        value={email}
-        onChange={setEmail}
-      />
+        <Input
+          label="Nacionalidade:"
+          placeholder="Brasileiro"
+          value={nacionalidade}
+          onChange={setNacionalidade}
+        />
 
-      <Input
-        label="Digite sua Senha:"
-        placeholder="*******"
-        secureTextEntry
-        value={senha}
-        onChange={setSenha}
-      />
+        <Text style={styles.legenda}>Sexo:</Text>
+        <View style={styles.opcoesSexo}>
+          <Button
+            label="Masculino"
+            onPress={() => setSexo("Masculino")}
+            style={sexo === "Masculino" ? styles.selecionado : {backgroundColor: "#D6005D", borderRadius: 10, paddingVertical: 5, paddingHorizontal: 10}}
+          />
+          <Button
+            label="Feminino"
+            onPress={() => setSexo("Feminino")}
+            style={sexo === "Feminino" ? styles.selecionado : {backgroundColor: "#D6005D", borderRadius: 10, paddingVertical: 5, paddingHorizontal: 10}}
+          />
+        </View>
 
-      <Input
-        label="Confirme sua Senha:"
-        placeholder="*******"
-        secureTextEntry
-        value={confSenha}
-        onChange={setConfSenha}
-      />
+        <Input
+          label="Digite seu Email:"
+          placeholder="email@exemplo.com"
+          value={email}
+          onChange={setEmail}
+        />
 
-      <Button 
-        label={isLoading ? "Carregando..." : "Cadastrar"} 
-        onPress={continuarPressionado}
-        disabled={isLoading} 
-      />
+        <Input
+          label="Digite sua Senha:"
+          placeholder="*******"
+          secureTextEntry
+          value={senha}
+          onChange={setSenha}
+        />
 
-      <Text style={styles.textoTermos}>
-        Ao criar uma conta, você concorda com a nossa{" "}
-        <Text style={styles.link}>Política de privacidade</Text> e os nossos{" "}
-        <Text style={styles.link}>Termos de uso</Text>.
-      </Text>
-    </ScrollView>
+        <Input
+          label="Confirme sua Senha:"
+          placeholder="*******"
+          secureTextEntry
+          value={confSenha}
+          onChange={setConfSenha}
+        />
+
+        <Button 
+          label={isLoading ? "Carregando..." : "Cadastrar"} 
+          onPress={continuarPressionado}
+          disabled={isLoading} 
+        />
+
+        <Text style={styles.textoTermos}>
+          Ao criar uma conta, você concorda com a nossa{" "}
+          <Text style={styles.link}>Política de privacidade</Text> e os nossos{" "}
+          <Text style={styles.link}>Termos de uso</Text>.
+        </Text>
+      </ScrollView>
+    </TouchableWithoutFeedback>
   );
 }
 

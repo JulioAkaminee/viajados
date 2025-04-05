@@ -5,6 +5,7 @@ import {
   ActivityIndicator,
   Alert,
   Image,
+  Keyboard,
   Modal,
   Pressable,
   SafeAreaView,
@@ -13,7 +14,8 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  View,
+  TouchableWithoutFeedback,
+  View
 } from "react-native";
 import { FontAwesome5, Ionicons, MaterialIcons } from "@expo/vector-icons";
 import React, { useEffect, useState } from "react";
@@ -278,161 +280,162 @@ export default function MinhaConta() {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor="#f8f8f8" />
-      
-      {/* Header */}
-      <View style={styles.header}>
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+      <SafeAreaView style={styles.container}>
+        <StatusBar barStyle="dark-content" backgroundColor="#f8f8f8" />
         
-        <TouchableOpacity
-          style={styles.logoutButton}
-          onPress={handleLogout}
-        >
-          <MaterialIcons name="logout" size={28} color="#D6005D" />
-        </TouchableOpacity>
-      </View>
-      
-      {/* Profile Card */}
-      <View style={styles.profileCard}>
-        <LinearGradient
-          colors={['#D6005D', '#FF3B8B']}
-          style={styles.profileHeader}
-        >
-          <View style={styles.profileImageContainer}>
-            <Image
-              source={{
-                uri: usuario.foto_usuario.startsWith("data:")
-                  ? usuario.foto_usuario
-                  : `data:image/jpeg;base64,${usuario.foto_usuario}`,
-              }}
-              style={styles.profileImage}
-            />
-            <View style={styles.editProfileButton}>
-              <TouchableOpacity onPress={() => setModalVisivel(true)}>
-                <MaterialIcons name="edit" size={22} color="white" />
-              </TouchableOpacity>
-            </View>
-          </View>
-          <Text style={styles.profileName}>{usuario.nome}</Text>
-         
-        </LinearGradient>
-        
-        {/* Info Section */}
-        <View style={styles.infoSection}>
-          <InfoItem icon="fingerprint" label="CPF" value={usuario.cpf} />
-          <InfoItem icon="cake" label="Data de Nascimento" value={usuario.data_nascimento} />
-          <InfoItem icon="public" label="Nacionalidade" value={usuario.nacionalidade} />
-          <InfoItem icon="person" label="Sexo" value={usuario.sexo} lastItem />
+        {/* Header */}
+        <View style={styles.header}>
+          <TouchableOpacity
+            style={styles.logoutButton}
+            onPress={handleLogout}
+          >
+            <MaterialIcons name="logout" size={28} color="#D6005D" />
+          </TouchableOpacity>
         </View>
-      </View>
-      
-      {/* Account Actions */}
-      <View style={styles.accountActions}>
-        <TouchableOpacity
-          style={styles.deleteButton}
-          onPress={handleDelete}
-        >
-          <MaterialIcons name="delete-outline" size={22} color="#D6005D" />
-          <Text style={styles.deleteButtonText}>Excluir Conta</Text>
-        </TouchableOpacity>
-      </View>
-      
-      {/* Edit Profile Modal */}
-      <Modal
-        visible={modalVisivel}
-        animationType="slide"
-        transparent={true}
-        statusBarTranslucent={true}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Editar Perfil</Text>
-              <TouchableOpacity
-                style={styles.closeButton}
-                onPress={() => setModalVisivel(false)}
-              >
-                <MaterialIcons name="close" size={28} color="#333" />
-              </TouchableOpacity>
-            </View>
-            
-            <TouchableOpacity
-              style={styles.photoSelector}
-              onPress={selecionarFoto}
-              activeOpacity={0.8}
-            >
+        
+        {/* Profile Card */}
+        <View style={styles.profileCard}>
+          <LinearGradient
+            colors={['#D6005D', '#FF3B8B']}
+            style={styles.profileHeader}
+          >
+            <View style={styles.profileImageContainer}>
               <Image
                 source={{
-                  uri: novaFoto
-                    ? `data:image/jpeg;base64,${novaFoto}`
-                    : usuario.foto_usuario.startsWith("data:")
+                  uri: usuario.foto_usuario.startsWith("data:")
                     ? usuario.foto_usuario
                     : `data:image/jpeg;base64,${usuario.foto_usuario}`,
                 }}
-                style={styles.modalPhoto}
+                style={styles.profileImage}
               />
-              <View style={styles.photoOverlay}>
-                <MaterialIcons name="camera-alt" size={28} color="white" />
-                <Text style={styles.photoText}>Alterar foto</Text>
+              <View style={styles.editProfileButton}>
+                <TouchableOpacity onPress={() => setModalVisivel(true)}>
+                  <MaterialIcons name="edit" size={22} color="white" />
+                </TouchableOpacity>
               </View>
-            </TouchableOpacity>
-            
-            <View style={styles.inputContainer}>
-              <Text style={styles.inputLabel}>Nome</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="Seu nome"
-                value={novoNome}
-                onChangeText={setNovoNome}
-                placeholderTextColor="#999"
-              />
             </View>
-            
-            <TouchableOpacity
-              style={styles.saveButton}
-              onPress={handleSalvar}
-              activeOpacity={0.8}
-            >
-              <Text style={styles.saveButtonText}>Salvar alterações</Text>
-            </TouchableOpacity>
+            <Text style={styles.profileName}>{usuario.nome}</Text>
+          </LinearGradient>
+          
+          {/* Info Section */}
+          <View style={styles.infoSection}>
+            <InfoItem icon="fingerprint" label="CPF" value={usuario.cpf} />
+            <InfoItem icon="cake" label="Data de Nascimento" value={usuario.data_nascimento} />
+            <InfoItem icon="public" label="Nacionalidade" value={usuario.nacionalidade} />
+            <InfoItem icon="person" label="Sexo" value={usuario.sexo} lastItem />
           </View>
         </View>
-      </Modal>
-      
-      {/* Confirm Delete Modal */}
-      <Modal
-        visible={confirmDeleteModal}
-        transparent={true}
-        animationType="fade"
-      >
-        <View style={styles.confirmModalOverlay}>
-          <View style={styles.confirmModalContent}>
-            <Ionicons name="warning" size={60} color="#D6005D" />
-            <Text style={styles.confirmModalTitle}>Excluir conta</Text>
-            <Text style={styles.confirmModalText}>
-              Esta ação não pode ser desfeita. Todos os seus dados serão removidos permanentemente.
-            </Text>
-            <View style={styles.confirmModalButtons}>
-              <TouchableOpacity 
-                style={styles.cancelButton}
-                onPress={() => setConfirmDeleteModal(false)}
-              >
-                <Text style={styles.cancelButtonText}>Cancelar</Text>
-              </TouchableOpacity>
-              <TouchableOpacity 
-                style={styles.confirmButton}
-                onPress={confirmDelete}
-              >
-                <Text style={styles.confirmButtonText}>Sim, excluir</Text>
-              </TouchableOpacity>
+        
+        {/* Account Actions */}
+        <View style={styles.accountActions}>
+          <TouchableOpacity
+            style={styles.deleteButton}
+            onPress={handleDelete}
+          >
+            <MaterialIcons name="delete-outline" size={22} color="#D6005D" />
+            <Text style={styles.deleteButtonText}>Excluir Conta</Text>
+          </TouchableOpacity>
+        </View>
+        
+        {/* Edit Profile Modal */}
+        <Modal
+          visible={modalVisivel}
+          animationType="slide"
+          transparent={true}
+          statusBarTranslucent={true}
+        >
+          <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+            <View style={styles.modalOverlay}>
+              <View style={styles.modalContent}>
+                <View style={styles.modalHeader}>
+                  <Text style={styles.modalTitle}>Editar Perfil</Text>
+                  <TouchableOpacity
+                    style={styles.closeButton}
+                    onPress={() => setModalVisivel(false)}
+                  >
+                    <MaterialIcons name="close" size={28} color="#333" />
+                  </TouchableOpacity>
+                </View>
+                
+                <TouchableOpacity
+                  style={styles.photoSelector}
+                  onPress={selecionarFoto}
+                  activeOpacity={0.8}
+                >
+                  <Image
+                    source={{
+                      uri: novaFoto
+                        ? `data:image/jpeg;base64,${novaFoto}`
+                        : usuario.foto_usuario.startsWith("data:")
+                        ? usuario.foto_usuario
+                        : `data:image/jpeg;base64,${usuario.foto_usuario}`,
+                    }}
+                    style={styles.modalPhoto}
+                  />
+                  <View style={styles.photoOverlay}>
+                    <MaterialIcons name="camera-alt" size={28} color="white" />
+                    <Text style={styles.photoText}>Alterar foto</Text>
+                  </View>
+                </TouchableOpacity>
+                
+                <View style={styles.inputContainer}>
+                  <Text style={styles.inputLabel}>Nome</Text>
+                  <TextInput
+                    style={styles.input}
+                    placeholder="Seu nome"
+                    value={novoNome}
+                    onChangeText={setNovoNome}
+                    placeholderTextColor="#999"
+                  />
+                </View>
+                
+                <TouchableOpacity
+                  style={styles.saveButton}
+                  onPress={handleSalvar}
+                  activeOpacity={0.8}
+                >
+                  <Text style={styles.saveButtonText}>Salvar alterações</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </TouchableWithoutFeedback>
+        </Modal>
+        
+        {/* Confirm Delete Modal */}
+        <Modal
+          visible={confirmDeleteModal}
+          transparent={true}
+          animationType="fade"
+        >
+          <View style={styles.confirmModalOverlay}>
+            <View style={styles.confirmModalContent}>
+              <Ionicons name="warning" size={60} color="#D6005D" />
+              <Text style={styles.confirmModalTitle}>Excluir conta</Text>
+              <Text style={styles.confirmModalText}>
+                Esta ação não pode ser desfeita. Todos os seus dados serão removidos permanentemente.
+              </Text>
+              <View style={styles.confirmModalButtons}>
+                <TouchableOpacity 
+                  style={styles.cancelButton}
+                  onPress={() => setConfirmDeleteModal(false)}
+                >
+                  <Text style={styles.cancelButtonText}>Cancelar</Text>
+                </TouchableOpacity>
+                <TouchableOpacity 
+                  style={styles.confirmButton}
+                  onPress={confirmDelete}
+                >
+                  <Text style={styles.confirmButtonText}>Sim, excluir</Text>
+                </TouchableOpacity>
+              </View>
             </View>
           </View>
-        </View>
-      </Modal>
-    </SafeAreaView>
+        </Modal>
+      </SafeAreaView>
+    </TouchableWithoutFeedback>
   );
 }
-
 
 const InfoItem = ({ icon, label, value, lastItem = false }) => {
   return (
@@ -548,24 +551,6 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     color: "white",
     marginBottom: 5,
-  },
-  profileBadges: {
-    flexDirection: "row",
-    marginTop: 10,
-  },
-  badge: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "rgba(255,255,255,0.2)",
-    paddingVertical: 4,
-    paddingHorizontal: 10,
-    borderRadius: 15,
-    marginHorizontal: 5,
-  },
-  badgeText: {
-    color: "white",
-    fontSize: 12,
-    marginLeft: 5,
   },
   
   // Info Section

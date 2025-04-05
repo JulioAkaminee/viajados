@@ -344,7 +344,7 @@ export default function Explorar() {
               }
               style={styles.avatar}
             />
-            <View>
+            <View style={{ marginTop:50}}>
               <Text style={styles.saudacao}>
                 Olá, {nomeUsuario || "Usuário"}
               </Text>
@@ -502,10 +502,12 @@ const styles = StyleSheet.create({
     height: 50,
     marginRight: 10,
     borderRadius: 25,
+    marginTop:45
   },
   saudacao: {
     fontSize: 18,
     fontWeight: "bold",
+   
   },
   texto: {
     fontSize: 14,

@@ -18,6 +18,7 @@ import verificarToken from "../verificarToken";
 export default function MinhasViagens() {
   const navigation = useNavigation();
   const [opcaoSelecionada, setOpcaoSelecionada] = useState("agendado");
+  const [tipoFiltro, setTipoFiltro] = useState("hoteis");
   const [hospedagens, setHospedagens] = useState([]);
   const [voos, setVoos] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -25,6 +26,10 @@ export default function MinhasViagens() {
 
   const opcaoPressionada = (opcao) => {
     setOpcaoSelecionada(opcao);
+  };
+
+  const tipoPressionado = (tipo) => {
+    setTipoFiltro(tipo);
   };
 
   useEffect(() => {
@@ -112,21 +117,18 @@ export default function MinhasViagens() {
     }
   };
 
-  // Função para carregar os dados
   const loadData = useCallback(() => {
     getIdUsuario();
     fetchHospedagens();
     fetchVoos();
-  }, [idUsuario]); // Dependência de idUsuario para garantir que os fetches usem o ID correto
+  }, [idUsuario]);
 
-  // Carrega os dados quando a tela ganha foco
   useFocusEffect(
     useCallback(() => {
       loadData();
     }, [loadData])
   );
 
-  // Recarrega os dados quando a opção selecionada muda
   useEffect(() => {
     if (idUsuario) {
       fetchHospedagens();
@@ -184,6 +186,42 @@ export default function MinhasViagens() {
             </Text>
           </Pressable>
         </View>
+
+        <View style={[styles.filtroBusca, { marginTop: 10 }]}>
+          <Pressable
+            style={[
+              styles.opcoesFiltro,
+              tipoFiltro === "hoteis" && styles.opcaoSelecionada,
+            ]}
+            onPress={() => tipoPressionado("hoteis")}
+          >
+            <Text
+              style={[
+                styles.textoFiltro,
+                tipoFiltro === "hoteis" && styles.textoFiltroSelecionado,
+              ]}
+            >
+              Hotéis
+            </Text>
+          </Pressable>
+
+          <Pressable
+            style={[
+              styles.opcoesFiltro,
+              tipoFiltro === "voos" && styles.opcaoSelecionada,
+            ]}
+            onPress={() => tipoPressionado("voos")}
+          >
+            <Text
+              style={[
+                styles.textoFiltro,
+                tipoFiltro === "voos" && styles.textoFiltroSelecionado,
+              ]}
+            >
+              Voos
+            </Text>
+          </Pressable>
+        </View>
       </View>
 
       <View style={styles.containerItens}>
@@ -194,7 +232,7 @@ export default function MinhasViagens() {
           </>
         ) : (
           <>
-            {opcaoSelecionada === "agendado" &&
+            {opcaoSelecionada === "agendado" && tipoFiltro === "hoteis" && (
               hospedagens
                 .filter((item) => item.status === "agendado")
                 .map((item) => (
@@ -203,8 +241,9 @@ export default function MinhasViagens() {
                     hotelData={item}
                     onPress={() => console.log(`Detalhes do hotel: ${item.nome}`)}
                   />
-                ))}
-            {opcaoSelecionada === "agendado" &&
+                ))
+            )}
+            {opcaoSelecionada === "agendado" && tipoFiltro === "voos" && (
               voos
                 .filter((item) => item.status === "agendado")
                 .map((item) => (
@@ -213,8 +252,9 @@ export default function MinhasViagens() {
                     vooData={item}
                     onPress={() => console.log(`Detalhes do voo: ${item.idReserva}`)}
                   />
-                ))}
-            {opcaoSelecionada === "finalizado" &&
+                ))
+            )}
+            {opcaoSelecionada === "finalizado" && tipoFiltro === "hoteis" && (
               hospedagens
                 .filter((item) => item.status === "finalizado")
                 .map((item) => (
@@ -223,8 +263,9 @@ export default function MinhasViagens() {
                     hotelData={item}
                     onPress={() => console.log(`Detalhes do hotel: ${item.nome}`)}
                   />
-                ))}
-            {opcaoSelecionada === "finalizado" &&
+                ))
+            )}
+            {opcaoSelecionada === "finalizado" && tipoFiltro === "voos" && (
               voos
                 .filter((item) => item.status === "finalizado")
                 .map((item) => (
@@ -233,7 +274,8 @@ export default function MinhasViagens() {
                     vooData={item}
                     onPress={() => console.log(`Detalhes do voo: ${item.idReserva}`)}
                   />
-                ))}
+                ))
+            )}
           </>
         )}
       </View>

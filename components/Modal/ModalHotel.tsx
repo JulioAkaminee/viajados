@@ -3,6 +3,7 @@ import {
   Dimensions,
   FlatList,
   Image,
+  Keyboard,
   Modal,
   SafeAreaView,
   ScrollView,
@@ -11,7 +12,8 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  View,
+  TouchableWithoutFeedback,
+  View
 } from "react-native";
 import React, { useRef, useState } from "react";
 
@@ -198,191 +200,195 @@ const ModalHotel = ({ visible, hotel, onClose }) => {
       transparent
       statusBarTranslucent
     >
-      <SafeAreaView style={styles.safeArea}>
-        <StatusBar barStyle="light-content" backgroundColor="rgba(0,0,0,0.5)" />
-        
-        <View style={styles.modalContainer}>
-          <View style={styles.modalContent}>
-            {/* Header */}
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>{hotel.nome}</Text>
-              <TouchableOpacity style={styles.closeButton} onPress={onClose}>
-                <MaterialIcons name="close" size={28} color="#333" />
-              </TouchableOpacity>
-            </View>
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+        <SafeAreaView style={styles.safeArea}>
+          <StatusBar barStyle="light-content" backgroundColor="rgba(0,0,0,0.5)" />
+          
+          <View style={styles.modalContainer}>
+            <View style={styles.modalContent}>
+              {/* Header */}
+              <View style={styles.modalHeader}>
+                <Text style={styles.modalTitle}>{hotel.nome}</Text>
+                <TouchableOpacity style={styles.closeButton} onPress={onClose}>
+                  <MaterialIcons name="close" size={28} color="#333" />
+                </TouchableOpacity>
+              </View>
 
-            <ScrollView style={styles.scrollContent} showsVerticalScrollIndicator={false}>
-              {/* Imagens */}
-              <View style={styles.imageContainer}>
-                <ScrollView
-                  ref={imageScrollViewRef}
-                  horizontal
-                  pagingEnabled
-                  showsHorizontalScrollIndicator={false}
-                  onScroll={handleScroll}
-                  scrollEventThrottle={16}
-                >
-                  {hotel.imagens && Array.isArray(hotel.imagens) && hotel.imagens.length > 0 ? (
-                    hotel.imagens.map((image, index) => (
-                      <Image
-                        key={index}
-                        source={{ uri: image }}
-                        style={styles.hotelImage}
-                      />
-                    ))
-                  ) : (
-                    <View style={styles.noImageContainer}>
-                      <MaterialIcons name="image-not-supported" size={60} color="#ddd" />
-                      <Text style={styles.noImageText}>Imagens não disponíveis</Text>
+              <ScrollView style={styles.scrollContent} showsVerticalScrollIndicator={false}>
+                {/* Imagens */}
+                <View style={styles.imageContainer}>
+                  <ScrollView
+                    ref={imageScrollViewRef}
+                    horizontal
+                    pagingEnabled
+                    showsHorizontalScrollIndicator={false}
+                    onScroll={handleScroll}
+                    scrollEventThrottle={16}
+                  >
+                    {hotel.imagens && Array.isArray(hotel.imagens) && hotel.imagens.length > 0 ? (
+                      hotel.imagens.map((image, index) => (
+                        <Image
+                          key={index}
+                          source={{ uri: image }}
+                          style={styles.hotelImage}
+                        />
+                      ))
+                    ) : (
+                      <View style={styles.noImageContainer}>
+                        <MaterialIcons name="image-not-supported" size={60} color="#ddd" />
+                        <Text style={styles.noImageText}>Imagens não disponíveis</Text>
+                      </View>
+                    )}
+                  </ScrollView>
+                  
+                  {/* Indicadores de imagem */}
+                  {hotel.imagens && Array.isArray(hotel.imagens) && hotel.imagens.length > 0 && (
+                    <View style={styles.imageDotContainer}>
+                      {hotel.imagens.map((_, index) => renderImageDot(index))}
                     </View>
                   )}
-                </ScrollView>
-                
-                {/* Indicadores de imagem */}
-                {hotel.imagens && Array.isArray(hotel.imagens) && hotel.imagens.length > 0 && (
-                  <View style={styles.imageDotContainer}>
-                    {hotel.imagens.map((_, index) => renderImageDot(index))}
-                  </View>
-                )}
-              </View>
-
-              {/* Rating e Preço */}
-              <View style={styles.detailsHeader}>
-                <View style={styles.ratingContainer}>
-                  {Array.from({ length: 5 }).map((_, i) => renderStar(i, hotel.avaliacao))}
                 </View>
-                <View style={styles.priceTag}>
-                  <Text style={styles.priceLabel}>Diária</Text>
-                  <Text style={styles.priceValue}>R$ {parseFloat(hotel.preco_diaria).toFixed(2)}</Text>
-                </View>
-              </View>
 
-              {/* Descrição */}
-              <View style={styles.sectionContainer}>
-                <Text style={styles.sectionTitle}>Descrição</Text>
-                <Text style={styles.descriptionText}>{hotel.descricao}</Text>
-              </View>
-
-              {/* Amenidades */}
-              <View style={styles.sectionContainer}>
-                <Text style={styles.sectionTitle}>O que a hospedagem oferece</Text>
-                <View style={styles.amenitiesContainer}>
-                  {renderAmenity("ac-unit", "Ar-condicionado")}
-                  {renderAmenity("pool", "Piscina")}
-                  {renderAmenity("tv", "TV a cabo")}
-                  {renderAmenity("wifi", "Wi-Fi")}
-                </View>
-              </View>
-
-              {/* Botão Reservar */}
-              <TouchableOpacity
-                style={styles.reserveButton}
-                onPress={() => setModalReservaVisible(true)}
-              >
-                <Text style={styles.reserveButtonText}>Reservar</Text>
-              </TouchableOpacity>
-            </ScrollView>
-          </View>
-        </View>
-
-        {/* Modal de Reserva */}
-        <Modal visible={modalReservaVisible} animationType="slide" transparent>
-          <View style={styles.reserveModalContainer}>
-            <View style={styles.reserveModalContent}>
-              <View style={styles.reserveModalHeader}>
-                <Text style={styles.reserveModalTitle}>Reservar Hospedagem</Text>
-                <TouchableOpacity 
-                  style={styles.reserveCloseButton} 
-                  onPress={() => setModalReservaVisible(false)}
-                >
-                  <MaterialIcons name="close" size={24} color="#333" />
-                </TouchableOpacity>
-              </View>
-
-              <View style={styles.hotelInfoCard}>
-                <Text style={styles.hotelInfoName}>{hotel.nome}</Text>
-                <View style={styles.hotelInfoDetails}>
-                  <View style={styles.infoRating}>
+                {/* Rating e Preço */}
+                <View style={styles.detailsHeader}>
+                  <View style={styles.ratingContainer}>
                     {Array.from({ length: 5 }).map((_, i) => renderStar(i, hotel.avaliacao))}
                   </View>
-                  <Text style={styles.hotelInfoPrice}>
-                    R$ {parseFloat(hotel.preco_diaria).toFixed(2)} /noite
-                  </Text>
-                </View>
-              </View>
-
-              <View style={styles.dateInputSection}>
-                <Text style={styles.dateInputTitle}>Selecione as datas</Text>
-                
-                <View style={styles.dateInput}>
-                  <Text style={styles.dateInputLabel}>Data de check-in</Text>
-                  <View style={styles.dateInputContainer}>
-                    <MaterialIcons name="event" size={20} color="#666" style={styles.dateInputIcon} />
-                    <TextInput
-                      style={styles.dateInputField}
-                      value={dataEntrada}
-                      onChangeText={(text) => formatarDataInput(text, setDataEntrada)}
-                      placeholder="DD/MM/AAAA"
-                      placeholderTextColor="#999"
-                      keyboardType="numeric"
-                      maxLength={10}
-                    />
+                  <View style={styles.priceTag}>
+                    <Text style={styles.priceLabel}>Diária</Text>
+                    <Text style={styles.priceValue}>R$ {parseFloat(hotel.preco_diaria).toFixed(2)}</Text>
                   </View>
                 </View>
 
-                <View style={styles.dateInput}>
-                  <Text style={styles.dateInputLabel}>Data de check-out</Text>
-                  <View style={styles.dateInputContainer}>
-                    <MaterialIcons name="event" size={20} color="#666" style={styles.dateInputIcon} />
-                    <TextInput
-                      style={styles.dateInputField}
-                      value={dataSaida}
-                      onChangeText={(text) => formatarDataInput(text, setDataSaida)}
-                      placeholder="DD/MM/AAAA"
-                      placeholderTextColor="#999"
-                      keyboardType="numeric"
-                      maxLength={10}
-                    />
+                {/* Descrição */}
+                <View style={styles.sectionContainer}>
+                  <Text style={styles.sectionTitle}>Descrição</Text>
+                  <Text style={styles.descriptionText}>{hotel.descricao}</Text>
+                </View>
+
+                {/* Amenidades */}
+                <View style={styles.sectionContainer}>
+                  <Text style={styles.sectionTitle}>O que a hospedagem oferece</Text>
+                  <View style={styles.amenitiesContainer}>
+                    {renderAmenity("ac-unit", "Ar-condicionado")}
+                    {renderAmenity("pool", "Piscina")}
+                    {renderAmenity("tv", "TV a cabo")}
+                    {renderAmenity("wifi", "Wi-Fi")}
                   </View>
                 </View>
-              </View>
 
-              {diasEstadia && (
-                <View style={styles.priceSummary}>
-                  <View style={styles.summaryRow}>
-                    <Text style={styles.summaryLabel}>Valor da diária</Text>
-                    <Text style={styles.summaryValue}>R$ {parseFloat(hotel.preco_diaria).toFixed(2)}</Text>
-                  </View>
-                  <View style={styles.summaryRow}>
-                    <Text style={styles.summaryLabel}>Número de diárias</Text>
-                    <Text style={styles.summaryValue}>{diasEstadia}</Text>
-                  </View>
-                  <View style={styles.summaryDivider} />
-                  <View style={styles.summaryRow}>
-                    <Text style={styles.totalLabel}>Valor total</Text>
-                    <Text style={styles.totalValue}>R$ {valorTotal}</Text>
-                  </View>
-                </View>
-              )}
-
-              <View style={styles.reserveButtonsContainer}>
-                <TouchableOpacity 
-                  style={styles.cancelButton} 
-                  onPress={() => setModalReservaVisible(false)}
+                {/* Botão Reservar */}
+                <TouchableOpacity
+                  style={styles.reserveButton}
+                  onPress={() => setModalReservaVisible(true)}
                 >
-                  <Text style={styles.cancelButtonText}>Cancelar</Text>
+                  <Text style={styles.reserveButtonText}>Reservar</Text>
                 </TouchableOpacity>
-                <TouchableOpacity 
-                  style={styles.confirmButton}
-                  onPress={reservarHotel}
-                >
-                  <Text style={styles.confirmButtonText}>Confirmar</Text>
-                </TouchableOpacity>
-              </View>
+              </ScrollView>
             </View>
           </View>
-        </Modal>
-      </SafeAreaView>
+
+          {/* Modal de Reserva */}
+          <Modal visible={modalReservaVisible} animationType="slide" transparent>
+            <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+              <View style={styles.reserveModalContainer}>
+                <View style={styles.reserveModalContent}>
+                  <View style={styles.reserveModalHeader}>
+                    <Text style={styles.reserveModalTitle}>Reservar Hospedagem</Text>
+                    <TouchableOpacity 
+                      style={styles.reserveCloseButton} 
+                      onPress={() => setModalReservaVisible(false)}
+                    >
+                      <MaterialIcons name="close" size={24} color="#333" />
+                    </TouchableOpacity>
+                  </View>
+
+                  <View style={styles.hotelInfoCard}>
+                    <Text style={styles.hotelInfoName}>{hotel.nome}</Text>
+                    <View style={styles.hotelInfoDetails}>
+                      <View style={styles.infoRating}>
+                        {Array.from({ length: 5 }).map((_, i) => renderStar(i, hotel.avaliacao))}
+                      </View>
+                      <Text style={styles.hotelInfoPrice}>
+                        R$ {parseFloat(hotel.preco_diaria).toFixed(2)} /noite
+                      </Text>
+                    </View>
+                  </View>
+
+                  <View style={styles.dateInputSection}>
+                    <Text style={styles.dateInputTitle}>Selecione as datas</Text>
+                    
+                    <View style={styles.dateInput}>
+                      <Text style={styles.dateInputLabel}>Data de check-in</Text>
+                      <View style={styles.dateInputContainer}>
+                        <MaterialIcons name="event" size={20} color="#666" style={styles.dateInputIcon} />
+                        <TextInput
+                          style={styles.dateInputField}
+                          value={dataEntrada}
+                          onChangeText={(text) => formatarDataInput(text, setDataEntrada)}
+                          placeholder="DD/MM/AAAA"
+                          placeholderTextColor="#999"
+                          keyboardType="numeric"
+                          maxLength={10}
+                        />
+                      </View>
+                    </View>
+
+                    <View style={styles.dateInput}>
+                      <Text style={styles.dateInputLabel}>Data de check-out</Text>
+                      <View style={styles.dateInputContainer}>
+                        <MaterialIcons name="event" size={20} color="#666" style={styles.dateInputIcon} />
+                        <TextInput
+                          style={styles.dateInputField}
+                          value={dataSaida}
+                          onChangeText={(text) => formatarDataInput(text, setDataSaida)}
+                          placeholder="DD/MM/AAAA"
+                          placeholderTextColor="#999"
+                          keyboardType="numeric"
+                          maxLength={10}
+                        />
+                      </View>
+                    </View>
+                  </View>
+
+                  {diasEstadia && (
+                    <View style={styles.priceSummary}>
+                      <View style={styles.summaryRow}>
+                        <Text style={styles.summaryLabel}>Valor da diária</Text>
+                        <Text style={styles.summaryValue}>R$ {parseFloat(hotel.preco_diaria).toFixed(2)}</Text>
+                      </View>
+                      <View style={styles.summaryRow}>
+                        <Text style={styles.summaryLabel}>Número de diárias</Text>
+                        <Text style={styles.summaryValue}>{diasEstadia}</Text>
+                      </View>
+                      <View style={styles.summaryDivider} />
+                      <View style={styles.summaryRow}>
+                        <Text style={styles.totalLabel}>Valor total</Text>
+                        <Text style={styles.totalValue}>R$ {valorTotal}</Text>
+                      </View>
+                    </View>
+                  )}
+
+                  <View style={styles.reserveButtonsContainer}>
+                    <TouchableOpacity 
+                      style={styles.cancelButton} 
+                      onPress={() => setModalReservaVisible(false)}
+                    >
+                      <Text style={styles.cancelButtonText}>Cancelar</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity 
+                      style={styles.confirmButton}
+                      onPress={reservarHotel}
+                    >
+                      <Text style={styles.confirmButtonText}>Confirmar</Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              </View>
+            </TouchableWithoutFeedback>
+          </Modal>
+        </SafeAreaView>
+      </TouchableWithoutFeedback>
     </Modal>
   );
 };
@@ -540,7 +546,6 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   
-
   reserveModalContainer: {
     flex: 1,
     justifyContent: 'center',

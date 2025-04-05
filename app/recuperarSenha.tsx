@@ -1,9 +1,17 @@
+import {
+  Alert,
+  Image,
+  Keyboard,
+  StyleSheet,
+  Text,
+  TouchableWithoutFeedback,
+  View
+} from "react-native";
 import React, { useState } from "react";
-import { Alert, Image, StyleSheet, Text, View } from "react-native";
-import { useNavigation } from "@react-navigation/native";
 
 import Button from "../components/Button";
 import Input from "../components/Input";
+import { useNavigation } from "@react-navigation/native";
 
 export default function RecuperarSenha() {
   const navigation = useNavigation();
@@ -52,29 +60,31 @@ export default function RecuperarSenha() {
   };
 
   return (
-    <View style={styles.container}>
-      <View style={styles.containerLogo}>
-        <Image
-          source={require("../assets/images/logo.png")}
-          style={styles.logo}
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+      <View style={styles.container}>
+        <View style={styles.containerLogo}>
+          <Image
+            source={require("../assets/images/logo.png")}
+            style={styles.logo}
+          />
+        </View>
+
+        <Text style={styles.titulo}>Recuperar senha</Text>
+        <Text style={styles.descricao}>
+          Coloque seu endereço de e-mail para receber o link de alteração de
+          senha.
+        </Text>
+
+        <Input
+          label="Digite Seu endereço de Email:"
+          placeholder="email@example.com"
+          value={email}
+          onChange={setEmail}
         />
+
+        <Button label={"Enviar"} onPress={enviarPressionado} />
       </View>
-
-      <Text style={styles.titulo}>Recuperar senha</Text>
-      <Text style={styles.descricao}>
-        Coloque seu endereço de e-mail para receber o link de alteração de
-        senha.
-      </Text>
-
-      <Input
-        label="Digite Seu endereço de Email:"
-        placeholder="email@example.com"
-        value={email}
-        onChange={setEmail}
-      />
-
-      <Button label={"Enviar"} onPress={enviarPressionado} />
-    </View>
+    </TouchableWithoutFeedback>
   );
 }
 

@@ -1,4 +1,14 @@
-import { ActivityIndicator, Alert, Image, StatusBar, StyleSheet, Text, View } from "react-native";
+import {
+  ActivityIndicator,
+  Alert,
+  Image,
+  Keyboard,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TouchableWithoutFeedback,
+  View
+} from "react-native";
 import React, { useState } from "react";
 
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -90,32 +100,34 @@ export default function Index() {
   return (
     <>
       <StatusBar barStyle="dark-content" backgroundColor="#FDD5E9" translucent={false} />
-      <View style={styles.container}>
-        <View style={styles.logoContainer}>
-          <Image source={require("../assets/images/logo.png")} style={styles.logo} />
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+        <View style={styles.container}>
+          <View style={styles.logoContainer}>
+            <Image source={require("../assets/images/logo.png")} style={styles.logo} />
+          </View>
+
+          <Input label="Digite seu Email:" placeholder="email@gmail.com" onChange={setEmail} value={email} />
+          <Input label="Digite sua Senha:" placeholder="*******" secureTextEntry value={senha} onChange={setSenha} />
+
+          <View style={styles.ContainerRecPass}>
+            <Link href="/recuperarSenha" style={styles.link}>Esqueceu a senha?</Link>
+          </View>
+
+          {loading ? (
+            <ActivityIndicator size="large" color="#FF3366" />
+          ) : (
+            <Button label="Continuar" onPress={continuarPressionado} disabled={loading} />
+          )}
+
+          <Text style={styles.textContainer}>
+            Não tem uma conta? <Link href="/cadastro" style={styles.link}>Cadastre-se aqui</Link>
+          </Text>
+
+          <Text style={styles.termsText}>
+            Ao criar uma conta, você concorda com a nossa <Text style={styles.link}>Política de privacidade</Text> e os nossos <Text style={styles.link}>Termos de uso</Text>.
+          </Text>
         </View>
-
-        <Input label="Digite seu Email:" placeholder="email@gmail.com" onChange={setEmail} value={email} />
-        <Input label="Digite sua Senha:" placeholder="*******" secureTextEntry value={senha} onChange={setSenha} />
-
-        <View style={styles.ContainerRecPass}>
-          <Link href="/recuperarSenha" style={styles.link}>Esqueceu a senha?</Link>
-        </View>
-
-        {loading ? (
-          <ActivityIndicator size="large" color="#FF3366" />
-        ) : (
-          <Button label="Continuar" onPress={continuarPressionado} disabled={loading} />
-        )}
-
-        <Text style={styles.textContainer}>
-          Não tem uma conta? <Link href="/cadastro" style={styles.link}>Cadastre-se aqui</Link>
-        </Text>
-
-        <Text style={styles.termsText}>
-          Ao criar uma conta, você concorda com a nossa <Text style={styles.link}>Política de privacidade</Text> e os nossos <Text style={styles.link}>Termos de uso</Text>.
-        </Text>
-      </View>
+      </TouchableWithoutFeedback>
     </>
   );
 }
