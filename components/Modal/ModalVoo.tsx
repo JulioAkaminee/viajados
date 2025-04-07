@@ -150,7 +150,7 @@ const ModalVoo = ({ visible, voo, onClose }) => {
   return (
     <Modal
       visible={visible}
-      animationType="slide"
+      animationType="fade"
       transparent
       statusBarTranslucent
     >

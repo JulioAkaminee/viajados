@@ -49,7 +49,7 @@ export default function BannerVoo({
             <MaterialIcons
               name={favorito ? "favorite" : "favorite-border"}
               size={22}
-              color={favorito ? "#D6005D" : "#FFFFFF"}
+              color={favorito ? "#D6005D" : "#D6005D"}
             />
           )}
         </Pressable>
@@ -100,7 +100,7 @@ const styles = StyleSheet.create({
     position: "absolute",
     top: 12,
     right: 12,
-    backgroundColor: "rgba(0,0,0,0.3)",
+    backgroundColor: "white",
     borderRadius: 20,
     padding: 8,
     zIndex: 1,

@@ -61,12 +61,12 @@ export default function BannerHotel({
           disabled={isLoading}
         >
           {isLoading ? (
-            <ActivityIndicator size="small" color="#D6005D" />
+            <ActivityIndicator size="large" color="#D6005D" />
           ) : (
             <MaterialIcons
               name={isFavorito ? "favorite" : "favorite-border"}
               size={22}
-              color={isFavorito ? "#D6005D" : "#FFFFFF"}
+              color={isFavorito ? "#D6005D" : "#D6005D"}
             />
           )}
         </Pressable>
@@ -119,7 +119,7 @@ const styles = StyleSheet.create({
     position: "absolute",
     top: 12,
     right: 12,
-    backgroundColor: "rgba(0,0,0,0.3)",
+    backgroundColor: "white",
     borderRadius: 20,
     padding: 8,
     zIndex: 1,
@@ -127,6 +127,13 @@ const styles = StyleSheet.create({
     minHeight: 38,
     justifyContent: "center",
     alignItems: "center",
+    borderColor:"black",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+ 
   },
   precoTag: {
     position: "absolute",

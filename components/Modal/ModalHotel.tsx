@@ -289,7 +289,7 @@ const ModalHotel = ({ visible, hotel, onClose }) => {
           </View>
 
           {/* Modal de Reserva */}
-          <Modal visible={modalReservaVisible} animationType="slide" transparent>
+          <Modal visible={modalReservaVisible} animationType="fade" transparent>
             <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
               <View style={styles.reserveModalContainer}>
                 <View style={styles.reserveModalContent}>
