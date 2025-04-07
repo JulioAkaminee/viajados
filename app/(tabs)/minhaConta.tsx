@@ -27,6 +27,8 @@ import deslogar from "../../functions/deslogar";
 import { useNavigation } from "@react-navigation/native";
 import verificarToken from "../verificarToken";
 
+const defaultUserImage = require("../../assets/images/iconAccount.jpg");
+
 const formatarData = (dataISO) => {
   if (!dataISO) return "Não informado";
   const data = new Date(dataISO);
@@ -111,8 +113,7 @@ export default function MinhaConta() {
             data_nascimento: formatarData(data[0].data_nascimento),
             nacionalidade: data[0].nacionalidade || "Não informado",
             sexo: formatarSexo(data[0].sexo),
-            foto_usuario:
-              data[0].foto_usuario || "https://via.placeholder.com/150",
+            foto_usuario: data[0].foto_usuario || null, // null para usar a imagem padrão
           });
           setNovoNome(data[0].nome || "");
         } else {
@@ -302,11 +303,15 @@ export default function MinhaConta() {
           >
             <View style={styles.profileImageContainer}>
               <Image
-                source={{
-                  uri: usuario.foto_usuario.startsWith("data:")
-                    ? usuario.foto_usuario
-                    : `data:image/jpeg;base64,${usuario.foto_usuario}`,
-                }}
+                source={
+                  usuario.foto_usuario
+                    ? {
+                        uri: usuario.foto_usuario.startsWith("data:")
+                          ? usuario.foto_usuario
+                          : `data:image/jpeg;base64,${usuario.foto_usuario}`
+                      }
+                    : defaultUserImage
+                }
                 style={styles.profileImage}
               />
               <View style={styles.editProfileButton}>
@@ -364,13 +369,17 @@ export default function MinhaConta() {
                   activeOpacity={0.8}
                 >
                   <Image
-                    source={{
-                      uri: novaFoto
-                        ? `data:image/jpeg;base64,${novaFoto}`
-                        : usuario.foto_usuario.startsWith("data:")
-                        ? usuario.foto_usuario
-                        : `data:image/jpeg;base64,${usuario.foto_usuario}`,
-                    }}
+                    source={
+                      novaFoto
+                        ? { uri: `data:image/jpeg;base64,${novaFoto}` }
+                        : usuario.foto_usuario
+                        ? {
+                            uri: usuario.foto_usuario.startsWith("data:")
+                              ? usuario.foto_usuario
+                              : `data:image/jpeg;base64,${usuario.foto_usuario}`
+                          }
+                        : defaultUserImage
+                    }
                     style={styles.modalPhoto}
                   />
                   <View style={styles.photoOverlay}>

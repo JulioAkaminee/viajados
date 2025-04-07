@@ -66,7 +66,6 @@ export default function BannerVoo({
             <MaterialIcons name="flight" size={16} color="#666666" style={styles.iconeVoo} />
             <Text style={styles.destino}>{destino}</Text>
           </View>
-       
         </View>
         
         <View style={styles.rodape}>
@@ -79,23 +78,22 @@ export default function BannerVoo({
 
 const styles = StyleSheet.create({
   container: {
-    width: 280,
     borderRadius: 12,
     overflow: "hidden",
     backgroundColor: "#fff",
-    margin: 10,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
+    width: "100%", // Garante que o banner ocupe toda a largura do pai
   },
   imagemContainer: {
     position: "relative",
     height: 180,
   },
   imagem: {
-    width: "100%",
+    width: "100%", // Garante que a imagem ocupe toda a largura
     height: "100%",
   },
   iconeFavorito: {

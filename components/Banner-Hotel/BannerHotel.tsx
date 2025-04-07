@@ -97,11 +97,10 @@ export default function BannerHotel({
 
 const styles = StyleSheet.create({
   container: {
-    width: 280,
+    width: "100%",
     borderRadius: 12,
     overflow: "hidden",
     backgroundColor: "#fff",
-    margin: 10,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,

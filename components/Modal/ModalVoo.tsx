@@ -29,7 +29,7 @@ const ModalVoo = ({ visible, voo, onClose }) => {
   const imageScrollViewRef = useRef(null);
 
   if (!visible || !voo) return null;
-  console.log("Data digitada pelo usuário:", dataReserva);
+  
 
   const reservarVoo = async () => {
     try {

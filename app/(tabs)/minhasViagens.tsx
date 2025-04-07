@@ -233,48 +233,64 @@ export default function MinhasViagens() {
         ) : (
           <>
             {opcaoSelecionada === "agendado" && tipoFiltro === "hoteis" && (
-              hospedagens
-                .filter((item) => item.status === "agendado")
-                .map((item) => (
-                  <BannerMinhasViagens
-                    key={item.idHospedagem}
-                    hotelData={item}
-                    onPress={() => console.log(`Detalhes do hotel: ${item.nome}`)}
-                  />
-                ))
+              hospedagens.filter((item) => item.status === "agendado").length > 0 ? (
+                hospedagens
+                  .filter((item) => item.status === "agendado")
+                  .map((item) => (
+                    <BannerMinhasViagens
+                      key={item.idHospedagem}
+                      hotelData={item}
+                      onPress={() => console.log(`Detalhes do hotel: ${item.nome}`)}
+                    />
+                  ))
+              ) : (
+                <Text style={styles.semItensTexto}>Nenhum hotel favoritado</Text>
+              )
             )}
             {opcaoSelecionada === "agendado" && tipoFiltro === "voos" && (
-              voos
-                .filter((item) => item.status === "agendado")
-                .map((item) => (
-                  <BannerMinhasViagensVoo
-                    key={item.idReserva}
-                    vooData={item}
-                    onPress={() => console.log(`Detalhes do voo: ${item.idReserva}`)}
-                  />
-                ))
+              voos.filter((item) => item.status === "agendado").length > 0 ? (
+                voos
+                  .filter((item) => item.status === "agendado")
+                  .map((item) => (
+                    <BannerMinhasViagensVoo
+                      key={item.idReserva}
+                      vooData={item}
+                      onPress={() => console.log(`Detalhes do voo: ${item.idReserva}`)}
+                    />
+                  ))
+              ) : (
+                <Text style={styles.semItensTexto}>Nenhum voo favoritado</Text>
+              )
             )}
             {opcaoSelecionada === "finalizado" && tipoFiltro === "hoteis" && (
-              hospedagens
-                .filter((item) => item.status === "finalizado")
-                .map((item) => (
-                  <BannerMinhasViagens
-                    key={item.idHospedagem}
-                    hotelData={item}
-                    onPress={() => console.log(`Detalhes do hotel: ${item.nome}`)}
-                  />
-                ))
+              hospedagens.filter((item) => item.status === "finalizado").length > 0 ? (
+                hospedagens
+                  .filter((item) => item.status === "finalizado")
+                  .map((item) => (
+                    <BannerMinhasViagens
+                      key={item.idHospedagem}
+                      hotelData={item}
+                      onPress={() => console.log(`Detalhes do hotel: ${item.nome}`)}
+                    />
+                  ))
+              ) : (
+                <Text style={styles.semItensTexto}>Nenhum hotel favoritado</Text>
+              )
             )}
             {opcaoSelecionada === "finalizado" && tipoFiltro === "voos" && (
-              voos
-                .filter((item) => item.status === "finalizado")
-                .map((item) => (
-                  <BannerMinhasViagensVoo
-                    key={item.idReserva}
-                    vooData={item}
-                    onPress={() => console.log(`Detalhes do voo: ${item.idReserva}`)}
-                  />
-                ))
+              voos.filter((item) => item.status === "finalizado").length > 0 ? (
+                voos
+                  .filter((item) => item.status === "finalizado")
+                  .map((item) => (
+                    <BannerMinhasViagensVoo
+                      key={item.idReserva}
+                      vooData={item}
+                      onPress={() => console.log(`Detalhes do voo: ${item.idReserva}`)}
+                    />
+                  ))
+              ) : (
+                <Text style={styles.semItensTexto}>Nenhum voo favoritado</Text>
+              )
             )}
           </>
         )}
@@ -337,5 +353,11 @@ const styles = StyleSheet.create({
   textoFiltro: {
     color: "#D6005D",
     fontWeight: "bold",
+  },
+  semItensTexto: {
+    textAlign: "center",
+    color: "#666",
+    fontSize: 16,
+    marginTop: 20,
   },
 });

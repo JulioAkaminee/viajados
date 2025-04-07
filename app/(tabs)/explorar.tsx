@@ -6,6 +6,7 @@ import {
   StatusBar,
   StyleSheet,
   Text,
+  TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
@@ -34,6 +35,7 @@ export default function Explorar() {
   const [isLoading, setIsLoading] = useState(true);
   const [favoritandoIds, setFavoritandoIds] = useState({});
   const [notificacao, setNotificacao] = useState(null);
+  const [termoPesquisa, setTermoPesquisa] = useState(""); 
 
   const navigation = useNavigation();
 
@@ -175,14 +177,11 @@ export default function Explorar() {
         return;
       }
 
-    
       setIdUsuario(usuarioId);
 
-     
       const nome = await AsyncStorage.getItem("nome");
       if (nome) setNomeUsuario(nome);
 
- 
       const respostaUsuario = await fetch(
         `https://backend-viajados.vercel.app/api/alterardados/dadosusuario?idUsuario=${usuarioId}`,
         {
@@ -196,14 +195,12 @@ export default function Explorar() {
       if (respostaUsuario.ok) {
         const dadosUsuario = await respostaUsuario.json();
         if (dadosUsuario.length > 0) {
-          
           const nomeAtualizado = dadosUsuario[0].nome || "";
           if (nomeAtualizado && nomeAtualizado !== nomeUsuario) {
             await AsyncStorage.setItem("nome", nomeAtualizado);
             setNomeUsuario(nomeAtualizado);
           }
 
-    
           const foto = dadosUsuario[0].foto_usuario;
           setFotoUsuario(
             foto
@@ -230,13 +227,9 @@ export default function Explorar() {
         return;
       }
 
-      // Carrega dados do usuário
       await carregarDadosUsuario();
-
-      // Carrega favoritos
       await carregarFavoritos(token, usuarioId);
 
-      // Carrega hotéis
       const respostaHoteis = await fetch(
         "https://backend-viajados.vercel.app/api/hoteis",
         {
@@ -255,7 +248,6 @@ export default function Explorar() {
         );
       }
 
-      // Carrega voos
       const respostaVoos = await fetch(
         "https://backend-viajados.vercel.app/api/voos",
         {
@@ -278,7 +270,6 @@ export default function Explorar() {
     }
   };
 
-  // Usa useFocusEffect para recarregar os dados sempre que a tela for focada
   useFocusEffect(
     useCallback(() => {
       carregarDados();
@@ -287,6 +278,7 @@ export default function Explorar() {
 
   const opcaoPressionada = (opcao) => {
     setOpcaoSelecionada(opcao);
+    setTermoPesquisa("");
   };
 
   const bannerHotelPressionado = (hotel) => {
@@ -305,6 +297,21 @@ export default function Explorar() {
     const mes = String(data.getMonth() + 1).padStart(2, "0");
     const ano = data.getFullYear();
     return `${dia}/${mes}/${ano}`;
+  };
+
+  // Função para filtrar hotéis e voos
+  const filtrarDados = (dados, tipo) => {
+    if (!termoPesquisa) return dados;
+    return dados.filter((item) => {
+      if (tipo === "hoteis") {
+        return item.nome.toLowerCase().includes(termoPesquisa.toLowerCase());
+      } else {
+        return (
+          item.destino.toLowerCase().includes(termoPesquisa.toLowerCase()) ||
+          item.origem.toLowerCase().includes(termoPesquisa.toLowerCase())
+        );
+      }
+    });
   };
 
   return (
@@ -340,11 +347,11 @@ export default function Explorar() {
               source={
                 fotoUsuario
                   ? { uri: fotoUsuario }
-                  : require("../../assets/images/user-icon.png")
+                  : require("../../assets/images/iconAccount.jpg")
               }
               style={styles.avatar}
             />
-            <View style={{ marginTop:50}}>
+            <View style={{ marginTop: 50 }}>
               <Text style={styles.saudacao}>
                 Olá, {nomeUsuario || "Usuário"}
               </Text>
@@ -356,6 +363,19 @@ export default function Explorar() {
         <View style={styles.containerExplorar}>
           <Text style={styles.titulo}>Explorar</Text>
           <Text style={styles.subTitulo}>Descubra novos lugares</Text>
+
+          {/* Barra de pesquisa */}
+          <TextInput
+            style={styles.barraPesquisa}
+            placeholder={
+              opcaoSelecionada === "hoteis"
+                ? "Pesquisar hotéis..."
+                : "Pesquisar voos por origem ou destino..."
+            }
+            value={termoPesquisa}
+            onChangeText={setTermoPesquisa}
+          />
+
           <View style={styles.filtroBusca}>
             <Pressable
               style={[
@@ -367,8 +387,7 @@ export default function Explorar() {
               <Text
                 style={[
                   styles.textoFiltro,
-                  opcaoSelecionada === "hoteis" &&
-                    styles.textoFiltroSelecionado,
+                  opcaoSelecionada === "hoteis" && styles.textoFiltroSelecionado,
                 ]}
               >
                 Hotéis
@@ -391,45 +410,11 @@ export default function Explorar() {
               </Text>
             </Pressable>
           </View>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
+
+          <View
+          
             style={styles.carrossel}
           >
-            {opcaoSelecionada === "hoteis" && (
-              <>
-                {isLoading ? (
-                  <View style={styles.containerMensagem}>
-                    <ActivityIndicator size="large" color="#D6005D" />
-                    <Text style={styles.mensagem}>Carregando hotéis...</Text>
-                  </View>
-                ) : hoteis.length > 0 ? (
-                  hoteis.map((hotel, index) => (
-                    <BannerHotel
-                      key={`hotel_${hotel.idHoteis}_${index}`}
-                      imagem={
-                        hotel.imagens && hotel.imagens[0]
-                          ? { uri: hotel.imagens[0] }
-                          : require("../../assets/images/defaultImage.jpg")
-                      }
-                      nome={hotel.nome || "Hotel sem nome"}
-                      descricao={hotel.descricao || "Sem descrição"}
-                      avaliacao={hotel.avaliacao || 0}
-                      preco={hotel.preco_diaria || "Preço não disponível"}
-                      onPress={() => bannerHotelPressionado(hotel)}
-                      favorito={favoritos[`hotel_${hotel.idHoteis}`] || false}
-                      onFavoritar={() =>
-                        toggleFavorito(hotel.idHoteis, "hotel")
-                      }
-                      isLoading={favoritandoIds[`hotel_${hotel.idHoteis}`]}
-                    />
-                  ))
-                ) : (
-                  <Text>Nenhum hotel disponível</Text>
-                )}
-              </>
-            )}
-
             {opcaoSelecionada === "voos" && (
               <>
                 {isLoading ? (
@@ -437,8 +422,8 @@ export default function Explorar() {
                     <ActivityIndicator size="large" color="#D6005D" />
                     <Text style={styles.mensagem}>Carregando voos...</Text>
                   </View>
-                ) : voos.length > 0 ? (
-                  voos.map((voo, index) => (
+                ) : filtrarDados(voos, "voos").length > 0 ? (
+                  filtrarDados(voos, "voos").map((voo, index) => (
                     <BannerVoo
                       key={`voo_${voo.idVoos}_${index}`}
                       imagem={
@@ -459,11 +444,44 @@ export default function Explorar() {
                     />
                   ))
                 ) : (
-                  <Text>Nenhum voo disponível</Text>
+                  <Text>Nenhum voo encontrado</Text>
                 )}
               </>
             )}
-          </ScrollView>
+            {opcaoSelecionada === "hoteis" && (
+              <>
+                {isLoading ? (
+                  <View style={styles.containerMensagem}>
+                    <ActivityIndicator size="large" color="#D6005D" />
+                    <Text style={styles.mensagem}>Carregando hotéis...</Text>
+                  </View>
+                ) : filtrarDados(hoteis, "hoteis").length > 0 ? (
+                  filtrarDados(hoteis, "hoteis").map((hotel, index) => (
+                    <BannerHotel
+                      key={`hotel_${hotel.idHoteis}_${index}`}
+                      imagem={
+                        hotel.imagens && hotel.imagens[0]
+                          ? { uri: hotel.imagens[0] }
+                          : require("../../assets/images/defaultImage.jpg")
+                      }
+                      nome={hotel.nome || "Hotel sem nome"}
+                      descricao={hotel.descricao || "Sem descrição"}
+                      avaliacao={hotel.avaliacao || 0}
+                      preco={hotel.preco_diaria || "Preço não disponível"}
+                      onPress={() => bannerHotelPressionado(hotel)}
+                      favorito={favoritos[`hotel_${hotel.idHoteis}`] || false}
+                      onFavoritar={() => toggleFavorito(hotel.idHoteis, "hotel")}
+                      isLoading={favoritandoIds[`hotel_${hotel.idHoteis}`]}
+                    />
+                  ))
+                ) : (
+                  <Text>Nenhum hotel encontrado</Text>
+                )}
+              </>
+            )}
+
+            
+          </View>
         </View>
       </ScrollView>
     </>
@@ -502,18 +520,18 @@ const styles = StyleSheet.create({
     height: 50,
     marginRight: 10,
     borderRadius: 25,
-    marginTop:45
+    marginTop: 50,
   },
   saudacao: {
     fontSize: 18,
     fontWeight: "bold",
-   
   },
   texto: {
     fontSize: 14,
   },
   containerExplorar: {
     marginVertical: 20,
+  
   },
   titulo: {
     fontSize: 22,
@@ -523,6 +541,14 @@ const styles = StyleSheet.create({
   subTitulo: {
     fontSize: 16,
     marginBottom: 15,
+  },
+  barraPesquisa: {
+    borderRadius: 20,
+    paddingHorizontal: 15,
+    marginBottom: 15,
+    backgroundColor: "#fff",
+    fontSize: 16,
+ 
   },
   filtroBusca: {
     flexDirection: "row",
@@ -546,12 +572,20 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
   carrossel: {
-    flexDirection: "row",
-    marginBottom: 13,
+    display:"flex",
+    flexDirection: "column",
+    marginBottom: 13, 
+    width:"100%",
+    justifyContent:"center",
+    alignContent:'center',
+    gap:15
   },
   containerMensagem: {
-    marginTop: 90,
-    marginLeft: 110,
+  width:"100%",
+  display:"flex",
+  justifyContent:"center",
+  marginTop:50
+  
   },
   mensagem: {
     fontSize: 16,
