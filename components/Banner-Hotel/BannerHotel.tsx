@@ -61,7 +61,7 @@ export default function BannerHotel({
           disabled={isLoading}
         >
           {isLoading ? (
-            <ActivityIndicator size="large" color="#D6005D" />
+            <ActivityIndicator size="small" color="#D6005D" />
           ) : (
             <MaterialIcons
               name={isFavorito ? "favorite" : "favorite-border"}

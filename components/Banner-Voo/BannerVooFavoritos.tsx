@@ -7,7 +7,6 @@ import {
   Text,
   View,
 } from "react-native";
-import React, { useState } from "react";
 
 import { MaterialIcons } from "@expo/vector-icons";
 
@@ -32,11 +31,8 @@ export default function BannerVooFavoritos({
   onDesfavoritar,
   isLoading = false,
 }: Props) {
-  const [favorito, setFavorito] = useState(true);
-
   const handleDesfavoritar = () => {
     if (!isLoading) {
-      setFavorito(false);
       onDesfavoritar();
     }
   };
@@ -58,9 +54,9 @@ export default function BannerVooFavoritos({
               <ActivityIndicator size="small" color="#D6005D" />
             ) : (
               <MaterialIcons
-                name={favorito ? "favorite" : "favorite-border"}
+                name="favorite" 
                 size={20}
-                color={favorito ? "#D6005D" : "#666666"}
+                color="#D6005D"
               />
             )}
           </Pressable>
