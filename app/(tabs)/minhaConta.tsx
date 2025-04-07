@@ -15,7 +15,7 @@ import {
   TextInput,
   TouchableOpacity,
   TouchableWithoutFeedback,
-  View
+  View,
 } from "react-native";
 import { FontAwesome5, Ionicons, MaterialIcons } from "@expo/vector-icons";
 import React, { useEffect, useState } from "react";
@@ -40,7 +40,7 @@ const formatarData = (dataISO) => {
 
 const formatarCPF = (cpf) => {
   if (!cpf || cpf.length !== 11) return "Não informado";
-  return cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4");
+  return cpf.replace(/(\d unità{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4");
 };
 
 const formatarSexo = (sexo) => {
@@ -62,6 +62,7 @@ export default function MinhaConta() {
   const [novaFoto, setNovaFoto] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [confirmDeleteModal, setConfirmDeleteModal] = useState(false);
+  const [configModalVisivel, setConfigModalVisivel] = useState(false); // Novo estado para o modal de configurações
 
   const handleLogout = () => {
     Alert.alert("Sair da conta", "Tem certeza que deseja sair?", [
@@ -72,6 +73,7 @@ export default function MinhaConta() {
 
   const handleDelete = () => {
     setConfirmDeleteModal(true);
+    setConfigModalVisivel(false); // Fecha o modal de configurações ao abrir o de confirmação
   };
 
   const confirmDelete = () => {
@@ -113,7 +115,7 @@ export default function MinhaConta() {
             data_nascimento: formatarData(data[0].data_nascimento),
             nacionalidade: data[0].nacionalidade || "Não informado",
             sexo: formatarSexo(data[0].sexo),
-            foto_usuario: data[0].foto_usuario || null, // null para usar a imagem padrão
+            foto_usuario: data[0].foto_usuario || null,
           });
           setNovoNome(data[0].nome || "");
         } else {
@@ -288,6 +290,12 @@ export default function MinhaConta() {
         {/* Header */}
         <View style={styles.header}>
           <TouchableOpacity
+            style={styles.configButton} // Novo botão de configurações
+            onPress={() => setConfigModalVisivel(true)}
+          >
+            <MaterialIcons name="settings" size={28} color="#D6005D" />
+          </TouchableOpacity>
+          <TouchableOpacity
             style={styles.logoutButton}
             onPress={handleLogout}
           >
@@ -332,16 +340,7 @@ export default function MinhaConta() {
           </View>
         </View>
         
-        {/* Account Actions */}
-        <View style={styles.accountActions}>
-          <TouchableOpacity
-            style={styles.deleteButton}
-            onPress={handleDelete}
-          >
-            <MaterialIcons name="delete-outline" size={22} color="#D6005D" />
-            <Text style={styles.deleteButtonText}>Excluir Conta</Text>
-          </TouchableOpacity>
-        </View>
+
         
         {/* Edit Profile Modal */}
         <Modal
@@ -409,6 +408,36 @@ export default function MinhaConta() {
               </View>
             </View>
           </TouchableWithoutFeedback>
+        </Modal>
+        
+        {/* Config Modal */}
+        <Modal
+          visible={configModalVisivel}
+          animationType="slide"
+          transparent={true}
+          statusBarTranslucent={true}
+        >
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContent}>
+              <View style={styles.modalHeader}>
+                <Text style={styles.modalTitle}>Configurações</Text>
+                <TouchableOpacity
+                  style={styles.closeButton}
+                  onPress={() => setConfigModalVisivel(false)}
+                >
+                  <MaterialIcons name="close" size={28} color="#333" />
+                </TouchableOpacity>
+              </View>
+              
+              <TouchableOpacity
+                style={styles.deleteButtonModal}
+                onPress={handleDelete}
+              >
+                <MaterialIcons name="delete-outline" size={22} color="#D6005D" />
+                <Text style={styles.deleteButtonTextModal}>Excluir Conta</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
         </Modal>
         
         {/* Confirm Delete Modal */}
@@ -508,13 +537,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 15,
   },
-  headerTitle: {
-    fontSize: 22,
-    fontWeight: "700",
-    color: "#333",
-  },
   logoutButton: {
     padding: 8,
+  },
+  configButton: { // Estilo do novo botão de configurações
+    padding: 8,
+    marginRight: 10, // Espaço entre o ícone de config e o logout
   },
   
   // Profile Card
@@ -528,6 +556,7 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
+    marginTop:30
   },
   profileHeader: {
     padding: 20,
@@ -697,6 +726,25 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "700",
     textAlign: "center",
+  },
+  
+  // Config Modal
+  deleteButtonModal: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#FFF0F4",
+    borderWidth: 1,
+    borderColor: "#D6005D20",
+    paddingVertical: 12,
+    borderRadius: 10,
+    marginHorizontal: 20,
+    marginVertical: 20,
+  },
+  deleteButtonTextModal: {
+    color: "#D6005D",
+    fontWeight: "600",
+    marginLeft: 8,
   },
   
   // Confirm Delete Modal
