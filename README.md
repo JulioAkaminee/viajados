@@ -30,3 +30,11 @@ npm install
 ## Regras
 - Todo Commit feito no projeto será analisado pelo Tech Lead (Julio Akamine);
 - Não será aceito commit's fora da padronização do código
+
+## 👥 Contribuidores
+
+[![Contributors](https://contrib.rocks/image?repo=JulioAkaminee/viajados)](https://github.com/JulioAkaminee/viajados/graphs/contributors)
+
+
+
+
